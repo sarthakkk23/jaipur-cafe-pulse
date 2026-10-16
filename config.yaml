@@ -1,0 +1,47 @@
+# Jaipur Café Pulse — project config.
+# Three data layers, kept apart on disk:
+#   private/raw/      RAW: every source pull. Its own private git repo; never in this one.
+#   private/reports/  PER-VENUE: owner reports, delivered privately. Also private.
+#   data/public/      DERIVED AGGREGATES: the only layer the website reads.
+
+site:
+  title: "Jaipur Café Pulse"
+  tagline: "An independent, dated record of Jaipur's café scene."
+  areas: ["C-Scheme", "Malviya Nagar"]
+  author:
+    name: "Sarthak"          # TODO(Sarthak): full name as you want it shown
+    linkedin: ""             # TODO(Sarthak): https://www.linkedin.com/in/...
+    email: ""                # TODO(Sarthak): optional public contact address
+  base_url: "https://sarthakkk23.github.io/jaipur-cafe-pulse"
+
+publish:
+  # Any aggregate built from fewer venues than this is suppressed (shown as "fewer than N").
+  min_group_size: 10
+  # A venue may not hold more than this share of any published total.
+  max_single_venue_share: 0.25
+  # Venue names may appear on the site only through approved entries in content/kudos.yaml.
+  names_only_via_kudos: true
+  # false: the biweekly task stops at a draft for review. true: it builds and deploys.
+  auto_publish: false
+
+cadence:
+  every: "2 weeks"
+  weekday: "Monday"
+  time_ist: "11:00"
+
+# Collection modules. Each can be switched off with one line.
+# DECISION PENDING (spec 0.3): which platforms stay on for live runs.
+sources:
+  zomato: true
+  google_maps_ui: true
+  google_places_api: false   # live lookups only; never stored (Google terms)
+  swiggy: true
+  magicpin: true
+  google_trends: true        # monthly
+  news_sweep: true           # monthly
+
+baseline:
+  snapshot_label: "2026-09"
+  captured_on: "2026-09-25"
+  dataset_xlsx: "private/raw/2026-09/FIG_Jaipur_Cafe_Dataset_2026-09_v2.xlsx"
+  research_xlsx: "private/raw/2026-09/FIG_Jaipur_Cafe_Market_Research_2026-09.xlsx"

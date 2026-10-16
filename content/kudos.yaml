@@ -1,0 +1,91 @@
+# The only place a café may be named on the public site.
+#
+# Rules (enforced by pipeline/check_publish.py):
+#   - Praise only, built from published facts (press, the café's own announcements)
+#     or a FIG visit. Never a platform rating, review count, price or rank.
+#   - Every entry has at least one source with a URL and a date.
+#   - approved: false entries appear only in draft builds. Sarthak flips them to
+#     true (with approved_on) after checking each fact against its source.
+#
+# These five were drafted from the September 2026 research workbook (labelled [Known]
+# there). Re-read each source before approving.
+
+entries:
+  - id: curious-life
+    name: "Curious Life Coffee Roasters"
+    area: "C-Scheme"
+    praise: >-
+      Roasting its own coffee in Jaipur since 2015, when its first café opened at Deer
+      Park. A second café followed on Sarojini Marg in December 2018, and the roastery
+      supplies other cafés too.
+    sources:
+      - publication: "Barista Magazine"
+        title: "A Guide to the Jaipur Coffee Scene"
+        url: "https://www.baristamagazine.com/a-guide-to-the-jaipur-coffee-scene/"
+        date: "2026-08"
+      - publication: "Scroll.in"
+        title: "An ex-Army man in Jaipur is making incredible specialty coffee"
+        url: "https://scroll.in/magazine/831086/an-ex-army-man-in-jaipur-is-making-incredible-specialty-coffee-thats-part-science-part-art"
+        date: "2017-03-28"
+    approved: false
+    approved_on: null
+
+  - id: alchemist
+    name: "Alchemist Coffee Company"
+    area: "C-Scheme"
+    praise: >-
+      A micro-roastery since 2018 that poured its first café cup in September 2019,
+      working only with Indian single-origin coffee.
+    sources:
+      - publication: "Barista Magazine"
+        title: "A Guide to the Jaipur Coffee Scene"
+        url: "https://www.baristamagazine.com/a-guide-to-the-jaipur-coffee-scene/"
+        date: "2026-08"
+    approved: false
+    approved_on: null
+
+  - id: coffee-sutra
+    name: "Coffee Sutra"
+    area: "Malviya Nagar"
+    praise: >-
+      Opened its third Jaipur café in Malviya Nagar in June 2025, with its own roastery
+      in-house, part of a homegrown coffee movement reaching beyond the café counter.
+    sources:
+      - publication: "Hospitality News"
+        title: "Coffee Sutra launches third café in Jaipur"
+        url: "https://hospitalitynews.in/news/coffee-sutra-opens-third-cafe-in-jaipur-elevates-indias-specialty-coffee-scene"
+        date: "2025-06-16"
+      - publication: "Deccan Chronicle"
+        title: "Jaipur's homegrown coffee movement brewing beyond the café"
+        url: "https://www.deccanchronicle.com/lifestyle/food/a-travellers-brew-dushyant-singhs-coffee-sutra-and-the-fifth-wave-culture-1918023"
+        date: "2025-11-19"
+    approved: false
+    approved_on: null
+
+  - id: midori
+    name: "Midori"
+    area: "C-Scheme"
+    praise: >-
+      Brought a coffee-and-matcha café to Jaipur in early 2026, just as Rajasthan's
+      interest in matcha took off.
+    sources:
+      - publication: "Barista Magazine"
+        title: "A Guide to the Jaipur Coffee Scene"
+        url: "https://www.baristamagazine.com/a-guide-to-the-jaipur-coffee-scene/"
+        date: "2026-08"
+    approved: false
+    approved_on: null
+
+  - id: cafe-nola
+    name: "Café Nola"
+    area: "Malviya Nagar"
+    praise: >-
+      Arrived in Jaipur in March 2026 with an all-day, food-led menu and a cold-foam
+      coffee programme built on Araku and Kerala beans.
+    sources:
+      - publication: "Indian Retailer"
+        title: "Café Nola enters Jaipur with all-day dining focus"
+        url: "https://www.indianretailer.com/news/cafe-nola-enters-jaipur-all-day-dining-focus"
+        date: "2026-03-27"
+    approved: false
+    approved_on: null

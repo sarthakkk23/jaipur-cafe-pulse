@@ -1,0 +1,945 @@
+{
+ "meta": {
+  "snapshot": "2026-09",
+  "captured_on": "2026-09-25",
+  "generated_at": "2026-10-16T23:44:34+00:00",
+  "areas": [
+   "C-Scheme",
+   "Malviya Nagar"
+  ],
+  "min_group_size": 10,
+  "base_population": "Operating core cafés (coffee-led, tea & chai, bakery, all-day café)",
+  "suppressed": [
+   {
+    "where": "price Tea & chai C-Scheme",
+    "n": 8
+   },
+   {
+    "where": "amenity rooftop",
+    "n": 9
+   },
+   {
+    "where": "amenity pet_friendly",
+    "n": 2
+   },
+   {
+    "where": "amenity live_music_or_entertainment",
+    "n": 4
+   }
+  ]
+ },
+ "insights": {
+  "scene": {
+   "venues_tracked": 953,
+   "core_operating": 506,
+   "by_area": {
+    "C-Scheme": 196,
+    "Malviya Nagar": 310
+   },
+   "by_type": {
+    "C-Scheme|Coffee-led": 61,
+    "C-Scheme|Tea & chai": 17,
+    "C-Scheme|Bakery": 30,
+    "C-Scheme|All-day café": 88,
+    "Malviya Nagar|Coffee-led": 76,
+    "Malviya Nagar|Tea & chai": 42,
+    "Malviya Nagar|Bakery": 48,
+    "Malviya Nagar|All-day café": 144
+   },
+   "independent_share": 95
+  },
+  "hours": {
+   "n": 199,
+   "source": "Zomato listed hours (first listed day)",
+   "by_type": {
+    "Coffee-led": {
+     "n": 64,
+     "open_by_8": 23,
+     "median_open": "10am"
+    },
+    "Tea & chai": {
+     "n": 26,
+     "open_by_8": 38,
+     "median_open": "9am"
+    },
+    "Bakery": {
+     "n": 36,
+     "open_by_8": 25,
+     "median_open": "9:45am"
+    },
+    "All-day café": {
+     "n": 73,
+     "open_by_8": 23,
+     "median_open": "10am"
+    }
+   },
+   "curve": {
+    "C-Scheme": {
+     "n": 73,
+     "points": [
+      [
+       360,
+       4
+      ],
+      [
+       390,
+       4
+      ],
+      [
+       420,
+       11
+      ],
+      [
+       450,
+       15
+      ],
+      [
+       480,
+       32
+      ],
+      [
+       510,
+       40
+      ],
+      [
+       540,
+       49
+      ],
+      [
+       570,
+       52
+      ],
+      [
+       600,
+       71
+      ],
+      [
+       630,
+       77
+      ],
+      [
+       660,
+       89
+      ],
+      [
+       690,
+       89
+      ],
+      [
+       720,
+       95
+      ],
+      [
+       750,
+       96
+      ],
+      [
+       780,
+       97
+      ],
+      [
+       810,
+       97
+      ],
+      [
+       840,
+       97
+      ],
+      [
+       870,
+       97
+      ],
+      [
+       900,
+       99
+      ],
+      [
+       930,
+       99
+      ],
+      [
+       960,
+       99
+      ],
+      [
+       990,
+       99
+      ],
+      [
+       1020,
+       100
+      ],
+      [
+       1050,
+       100
+      ],
+      [
+       1080,
+       97
+      ],
+      [
+       1110,
+       97
+      ],
+      [
+       1140,
+       96
+      ],
+      [
+       1170,
+       95
+      ],
+      [
+       1200,
+       92
+      ],
+      [
+       1230,
+       90
+      ],
+      [
+       1260,
+       86
+      ],
+      [
+       1290,
+       86
+      ],
+      [
+       1320,
+       75
+      ],
+      [
+       1350,
+       70
+      ],
+      [
+       1380,
+       32
+      ],
+      [
+       1410,
+       27
+      ],
+      [
+       1440,
+       5
+      ],
+      [
+       1470,
+       5
+      ],
+      [
+       1500,
+       3
+      ],
+      [
+       1530,
+       3
+      ],
+      [
+       1560,
+       1
+      ]
+     ]
+    },
+    "Malviya Nagar": {
+     "n": 126,
+     "points": [
+      [
+       360,
+       9
+      ],
+      [
+       390,
+       9
+      ],
+      [
+       420,
+       11
+      ],
+      [
+       450,
+       12
+      ],
+      [
+       480,
+       22
+      ],
+      [
+       510,
+       27
+      ],
+      [
+       540,
+       37
+      ],
+      [
+       570,
+       40
+      ],
+      [
+       600,
+       59
+      ],
+      [
+       630,
+       62
+      ],
+      [
+       660,
+       81
+      ],
+      [
+       690,
+       84
+      ],
+      [
+       720,
+       94
+      ],
+      [
+       750,
+       94
+      ],
+      [
+       780,
+       98
+      ],
+      [
+       810,
+       98
+      ],
+      [
+       840,
+       98
+      ],
+      [
+       870,
+       98
+      ],
+      [
+       900,
+       98
+      ],
+      [
+       930,
+       98
+      ],
+      [
+       960,
+       98
+      ],
+      [
+       990,
+       98
+      ],
+      [
+       1020,
+       99
+      ],
+      [
+       1050,
+       99
+      ],
+      [
+       1080,
+       98
+      ],
+      [
+       1110,
+       98
+      ],
+      [
+       1140,
+       99
+      ],
+      [
+       1170,
+       99
+      ],
+      [
+       1200,
+       98
+      ],
+      [
+       1230,
+       98
+      ],
+      [
+       1260,
+       98
+      ],
+      [
+       1290,
+       98
+      ],
+      [
+       1320,
+       86
+      ],
+      [
+       1350,
+       76
+      ],
+      [
+       1380,
+       48
+      ],
+      [
+       1410,
+       40
+      ],
+      [
+       1440,
+       5
+      ],
+      [
+       1470,
+       5
+      ],
+      [
+       1500,
+       3
+      ],
+      [
+       1530,
+       3
+      ],
+      [
+       1560,
+       2
+      ]
+     ]
+    }
+   },
+   "open_by_8": 26,
+   "open_by_9": 42,
+   "median_open": "10am",
+   "open_past_midnight": 5
+  },
+  "price": {
+   "source": "Zomato cost for two (₹, as listed)",
+   "cells": [
+    {
+     "type": "Coffee-led",
+     "area": "C-Scheme",
+     "n": 29,
+     "median": 850.0,
+     "p25": 600.0,
+     "p75": 1200.0
+    },
+    {
+     "type": "Coffee-led",
+     "area": "Malviya Nagar",
+     "n": 34,
+     "median": 600.0,
+     "p25": 400.0,
+     "p75": 700.0
+    },
+    {
+     "type": "Tea & chai",
+     "area": "C-Scheme",
+     "n": 8
+    },
+    {
+     "type": "Tea & chai",
+     "area": "Malviya Nagar",
+     "n": 16,
+     "median": 450.0,
+     "p25": 375.0,
+     "p75": 700.0
+    },
+    {
+     "type": "Bakery",
+     "area": "C-Scheme",
+     "n": 10,
+     "median": 450.0,
+     "p25": 262.5,
+     "p75": 637.5
+    },
+    {
+     "type": "Bakery",
+     "area": "Malviya Nagar",
+     "n": 15,
+     "median": 350.0,
+     "p25": 300.0,
+     "p75": 500.0
+    },
+    {
+     "type": "All-day café",
+     "area": "C-Scheme",
+     "n": 26,
+     "median": 725.0,
+     "p25": 562.5,
+     "p75": 1000.0
+    },
+    {
+     "type": "All-day café",
+     "area": "Malviya Nagar",
+     "n": 45,
+     "median": 500.0,
+     "p25": 400.0,
+     "p75": 950.0
+    }
+   ]
+  },
+  "attention": {
+   "source": "Google Maps review counts",
+   "by_area": {
+    "Both areas": {
+     "n": 392,
+     "deciles": [
+      66.4,
+      16.9,
+      7.6,
+      4.2,
+      2.4,
+      1.3,
+      0.7,
+      0.4,
+      0.2,
+      0.0
+     ],
+     "top10_share": 66,
+     "median_reviews": 85.0
+    },
+    "C-Scheme": {
+     "n": 158,
+     "deciles": [
+      59.6,
+      19.7,
+      8.4,
+      5.1,
+      3.3,
+      2.0,
+      1.1,
+      0.5,
+      0.2,
+      0.0
+     ],
+     "top10_share": 60,
+     "median_reviews": 178.5
+    },
+    "Malviya Nagar": {
+     "n": 234,
+     "deciles": [
+      71.2,
+      14.7,
+      6.4,
+      3.6,
+      1.8,
+      1.1,
+      0.7,
+      0.4,
+      0.2,
+      0.0
+     ],
+     "top10_share": 71,
+     "median_reviews": 50.0
+    }
+   }
+  },
+  "ratings": {
+   "source": "Google Maps rating and review count",
+   "buckets": [
+    {
+     "label": "Under 10",
+     "n": 56,
+     "share_48_plus": 66,
+     "median_rating": 5.0
+    },
+    {
+     "label": "10–49",
+     "n": 95,
+     "share_48_plus": 43,
+     "median_rating": 4.6
+    },
+    {
+     "label": "50–199",
+     "n": 88,
+     "share_48_plus": 31,
+     "median_rating": 4.6
+    },
+    {
+     "label": "200–999",
+     "n": 91,
+     "share_48_plus": 10,
+     "median_rating": 4.5
+    },
+    {
+     "label": "1,000+",
+     "n": 50,
+     "share_48_plus": 6,
+     "median_rating": 4.4
+    }
+   ]
+  },
+  "amenities": {
+   "source": "Zomato 'More info' highlights",
+   "n": 201,
+   "items": [
+    {
+     "key": "wifi",
+     "label": "Wi-Fi",
+     "n_yes": 36,
+     "share": 18,
+     "median_reviews_yes": 275.5,
+     "median_reviews_no": 6.0
+    },
+    {
+     "key": "work_friendly",
+     "label": "Work-friendly",
+     "n_yes": 26,
+     "share": 13,
+     "median_reviews_yes": 266.5,
+     "median_reviews_no": 8.0
+    },
+    {
+     "key": "outdoor_seating",
+     "label": "Outdoor seating",
+     "n_yes": 62,
+     "share": 31,
+     "median_reviews_yes": 120.5,
+     "median_reviews_no": 6.0
+    },
+    {
+     "key": "breakfast",
+     "label": "Breakfast",
+     "n_yes": 87,
+     "share": 43,
+     "median_reviews_yes": 47.0,
+     "median_reviews_no": 8.0
+    },
+    {
+     "key": "all_day_breakfast",
+     "label": "All-day breakfast",
+     "n_yes": 15,
+     "share": 7,
+     "median_reviews_yes": 444.0,
+     "median_reviews_no": 14.5
+    },
+    {
+     "key": "rooftop",
+     "label": "Rooftop",
+     "n_yes": null,
+     "share": null
+    },
+    {
+     "key": "board_games_or_books",
+     "label": "Board games or books",
+     "n_yes": 23,
+     "share": 11,
+     "median_reviews_yes": 444.0,
+     "median_reviews_no": 8.5
+    },
+    {
+     "key": "kid_friendly",
+     "label": "Kid-friendly",
+     "n_yes": 41,
+     "share": 20,
+     "median_reviews_yes": 496.0,
+     "median_reviews_no": 4.0
+    },
+    {
+     "key": "pet_friendly",
+     "label": "Pet-friendly",
+     "n_yes": null,
+     "share": null
+    },
+    {
+     "key": "live_music_or_entertainment",
+     "label": "Live music",
+     "n_yes": null,
+     "share": null
+    },
+    {
+     "key": "vegan_options",
+     "label": "Vegan options",
+     "n_yes": 16,
+     "share": 8,
+     "median_reviews_yes": 729.5,
+     "median_reviews_no": 13.0
+    },
+    {
+     "key": "gluten_free_options",
+     "label": "Gluten-free options",
+     "n_yes": 18,
+     "share": 9,
+     "median_reviews_yes": 280.0,
+     "median_reviews_no": 14.0
+    },
+    {
+     "key": "valet_parking",
+     "label": "Valet parking",
+     "n_yes": 15,
+     "share": 7,
+     "median_reviews_yes": 980.0,
+     "median_reviews_no": 13.0
+    }
+   ]
+  },
+  "platforms": {
+   "source": "FIG cross-platform match",
+   "shares": {
+    "Google Maps": 77,
+    "Zomato": 40,
+    "Swiggy": 15,
+    "magicpin": 14
+   }
+  },
+  "demand": {
+   "source": "Google Trends, Rajasthan (index within each query set)",
+   "sets": [
+    {
+     "query_set": "cafe|coffee|cafe near me@IN-RJ",
+     "series": [
+      {
+       "term": "coffee",
+       "points": [
+        [
+         2015,
+         20.8
+        ],
+        [
+         2016,
+         20.7
+        ],
+        [
+         2017,
+         24.9
+        ],
+        [
+         2018,
+         17.2
+        ],
+        [
+         2019,
+         17.4
+        ],
+        [
+         2020,
+         23.1
+        ],
+        [
+         2021,
+         28.7
+        ],
+        [
+         2022,
+         36.7
+        ],
+        [
+         2023,
+         38.4
+        ],
+        [
+         2024,
+         35.2
+        ],
+        [
+         2025,
+         42.0
+        ]
+       ],
+       "x2025_vs_2019": 2.4,
+       "low_base": false
+      },
+      {
+       "term": "cafe",
+       "points": [
+        [
+         2015,
+         18.4
+        ],
+        [
+         2016,
+         21.5
+        ],
+        [
+         2017,
+         30.7
+        ],
+        [
+         2018,
+         27.7
+        ],
+        [
+         2019,
+         30.1
+        ],
+        [
+         2020,
+         27.1
+        ],
+        [
+         2021,
+         48.1
+        ],
+        [
+         2022,
+         63.8
+        ],
+        [
+         2023,
+         70.3
+        ],
+        [
+         2024,
+         68.2
+        ],
+        [
+         2025,
+         63.5
+        ]
+       ],
+       "x2025_vs_2019": 2.1,
+       "low_base": false
+      }
+     ]
+    },
+    {
+     "query_set": "matcha|cold brew|specialty coffee@IN-RJ",
+     "series": [
+      {
+       "term": "matcha",
+       "points": [
+        [
+         2019,
+         4.8
+        ],
+        [
+         2020,
+         7.8
+        ],
+        [
+         2021,
+         10.5
+        ],
+        [
+         2022,
+         7.7
+        ],
+        [
+         2023,
+         9.2
+        ],
+        [
+         2024,
+         14.4
+        ],
+        [
+         2025,
+         42.9
+        ]
+       ],
+       "x2025_vs_2019": 8.9,
+       "low_base": false
+      },
+      {
+       "term": "cold brew",
+       "points": [
+        [
+         2019,
+         0.8
+        ],
+        [
+         2020,
+         1.5
+        ],
+        [
+         2021,
+         3.2
+        ],
+        [
+         2022,
+         2.9
+        ],
+        [
+         2023,
+         3.5
+        ],
+        [
+         2024,
+         1.8
+        ],
+        [
+         2025,
+         7.2
+        ]
+       ],
+       "x2025_vs_2019": null,
+       "low_base": true
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "tokens": {
+  "scene.venues_tracked": "953",
+  "scene.core_cafes": "506",
+  "scene.core.cs": "196",
+  "scene.core.mn": "310",
+  "scene.independent_share": "95%",
+  "hours.n": "199",
+  "hours.open_by_8": "26%",
+  "hours.open_by_9": "42%",
+  "hours.median_open": "10am",
+  "hours.open_past_midnight": "5%",
+  "hours.open_by_8.coffee": "23%",
+  "hours.median_open.coffee": "10am",
+  "hours.open_by_8.tea": "38%",
+  "hours.median_open.tea": "9am",
+  "hours.open_by_8.bakery": "25%",
+  "hours.median_open.bakery": "9:45am",
+  "hours.open_by_8.allday": "23%",
+  "hours.median_open.allday": "10am",
+  "price.coffee.cs": "₹850",
+  "price.coffee.mn": "₹600",
+  "price.tea.mn": "₹450",
+  "price.bakery.cs": "₹450",
+  "price.bakery.mn": "₹350",
+  "price.allday.cs": "₹725",
+  "price.allday.mn": "₹500",
+  "price.all.cs": "₹700",
+  "price.all.mn": "₹500",
+  "attention.top10_share.all": "66%",
+  "attention.median_reviews.all": "85",
+  "attention.bottom_half_share.all": "3%",
+  "attention.top10_share.cs": "60%",
+  "attention.median_reviews.cs": "178",
+  "attention.bottom_half_share.cs": "4%",
+  "attention.top10_share.mn": "71%",
+  "attention.median_reviews.mn": "50",
+  "attention.bottom_half_share.mn": "2%",
+  "ratings.share48.newest": "66%",
+  "ratings.share48.established": "6%",
+  "ratings.median.newest": "5.0",
+  "ratings.median.established": "4.4",
+  "amenities.n": "201",
+  "amenities.share.wifi": "18%",
+  "amenities.share.work_friendly": "13%",
+  "amenities.share.outdoor_seating": "31%",
+  "amenities.share.breakfast": "43%",
+  "amenities.share.all_day_breakfast": "7%",
+  "amenities.share.rooftop": "fewer than 10",
+  "amenities.share.board_games_or_books": "11%",
+  "amenities.share.kid_friendly": "20%",
+  "amenities.share.pet_friendly": "fewer than 10",
+  "amenities.share.live_music_or_entertainment": "fewer than 10",
+  "amenities.share.vegan_options": "8%",
+  "amenities.share.gluten_free_options": "9%",
+  "amenities.share.valet_parking": "7%",
+  "platforms.on_google": "77%",
+  "platforms.on_zomato": "40%",
+  "platforms.on_swiggy": "15%",
+  "platforms.on_magicpin": "14%",
+  "demand.coffee.multiple": "2.4×",
+  "demand.cafe.multiple": "2.1×",
+  "demand.matcha.multiple": "8.9×",
+  "demand.cold_brew.multiple": "—",
+  "meta.captured_on": "25 September 2026",
+  "meta.min_group_size": "10"
+ }
+}

@@ -1,0 +1,64 @@
+name: Site
+
+# Pull requests: run the publish gate and build a preview.
+# main: the same, then deploy to GitHub Pages.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Nothing private in this repo
+        run: |
+          # Raw pulls and per-venue data belong in the private data repo, never here.
+          bad=$(git ls-files | grep -E '^private/|\.(xlsx|xls|parquet|zip)$' || true)
+          if [ -n "$bad" ]; then echo "::error::private data committed:"; echo "$bad"; exit 1; fi
+          if git grep -nE 'FIG-(CS|MN)-[0-9]{4}' -- data/public content web; then
+            echo "::error::a venue ID appears in public files"; exit 1
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      # The venue-name scan needs the private master, so it runs on the refresh
+      # machine before every push. Here the gate checks everything else.
+      - name: Publish gate
+        run: python pipeline/check_publish.py --mode publish
+
+      - name: Build
+        run: python pipeline/build_site.py --mode publish
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

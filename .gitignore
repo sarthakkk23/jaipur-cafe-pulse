@@ -1,0 +1,12 @@
+# Layer 1 (raw) and layer 3 (per-venue) live in private/, a separate private repo.
+private/
+# Build output: CI rebuilds it for every deploy.
+dist/
+
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Local editor/agent settings
+.claude/

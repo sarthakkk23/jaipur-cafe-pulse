@@ -1,0 +1,192 @@
+# Site copy. Rewritten by Claude on every biweekly run, reviewed by Sarthak.
+#
+# Rules (enforced by pipeline/check_publish.py):
+#   - Every data value comes in as a {{token}} from data/public/insights_latest.json.
+#     No literal figures. Allowed literals: clock times that define a question
+#     ("8am"), years, "top 10%", and the 4.8 rating threshold.
+#   - A token that is suppressed or missing ("—") fails the build. Rewrite around it.
+#   - No café names here. Names live only in content/kudos.yaml, and only to praise.
+#   - Never criticise a café, an area or a type of café. Describe; don't rank people.
+#   - Say what the data can't tell you when it matters (correlation, listed vs real).
+
+written_for_snapshot: "2026-09"
+
+hero:
+  eyebrow: "Jaipur Café Pulse"
+  headline: "Jaipur's café scene, measured."
+  lede: >-
+    {{scene.core_cafes}} operating cafés across C-Scheme and Malviya Nagar, counted,
+    compared and re-measured every two weeks. Every figure here is an aggregate,
+    with its source and its date.
+
+highlights:
+  - value: "{{hours.open_by_8}}"
+    caption: "of cafés are serving by 8am. The morning is wide open."
+    link: "#mornings"
+  - value: "{{price.coffee.cs}} · {{price.coffee.mn}}"
+    caption: "Typical cost for two at a coffee-led café, C-Scheme and Malviya Nagar."
+    link: "#prices"
+  - value: "{{attention.top10_share.all}}"
+    caption: "of all Google reviews belong to the top 10% of cafés."
+    link: "#attention"
+  - value: "{{ratings.share48.newest}}"
+    caption: "of the newest cafés rate 4.8 or above. It settles as they grow."
+    link: "#ratings"
+  - value: "{{demand.matcha.multiple}}"
+    caption: "Rajasthan's search interest in matcha, 2025 against 2019."
+    link: "#demand"
+  - value: "{{scene.independent_share}}"
+    caption: "of the cafés we track are independent, not national chains."
+    link: "#makers"
+
+sections:
+  - id: mornings
+    nav: "Mornings"
+    eyebrow: "Opening hours"
+    headline: "The city wakes before its cafés do."
+    body:
+      - >-
+        Across the {{hours.n}} cafés that list their hours, the typical one opens at
+        {{hours.median_open}}. Only {{hours.open_by_8}} are serving by 8am, and
+        {{hours.open_by_9}} by 9am.
+      - >-
+        Chai cafés are the early risers: {{hours.open_by_8.tea}} open by 8am, against
+        {{hours.open_by_8.coffee}} of coffee-led cafés.
+    chart: hours_curve
+    takeaways:
+      owner: >-
+        If your kitchen can open early, the breakfast and commute hours have far fewer
+        cafés competing for them than the evening does.
+      planner: >-
+        A morning-first café starts with the thinnest field of the day. We measure who
+        is open, not who is buying, so morning demand is the thing to test on your street.
+
+  - id: prices
+    nav: "Prices"
+    eyebrow: "Prices"
+    headline: "Same cup, different street."
+    body:
+      - >-
+        A coffee-led café's typical cost for two is {{price.coffee.cs}} in C-Scheme and
+        {{price.coffee.mn}} in Malviya Nagar. All-day cafés follow the same pattern,
+        {{price.allday.cs}} against {{price.allday.mn}}.
+      - >-
+        Malviya Nagar's band sits lower for every café type we have enough listings to
+        measure.
+    chart: price_ranges
+    takeaways:
+      owner: >-
+        Price against your own street, not the city. The bars show the middle half of
+        each area's range, the band your regulars are used to.
+      planner: >-
+        Pick the area that fits the ticket size you need. The same concept is priced
+        differently a few kilometres apart.
+
+  - id: attention
+    nav: "Attention"
+    eyebrow: "Attention"
+    headline: "A few cafés hold most of the conversation."
+    body:
+      - >-
+        The top 10% of cafés hold {{attention.top10_share.all}} of all Google reviews.
+        The bottom half share {{attention.bottom_half_share.all}}.
+      - >-
+        The typical café has {{attention.median_reviews.all}} reviews:
+        {{attention.median_reviews.cs}} in C-Scheme and {{attention.median_reviews.mn}}
+        in Malviya Nagar.
+    chart: attention_deciles
+    takeaways:
+      owner: >-
+        Most cafés aren't competing with the famous few. They're in a long tail where
+        every new review counts for more, so a steady habit of asking happy guests is
+        worth more than it looks.
+      planner: >-
+        Expect your first year in the long tail. That's the normal starting point, not
+        a warning sign.
+
+  - id: ratings
+    nav: "Ratings"
+    eyebrow: "Ratings"
+    headline: "A rating that settles is usually a café that's growing."
+    body:
+      - >-
+        Among cafés with fewer than ten Google reviews, {{ratings.share48.newest}} rate
+        4.8 or higher. Among cafés with more than a thousand, {{ratings.share48.established}}
+        do, and the typical one sits at {{ratings.median.established}}.
+    chart: ratings_maturity
+    takeaways:
+      owner: >-
+        If your rating eases down from near-perfect as more people find you, you're on
+        the same path as the city's best-known cafés.
+      planner: >-
+        Read a new café's early rating gently, including your own. It moves most in the
+        first few hundred reviews.
+
+  - id: amenities
+    nav: "What cafés offer"
+    eyebrow: "What cafés offer"
+    headline: "What cafés make room for."
+    body:
+      - >-
+        Of the {{amenities.n}} cafés we can see on Zomato, {{amenities.share.breakfast}}
+        list breakfast and {{amenities.share.outdoor_seating}} list outdoor seating. Only
+        {{amenities.share.wifi}} list Wi-Fi, and {{amenities.share.work_friendly}} call
+        themselves work-friendly.
+      - >-
+        Rooftop, pet-friendly and live-music listings are each held by
+        {{amenities.share.pet_friendly}} cafés.
+    chart: amenities_bars
+    takeaways:
+      owner: >-
+        Cafés that list Wi-Fi, work-friendly seating or board games tend to carry far more
+        Zomato reviews. That's correlation, not proof, since established cafés also list
+        more, but it's a useful checklist.
+      planner: >-
+        Pet-friendly and live-music cafés are close to unclaimed on Zomato in both areas.
+
+  - id: demand
+    nav: "Demand"
+    eyebrow: "Demand"
+    headline: "Rajasthan is searching for coffee."
+    body:
+      - >-
+        Search interest in "coffee" across Rajasthan in 2025 was {{demand.coffee.multiple}}
+        its 2019 level, and "cafe" was {{demand.cafe.multiple}}. Matcha rose
+        {{demand.matcha.multiple}}.
+      - >-
+        Cold brew is climbing too, from a base too small to put a fair multiple on.
+    chart: demand_lines
+    takeaways:
+      owner: >-
+        Matcha is where curiosity is growing fastest. It's easy to test as a weekend
+        special before it earns a permanent place on the menu.
+      planner: >-
+        The category is growing state-wide, not only in the two areas we track.
+
+makers:
+  eyebrow: "Who built it"
+  headline: "Jaipur's coffee was built here."
+  lede: >-
+    {{scene.independent_share}} of the cafés we track are independent. A few of the
+    people and places that shaped the scene, as reported in the press.
+
+method:
+  eyebrow: "How this is made"
+  headline: "Sourced. Dated. Never guessed."
+  points:
+    - title: "Public listings, same method every time"
+      text: >-
+        Figures come from public café listings on Google Maps, Zomato, Swiggy and magicpin,
+        refreshed every two weeks with the same searches in the same areas.
+    - title: "Aggregates only"
+      text: >-
+        Every number describes a group of cafés. Any group smaller than
+        {{meta.min_group_size}} is hidden.
+    - title: "Names only to credit"
+      text: >-
+        A café is named only to credit it, from published press, and never next to a
+        rating, review count or price.
+    - title: "A blank beats a guess"
+      text: >-
+        Where we don't know, we say so. Review counts measure attention, not footfall,
+        revenue or profit.
