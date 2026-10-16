@@ -9,9 +9,10 @@ site:
   tagline: "An independent, dated record of Jaipur's café scene."
   areas: ["C-Scheme", "Malviya Nagar"]
   author:
-    name: "Sarthak"          # TODO(Sarthak): full name as you want it shown
-    linkedin: ""             # TODO(Sarthak): https://www.linkedin.com/in/...
-    email: ""                # TODO(Sarthak): optional public contact address
+    name: "Sarthak Oberoi"
+    linkedin: "https://www.linkedin.com/in/sarthak-oberoi-analyst/"
+    email: "sarthakoberoi12@gmail.com"
+    email_subject: "Jaipur Café Pulse"
   base_url: "https://sarthakkk23.github.io/jaipur-cafe-pulse"
 
 publish:

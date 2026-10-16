@@ -8,6 +8,7 @@ Usage: python pipeline/build_site.py [--mode draft|publish]
   publish : pending kudos left out; refuses to build if the publish gate fails
 """
 import argparse, html, json, re, shutil, sys
+from urllib.parse import quote
 from datetime import date
 from pathlib import Path
 
@@ -319,7 +320,7 @@ def build(mode):
         "demand_lines": (lambda: chart_demand(ins), "Google Trends, Rajasthan", "index 0–100 within each query set"),
     }
 
-    nav = [("overview", "Overview")] + [(s["id"], s["nav"]) for s in nar["sections"]] + [("makers", "Makers"), ("method", "Method")]
+    nav = [("overview", "Overview")] + [(s["id"], s["nav"]) for s in nar["sections"]] + [("makers", "Makers"), ("method", "Method"), ("contact", "Contact")]
     nav_html = "".join(f'<a class="chip" href="#{i}">{E(l)}</a>' for i, l in nav)
 
     cards = "".join(f"""
@@ -352,11 +353,22 @@ def build(mode):
                      for p in nar["method"]["points"])
 
     au = site["author"]
+    ent = lambda t: "".join(f"&#{ord(c)};" for c in t)          # keeps the address out of naive scrapers
+    mailto = ent(f"mailto:{au['email']}?subject={quote(au.get('email_subject', site['title']))}") if au.get("email") else ""
+    li_icon = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.8 0 0 .77 0 1.73v20.54C0 23.23.8 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>')
+    mail_icon = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" '
+                 'd="M3 5.5h18v13H3zM3.5 6l8.5 7 8.5-7"/></svg>')
     contact = []
-    if au.get("linkedin"):
-        contact.append(f'<a class="pill" href="{E(au["linkedin"])}" rel="noopener" target="_blank">Connect on LinkedIn</a>')
     if au.get("email"):
-        contact.append(f'<a class="pill ghost" href="mailto:{E(au["email"])}">Email</a>')
+        contact.append(f'<a class="cta" href="{mailto}">{mail_icon}<span>Email me</span></a>')
+    if au.get("linkedin"):
+        contact.append(f'<a class="cta ghost" href="{E(au["linkedin"])}" rel="noopener" target="_blank">{li_icon}<span>Connect on LinkedIn</span></a>')
+    copy_row = (f'<p class="copy-row reveal"><span class="addr">{ent(au["email"])}</span>'
+                f'<button class="copy-btn" type="button" data-copy="{ent(au["email"])}">Copy address</button></p>') if au.get("email") else ""
+    nav_cta = f'<a class="nav-cta" href="#contact">Get in touch</a>' if contact else ""
+    foot_contact = " · ".join(x for x in [
+        f'<a href="{mailto}">{ent(au["email"])}</a>' if au.get("email") else "",
+        f'<a href="{E(au["linkedin"])}" rel="noopener" target="_blank">LinkedIn</a>' if au.get("linkedin") else ""] if x)
     if not contact and mode == "draft":
         contact.append('<span class="badge-draft">Add your LinkedIn and email in config.yaml</span>')
 
@@ -370,10 +382,14 @@ def build(mode):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{E(site['title'])}</title>
 <meta name="description" content="{E(site['tagline'])}">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
 <script>document.documentElement.classList.add("js")</script>
 <link rel="stylesheet" href="assets/styles.css">
 <script src="assets/app.js" defer></script>
+<script type="importmap">{{"imports": {{"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}}}</script>
+<script type="module" src="assets/scene3d.js"></script>
 </head>
 <body>
 {banner}
@@ -381,7 +397,10 @@ def build(mode):
   <div class="localnav-inner">
     <a class="brand" href="#overview">{E(site['title'])}</a>
     <span class="asof">C-Scheme / Malviya Nagar · Snapshot {E(nice_date(meta['captured_on']))}</span>
-    <button class="grid-toggle" type="button" aria-pressed="false">Grid <span class="sw-on">On</span><span class="sw-off">Off</span></button>
+    <div class="nav-right">
+      <button class="grid-toggle" type="button" aria-pressed="false">Grid <span class="sw-on">On</span><span class="sw-off">Off</span></button>
+      {nav_cta}
+    </div>
   </div>
   <nav class="chips" aria-label="Sections">{nav_html}</nav>
 </header>
@@ -389,6 +408,7 @@ def build(mode):
 <main>
 <section id="overview" class="hero" aria-labelledby="hero-h">
   <div class="hero-glow" aria-hidden="true"></div>
+  <canvas class="scene3d" data-scene3d="hero" aria-hidden="true"></canvas>
   <div class="wrap">
     <p class="eyebrow reveal">{E(hero['eyebrow'])}</p>
     <h1 id="hero-h" class="hero-title rise"><span class="glow-text">{E(hero['headline'])}</span></h1>
@@ -415,7 +435,7 @@ def build(mode):
 </div>
 {secs}
 
-<section id="makers" class="makers" data-invert aria-labelledby="makers-h">
+<section id="makers" class="makers" aria-labelledby="makers-h">
   <div class="wrap">
     {sec_head(nar['makers']['eyebrow'], len(nar['sections']) + 1)}
     <h2 id="makers-h" class="headline split">{words(nar['makers']['headline'])}</h2>
@@ -433,12 +453,17 @@ def build(mode):
   </div>
 </section>
 
-<section class="about" aria-labelledby="about-h">
-  <div class="wrap">
-    <h2 id="about-h" class="headline split">{words("Made in Jaipur.")}</h2>
-    <p class="lede-sm reveal">An independent research project by {E(au['name'])}, building a dated, honest record of
-    how Jaipur's cafés change. If you run a café, or are about to open one, I'd like to hear from you.</p>
-    <div class="contact reveal">{''.join(contact)}</div>
+<section id="contact" class="about" aria-labelledby="about-h">
+  <div class="wrap about-grid">
+    <div class="about-copy">
+      {sec_head("Made in Jaipur", len(nar['sections']) + 3)}
+      <h2 id="about-h" class="headline split">{words("Let's talk over coffee.")}</h2>
+      <p class="lede-sm reveal">I'm {E(au['name'])}. I'm building a dated, honest record of how Jaipur's cafés change.
+      If you run a café, or you're about to open one, I'd love to hear what you'd want measured.</p>
+      <div class="contact reveal">{''.join(contact)}</div>
+      {copy_row}
+    </div>
+    <canvas class="scene3d about-3d" data-scene3d="coffee" aria-hidden="true"></canvas>
   </div>
 </section>
 </main>
@@ -448,6 +473,7 @@ def build(mode):
     <p>Independent research. Not affiliated with or endorsed by Google, Zomato, Swiggy or magicpin; platform names
     appear only to cite where public figures came from. Figures are aggregates of public listings captured on
     {E(nice_date(meta['captured_on']))}; groups smaller than {k} cafés are not shown.</p>
+    <p class="foot-contact">{E(au['name'])}{' · ' + foot_contact if foot_contact else ''}</p>
     <p>Built {E(date.today().strftime('%-d %B %Y'))} · Snapshot {E(meta['snapshot'])}</p>
   </div>
 </footer>

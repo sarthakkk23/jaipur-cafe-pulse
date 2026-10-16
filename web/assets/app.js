@@ -73,15 +73,21 @@
     frame();
   }
 
-  // ---------- inversion: the page flips while the makers section holds the centre ----------
-  const inv = document.querySelector("[data-invert]");
-  if (inv && "IntersectionObserver" in window) {
-    const dark = matchMedia("(prefers-color-scheme: dark)");
-    new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) root.dataset.inv = dark.matches ? "light" : "dark";
-      else delete root.dataset.inv;
-    }, { rootMargin: "-48% 0px -48% 0px" }).observe(inv);
-  }
+  // ---------- copy the email address ----------
+  document.querySelectorAll(".copy-btn[data-copy]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy);
+        btn.textContent = "Copied";
+      } catch {
+        const sel = getSelection(), range = document.createRange();
+        range.selectNodeContents(btn.previousElementSibling);
+        sel.removeAllRanges(); sel.addRange(range);
+        btn.textContent = "Selected, press Copy";
+      }
+      setTimeout(() => (btn.textContent = "Copy address"), 2200);
+    });
+  });
 
   // ---------- grid overlay toggle ----------
   const gt = document.querySelector(".grid-toggle");
