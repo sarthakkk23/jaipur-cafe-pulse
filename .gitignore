@@ -10,3 +10,6 @@ __pycache__/
 
 # Local editor/agent settings
 .claude/
+
+# taste-skill inspector screenshots
+.taste-skill/

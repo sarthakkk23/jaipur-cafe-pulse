@@ -148,12 +148,12 @@
       if (v.open != null) lines.push(`Opens at: ${clock(v.open)}`);
     }
     const body = `Hi Sarthak,\n\nI used the benchmark on Jaipur Café Pulse.\n${lines.join("\n")}\n\n`;
-    const href = `mailto:${D.email}?subject=${encodeURIComponent(D.subject + " — benchmark")}&body=${encodeURIComponent(body)}`;
-    const head = mode === "owner" ? "Want the full picture, privately?" : "Opening soon?";
-    const text = mode === "owner" ? "I'll put together a free private report on your café against your street. It isn't shared with anyone else."
-                                  : "I'd love to hear what you're planning and what you'd want measured.";
+    const href = `mailto:${D.email}?subject=${encodeURIComponent("Coffee? " + D.subject)}&body=${encodeURIComponent(body)}`;
+    const head = mode === "owner" ? "Talk it over coffee?" : "Opening soon? Let's have coffee.";
+    const text = mode === "owner" ? "If these figures raise a question about your café, I'd like to hear it over a cup of coffee in Jaipur."
+                                  : "I'd like to hear what you're planning, and what you'd want measured, over a cup of coffee.";
     return `<article class="res res-cta"><p class="res-k">Next step</p><p class="res-head">${head}</p><p class="res-body">${text}</p>
-      <a class="cta" href="${esc(href)}">Email me your numbers</a></article>`;
+      <a class="cta" href="${esc(href)}">Say hello</a></article>`;
   }
 
   function render() {
