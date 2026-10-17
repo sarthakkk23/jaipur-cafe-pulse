@@ -196,7 +196,7 @@ figure { margin: 0; }
   padding: clamp(96px, 12vw, 176px) var(--m); background: var(--ink); color: var(--paper); }
 .updates h2 { max-width: 20ch; }
 .up-copy { display: grid; gap: 24px; }
-.up-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-content: end; align-items: end; }
+.up-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 12px; align-content: end; align-items: end; }
 .up-form .field > span { font-size: var(--s-small); font-weight: 600; margin-bottom: 8px; display: block; }
 .up-form .field input { width: 100%; height: 56px; font: inherit; font-size: var(--s-body); padding: 0 14px; border: 0; border-radius: 0; background: var(--paper); color: var(--ink); }
 .up-form .field input::placeholder { color: #8d8c87; }

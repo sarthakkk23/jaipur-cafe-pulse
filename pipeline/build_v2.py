@@ -257,6 +257,8 @@ def build(mode):
     live = sub.get("provider") in ("google_form", "formspree") and sub.get("action")
     if live or mode == "draft":
         fields = sub.get("fields") or {}
+        name_field = (f'<label class="field"><span>Your name</span><input type="text" name="{E(fields["name"])}" '
+                      f'autocomplete="name" required maxlength="80"></label>') if fields.get("name") else ""
         updates = f"""<section class="updates" id="updates" aria-labelledby="updates-h">
   <div class="up-copy reveal">
     <h2 id="updates-h">The latest café trends, twice a month. Free.</h2>
@@ -264,6 +266,7 @@ def build(mode):
     and where the openings are. Short, and only when there is something new.</p>
   </div>
   <form class="up-form reveal" data-ui data-provider="{E(sub.get('provider', 'none'))}" data-action="{E(sub.get('action', ''))}" novalidate>
+    {name_field}
     <label class="field"><span>Your WhatsApp number</span><input type="tel" name="{E(fields.get('contact', 'contact'))}" autocomplete="tel" inputmode="tel" required maxlength="16" placeholder="98290 12345"></label>
     <button class="btn" type="submit">Send me the updates</button>
     <p class="up-note">Used only to send these updates on WhatsApp. Never shared, never sold. Reply "stop" any time and you are off the list.</p>
