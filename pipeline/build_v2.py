@@ -53,8 +53,16 @@ def short(iso):
     return date.fromisoformat(iso).strftime("%-d %b %Y")
 
 
-def head(title, desc, prefix=""):
+SEO = {"base": "", "name": "", "author": {}}     # filled from config.yaml at build time
+
+
+def head(title, desc, prefix="", path="", ld=None):
+    """Everything a search engine or a link preview reads: title, description, canonical address, Open Graph and
+    Twitter cards, icons, and structured data (JSON-LD) describing the page."""
     guard = 'document.documentElement.classList.add("js");setTimeout(function(){if(!window.__pulse)document.documentElement.classList.remove("js","motion")},3000)'
+    url = f"{SEO['base']}/{path}"
+    image = f"{SEO['base']}/og.jpg"
+    ld_tag = f'\n<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>' if ld else ""
     return f"""<!doctype html>
 <html lang="en-IN">
 <head>
@@ -62,8 +70,28 @@ def head(title, desc, prefix=""):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{E(title)}</title>
 <meta name="description" content="{E(desc)}">
+<link rel="canonical" href="{E(url)}">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="{E(SEO['author'].get('name', ''))}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{E(SEO['name'])}">
+<meta property="og:locale" content="en_IN">
+<meta property="og:title" content="{E(title)}">
+<meta property="og:description" content="{E(desc)}">
+<meta property="og:url" content="{E(url)}">
+<meta property="og:image" content="{E(image)}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{E(SEO['name'])}: Jaipur's cafés, measured. The Hawa Mahal's pink facade.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{E(title)}">
+<meta name="twitter:description" content="{E(desc)}">
+<meta name="twitter:image" content="{E(image)}">
+<link rel="icon" href="{prefix}favicon.svg" type="image/svg+xml">
+<link rel="icon" href="{prefix}favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="{prefix}apple-touch-icon.png">
 <meta name="color-scheme" content="light">
-<meta name="theme-color" content="#f5f5f2">
+<meta name="theme-color" content="#f5f5f2">{ld_tag}
 <script>{guard}</script>
 <link rel="preload" href="{prefix}fonts/literata.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{prefix}v2.css">
@@ -94,6 +122,7 @@ def build(mode):
     T, meta, k = ins["tokens"], ins["meta"], ins["meta"]["min_group_size"]
     I = ins["insights"]
     site, au = cfg["site"], cfg["site"]["author"]
+    SEO.update(base=site["base_url"].rstrip("/"), name=site["title"], author=au)
     ent = lambda t: "".join(f"&#{ord(c)};" for c in t)
     mailto = ent(f"mailto:{au['email']}?subject={quote('Coffee? ' + au.get('email_subject', site['title']))}") if au.get("email") else ""
     captured = nice(meta["captured_on"])
@@ -109,7 +138,7 @@ def build(mode):
   <div class="hero-copy">
     <div class="hero-top">
       <h1 id="hero-h" class="hero-h">Jaipur's cafés, measured.</h1>
-      <p class="hero-sub">What {E(core)} cafés reveal about being found, rated and chosen.</p>
+      <p class="hero-sub">I take my coffee seriously.<br>The data, more so.</p>
     </div>
     <p class="hero-fig"><span class="hero-num">{lead_f['value']}<small>{E(lead_f['unit'])}</small></span>
       <span class="hero-cap">{E(lead_f['headline'])}</span></p>
@@ -128,16 +157,17 @@ def build(mode):
 
     # ---------- intro ----------
     intro = f"""<section class="intro" aria-label="About this record">
-  <p class="lead reveal">I read every café listing in C-Scheme and Malviya Nagar, so you don't have to. Then I tell you, in plain words,
-  what the data says and what it doesn't. It is updated often, so the trends are the latest ones.</p>
+  <p class="lead reveal">I read every café listing in Jaipur's C-Scheme and Malviya Nagar, {E(core)} cafés in all, so you don't have to.
+  Then I tell you, in plain words, what the data says and what it doesn't: what customers reward, where the gaps are, and what a
+  rating really means. It is updated often, so the trends are the latest ones.</p>
   <div class="cols">
     <p class="reveal"><b>Plain words.</b> Each finding is one sentence and one number: a share of cafés, and what it means for yours.</p>
     <p class="reveal"><b>What it doesn't say.</b> Every finding also says where it stops, so you never read more into it than is there.</p>
-    <p class="reveal"><b>Serious statistics, simply.</b> Resampling, like-for-like models and clustering tests run behind every figure.
-    You get the answer, not the jargon.</p>
-    <p class="reveal"><b>Evidence.</b> <span class="ev" data-g="3"><i></i><i></i><i></i></span> strong,
-    <span class="ev" data-g="2"><i></i><i></i><i></i></span> moderate, <span class="ev" data-g="1"><i></i><i></i><i></i></span> weak.
-    How sure each finding is. Independent research by {E(au['name'])}; no platform or café pays to appear.</p>
+    <p class="reveal"><b>Strong coffee. Stronger evidence.</b> Resampling, like-for-like models and clustering tests run behind every
+    figure, and each is graded <span class="ev" data-g="3"><i></i><i></i><i></i></span> strong, <span class="ev" data-g="2"><i></i><i></i><i></i></span> moderate
+    or <span class="ev" data-g="1"><i></i><i></i><i></i></span> weak. You get the answer, not the jargon.</p>
+    <p class="reveal"><b>Caffeinated, not biased.</b> Independent research by {E(au['name'])}. No platform or café pays to appear,
+    and no café is ever criticised.</p>
   </div>
 </section>"""
 
@@ -169,14 +199,14 @@ def build(mode):
   {body}{after}
 </section>"""
 
-    ch1 = chapter("insights", "Where attention goes.", "Reviews and ratings decide who gets found. Here is how they really behave, in plain words.",
+    ch1 = chapter("insights", "Where attention goes.", "Reviews and ratings decide who gets found. Here is how they really behave, no sugar added.",
                   ["attention", "ratings", "platforms_rate", "delivery"])
     band = f"""<figure class="band reveal" data-drift>{pic("hawa-horses", "100vw")}<figcaption>Outside the Hawa Mahal, in the old city.</figcaption></figure>"""
     pair = f"""<section class="pair" aria-label="Mornings in Jaipur">
   <figure class="pair-a reveal" data-drift>{pic("kulhad-chai", "(max-width: 760px) 100vw, 40vw")}<figcaption>Chai in clay kulhads: the city's first order of the day.</figcaption></figure>
   <figure class="pair-b reveal" data-drift>{pic("pink-haveli", "(max-width: 760px) 100vw, 55vw")}<figcaption>A haveli in the Pink City, through neem leaves.</figcaption></figure>
 </section>"""
-    ch2 = chapter("offer", "What cafés offer.", "Menus, prices and features: what is common, what is rare, and what actually goes with being chosen.",
+    ch2 = chapter("offer", "What cafés offer.", "Good coffee. Bad assumptions. Let's fix that: what is common, what is rare, and what actually goes with being chosen.",
                   ["amenities", "price", "menus", "visibility"])
 
     # ---------- the sundial ----------
@@ -204,7 +234,7 @@ def build(mode):
     loc_cta = """<a class="loc-cta reveal" href="location/"><span class="loc-cta-h">Check a location.</span>
   <span class="loc-cta-p">Pick any spot in C-Scheme or Malviya Nagar and read its five-minute walk: how many cafés, what kind, and where the gaps are.</span>
   <span class="btn">Open the location check</span></a>"""
-    ch3 = chapter("place", "Where they gather.", "Cafés pull towards each other, and customers always have a neighbour to compare.",
+    ch3 = chapter("place", "Where they gather.", "Cafés pull towards each other, so choose your grounds carefully.",
                   ["cluster", "areas"], after=loc_cta)
 
     # ---------- the best right now ----------
@@ -268,9 +298,9 @@ def build(mode):
                       f'autocomplete="name" required maxlength="80"></label>') if fields.get("name") else ""
         updates = f"""<section class="updates" id="updates" aria-labelledby="updates-h">
   <div class="up-copy reveal">
-    <h2 id="updates-h">The latest café trends, twice a month. Free.</h2>
+    <h2 id="updates-h">Fresh findings, twice a month. Free.</h2>
     <p>Each update brings the newest findings on Jaipur's cafés straight to your WhatsApp: what customers reward, what is changing,
-    and where the openings are. Short, and only when there is something new.</p>
+    and where the openings are. Short, and only when there is something new. No stale beans.</p>
   </div>
   <form class="up-form reveal" data-ui data-provider="{E(sub.get('provider', 'none'))}" data-action="{E(sub.get('action', ''))}" novalidate>
     {name_field}
@@ -301,7 +331,7 @@ def build(mode):
     method = f"""<section class="method" id="method" aria-labelledby="method-h">
   <figure class="method-pic reveal">{pic("jantar-field", "(max-width: 760px) 100vw, 60vw")}</figure>
   <div class="method-copy"><h2 id="method-h">The methods, in plain words.</h2>
-    <p>Three platforms describe the same café three ways. I read them on the same searches at every update, match them into one record,
+    <p>How the beans get counted. Three platforms describe the same café three ways. I read them on the same searches at every update, match them into one record,
     and publish only what holds for a group. These are the tools behind every figure above.</p></div>
   <dl class="gloss">{gl}</dl>
   <svg class="many" viewBox="0 0 1200 270" role="img" aria-label="Scattered platform listings compressed into one ordered record"
@@ -332,7 +362,28 @@ def build(mode):
     banner = '<p class="draft-note">Draft build. Not for publishing.</p>' if mode == "draft" else ""
     imap = ('<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js"'
             '}}</script>')
-    page = (head(site["title"], site["tagline"])
+    person = {"@type": "Person", "@id": f"{SEO['base']}/#author", "name": au["name"], "url": au.get("linkedin", ""),
+              "sameAs": [au.get("linkedin", "")], "knowsAbout": ["Café market research", "Data analysis", "Jaipur"]}
+    first = (ins.get("insights", {}).get("history") or [{}])[0].get("captured_on") or meta["captured_on"]
+    ld_home = {"@context": "https://schema.org", "@graph": [
+        {"@type": "WebSite", "@id": f"{SEO['base']}/#site", "name": site["title"], "url": f"{SEO['base']}/", "inLanguage": "en-IN",
+         "description": site["tagline"], "publisher": {"@id": f"{SEO['base']}/#author"}},
+        person,
+        {"@type": "Dataset", "name": f"{site['title']}: cafés in C-Scheme and Malviya Nagar, Jaipur",
+         "description": (f"Independent, aggregate data on {core} operating cafés in C-Scheme and Malviya Nagar, Jaipur: opening hours, "
+                         "cost for two, review concentration, ratings by platform, menus, platform reach and clustering. "
+                         f"Groups under {k} cafés are withheld; no café's own ratings, reviews or prices are published."),
+         "url": f"{SEO['base']}/", "creator": {"@id": f"{SEO['base']}/#author"}, "isAccessibleForFree": True,
+         "keywords": ["cafés in Jaipur", "C-Scheme cafés", "Malviya Nagar cafés", "Jaipur café market", "opening a café in Jaipur", "coffee shops Jaipur"],
+         "temporalCoverage": f"{first}/{meta['captured_on']}", "dateModified": meta["captured_on"],
+         "spatialCoverage": {"@type": "Place", "name": "C-Scheme and Malviya Nagar, Jaipur, Rajasthan, India",
+                             "geo": {"@type": "GeoShape", "box": "26.836 75.7915 26.9185 75.839"}},
+         "variableMeasured": ["Share of cafés open by 8am", "Typical cost for two", "Share of Google reviews held by the top tenth of cafés",
+                              "Share of cafés rated 4.8 or more by review count", "Google against Zomato rating", "Delivery against dine-in reviews",
+                              "Cuisines per menu", "Platforms per café", "Cafés within a five-minute walk"],
+         "distribution": {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": f"{SEO['base']}/data/insights.json"}},
+    ]}
+    page = (head(site.get("seo_title", site["title"]), site["tagline"], ld=ld_home)
             + "\n" + imap + '\n<script type="module" src="relief.js"></script>\n<script src="tool.js" defer></script>\n</head>\n<body>\n'
             + banner + bar(site, updates=bool(updates)) + "\n<main>\n" + "\n".join([hero, intro, ch1, band, ch2, bench, pair, sundial, ch3, best, updates, method, contact])
             + "\n</main>\n" + footer + "\n</body>\n</html>\n")
@@ -346,6 +397,15 @@ def build(mode):
     shutil.copy(ROOT / "data/public/insights_latest.json", out / "data/insights.json")
     (out / ".nojekyll").write_text("")
     (out / "index.html").write_text(page)
+    pages = ["", "location/"] + [f"cafes/{p['slug']}/" for p in profs]
+    (out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "".join(f"  <url><loc>{SEO['base']}/{u}</loc><lastmod>{meta['captured_on']}</lastmod><changefreq>weekly</changefreq>"
+                  f"<priority>{'1.0' if not u else '0.8' if u == 'location/' else '0.6'}</priority></url>\n" for u in pages) + "</urlset>\n")
+    (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SEO['base']}/sitemap.xml\n")
+    (out / "404.html").write_text(head(f"Page not found · {site['title']}", "This page wandered off for a coffee.", "/" + SEO["base"].split("/", 3)[-1] + "/" if SEO["base"].count("/") > 2 else "/")
+        .replace('content="index, follow, max-image-preview:large"', 'content="noindex"')
+        + '\n</head>\n<body>\n<main class="nf"><h1>This page wandered off for a coffee.</h1>'
+        + f'<p>It isn\'t here, but the findings are. <a href="{SEO["base"]}/">Back to {E(site["title"])}</a>.</p></main>\n</body>\n</html>\n')
     if (ROOT / "data/public/location_latest.json").exists():
         shutil.copy(ROOT / "data/public/location_latest.json", out / "data/location.json")
         (out / "location").mkdir(exist_ok=True)
@@ -361,14 +421,22 @@ def build(mode):
 def location_page(site, au, captured, k, mailto, updates, banner):
     """The location check: pick a spot, read its five-minute walk. Everything is computed from published aggregates."""
     pre = "../"
-    return (head(f"Location check · {site['title']}", "Pick a spot in C-Scheme or Malviya Nagar and see, in plain words, what is within a five-minute walk.", pre)
+    crumbs = {"@context": "https://schema.org", "@graph": [
+        {"@type": "WebPage", "name": "Café location check for C-Scheme and Malviya Nagar", "url": f"{SEO['base']}/location/", "inLanguage": "en-IN",
+         "isPartOf": {"@id": f"{SEO['base']}/#site"}, "author": {"@id": f"{SEO['base']}/#author"}},
+        {"@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": site["title"], "item": f"{SEO['base']}/"},
+            {"@type": "ListItem", "position": 2, "name": "Location check", "item": f"{SEO['base']}/location/"}]}]}
+    return (head(f"Where to open a café in Jaipur · {site['title']}",
+                 "Opening a café in Jaipur? Pick any spot in C-Scheme or Malviya Nagar: see the cafés, the gaps and who is around to buy coffee.",
+                 pre, "location/", crumbs)
             + '\n<script src="../location.js" defer></script>\n</head>\n<body>\n' + banner
             + bar(site, pre, home=False, updates=updates, here="Location check") + f"""
 <main class="loc">
   <section class="loc-head">
     <div class="loc-head-copy"><h1 class="reveal">Check a location.</h1>
-    <p class="loc-lede reveal">Pick a spot in C-Scheme or Malviya Nagar. I'll tell you, in plain words, what is within a five-minute walk:
-    how many cafés, what kind, when they open, what they charge, and where the gaps are.</p></div>
+    <p class="loc-lede reveal">Know your grounds before you grind. Pick a spot in C-Scheme or Malviya Nagar, Jaipur, and I'll tell you,
+    in plain words, what is within a five-minute walk: how many cafés, what kind, who is around to buy coffee, and where the gaps are.</p></div>
     <figure class="loc-head-pic reveal" data-drift>{pic("patrika-gate-sky", "(max-width: 900px) 100vw, 40vw", eager=True, prefix=pre)}</figure>
   </section>
   <section class="loc-tool">
@@ -423,7 +491,18 @@ def profile(p, site, au, captured, core, k, mailto, ent):
     rows = "".join(f'<tr><td>{E(o["area"])}</td><td>{E(o["locality"] or "")}</td><td>{E(o["opens"] + "–" + o["closes"]) if o["opens"] and o["closes"] else "Not listed"}</td>'
                    f'<td>{E(", ".join(o["on"]))}</td><td>{"Yes" if o["delivers"] else "Dine-in"}</td></tr>' for o in p["outlets"])
     notes = f'<blockquote class="notes">{E(p["notes"])}</blockquote>' if p.get("notes") else ""
-    return (head(f"{p['name']} · {site['title']}", f"{p['tagline']} What {p['name']} did right.", pre)
+    slug_url = f"{SEO['base']}/cafes/{p['slug']}/"
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "WebPage", "name": f"{p['name']}: what they did right", "url": slug_url, "inLanguage": "en-IN",
+         "isPartOf": {"@id": f"{SEO['base']}/#site"}, "author": {"@id": f"{SEO['base']}/#author"},
+         "about": {"@type": "CafeOrCoffeeShop", "name": p["name"],
+                   "address": {"@type": "PostalAddress", "addressLocality": "Jaipur", "addressRegion": "Rajasthan", "addressCountry": "IN"}}},
+        {"@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": site["title"], "item": f"{SEO['base']}/"},
+            {"@type": "ListItem", "position": 2, "name": "The best, right now", "item": f"{SEO['base']}/#best"},
+            {"@type": "ListItem", "position": 3, "name": p["name"], "item": slug_url}]}]}
+    return (head(f"{p['name']}, Jaipur: what they did right · {site['title']}", f"{p['tagline']} What {p['name']} did right, from public facts and its neighbourhood in Jaipur.",
+                 pre, f"cafes/{p['slug']}/", ld)
             + "\n</head>\n<body>\n" + bar(site, pre, home=False, updates=False) + f"""
 <main class="pf">
   <section class="pf-head"><h1 class="reveal">{E(p['name'])}</h1><p class="pf-tag reveal">{E(p['tagline'])}</p>

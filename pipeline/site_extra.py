@@ -110,7 +110,7 @@ def profile_page(p, ins, site, meta, head_extra, nav_cta, mailto, k):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{E(p['name'])} · {E(site['title'])}</title>
-<meta name="description" content="{E(p['tagline'])} What {E(p['name'])} did right, from Jaipur Café Pulse.">
+<meta name="description" content="{E(p['tagline'])} What {E(p['name'])} did right, from Jaipur Café Index.">
 <meta name="color-scheme" content="light">
 <script>document.documentElement.classList.add("js");setTimeout(function(){{if(!window.__pulse)document.documentElement.classList.remove("js","motion")}},3000)</script>
 <link rel="stylesheet" href="../../assets/styles.css">
