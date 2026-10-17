@@ -447,9 +447,11 @@ figure { margin: 0; }
 .rules { padding: clamp(72px, 9vw, 128px) var(--m); }
 .who { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px 48px; padding: clamp(72px, 9vw, 128px) var(--m) 0; align-items: start; }
 .who-text { display: grid; gap: 20px; }
+.who-side { display: grid; gap: 28px; justify-items: start; }
+.who-photo img { display: block; width: 240px; max-width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 50%; background: var(--stone); box-shadow: 0 0 0 6px var(--pink); }
 .who-text p:first-child { font-size: var(--s-lead); line-height: 1.3; }
 .c-more { font-weight: 600; }
-@media (max-width: 900px) { .who { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .who { grid-template-columns: 1fr; } .who-photo img { width: 160px; } }
 .rules h2 { margin-bottom: 24px; }
 .rule-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 24px; align-items: baseline; padding: 30px 24px; background: var(--stone); }
 .rule-list li:nth-child(odd) .rule-row { background: var(--blush); }
