@@ -16,6 +16,16 @@
     D.names = Object.keys(D.areas);
     D.byArea = D.names.map((_, i) => D.spots.filter((s) => s[2] === i));
     D.busy = D.byArea.map((list) => list.map((s) => s[3].n).filter((n) => n > 0).sort((a, b) => a - b));   // spots with any café
+    // what a typical café spot in each area has around it, group by group (median and upper quartile)
+    const q = (xs, p) => { const v = [...xs].sort((a, b) => a - b); return v.length ? v[Math.min(v.length - 1, Math.floor(p * v.length))] : 0; };
+    D.groups = D.demand_groups || [];
+    D.typ = D.byArea.map((list) => {
+      const cafeSpots = list.filter((s) => s[3].n > 0), t = {};
+      for (const [g] of D.groups) { const xs = cafeSpots.map((s) => (s[3].demand || {})[g] || 0); t[g] = { mid: q(xs, 0.5), high: q(xs, 0.75) }; }
+      const tot = (s) => Object.values(s[3].demand || {}).reduce((a, b) => a + b, 0);
+      t.perCafe = q(cafeSpots.filter((s) => s[3].n >= 3).map((s) => tot(s) / s[3].n), 0.5);
+      return t;
+    });
     setArea(0);
     new ResizeObserver(draw).observe(canvas);
   }).catch(() => { report.innerHTML = '<p class="lr-k">The map could not load. Please refresh the page.</p>'; });
@@ -138,7 +148,34 @@
     }
     if (!notes.length && s.mix) notes.push(`<b>A typical ${esc(an)} street.</b> Nothing here stands far from the area as a whole, so the gap has to come from what you offer.`);
     if (notes.length) html += `<ul class="lr-notes">${notes.map((n) => `<li>${n}</li>`).join("")}</ul>`;
-    const ctx2 = [`${s.hotels} ${s.hotels === 1 ? "hotel" : "hotels"}`, `${s.stops} bus ${s.stops === 1 ? "stop" : "stops"}`];
+    // who is around to buy coffee
+    if (D.groups.length) {
+      const T = D.typ[area], dm = s.demand || {}, total = Object.values(dm).reduce((a, b) => a + b, 0);
+      html += `<p class="lr-h">Who's around to buy coffee</p><table class="lr-tab"><thead><tr><th></th><th>Here</th><th>Typical spot</th></tr></thead><tbody>`;
+      html += D.groups.map(([g, label]) => `<tr><td>${esc(label)}</td><td>${dm[g] || 0}</td><td>${T[g].mid}</td></tr>`).join("");
+      html += "</tbody></table>";
+      const dn = [];
+      if (s.n >= 3 && T.perCafe > 0) {
+        const r = total / s.n;
+        if (r >= T.perCafe * 1.5 && total >= 15) dn.push(`<b>Plenty of demand, few cafés serving it.</b> ${r.toFixed(1)} of these places per café here, against ${T.perCafe.toFixed(1)} at a typical spot in ${esc(an)}.`);
+        if (r <= T.perCafe * 0.6) dn.push(`<b>Many cafés for the demand around.</b> ${r.toFixed(1)} of these places per café here, against ${T.perCafe.toFixed(1)} at a typical spot in ${esc(an)}.`);
+      } else if (!s.n && total >= 10) dn.push(`<b>Demand without a café.</b> ${total} of these places within the walk and no café yet.`);
+      const crowd = { office: "An office crowd", college: "A student crowd", coaching: "A student crowd", gym: "A fitness crowd", hospital: "A hospital crowd", hotel: "A visitor crowd", coworking: "A remote-work crowd" };
+      // only the two strongest crowds, so the useful signal isn't buried
+      const said = new Set();
+      D.groups.map(([g, label]) => ({ g, label, v: dm[g] || 0, lift: (dm[g] || 0) / Math.max(1, T[g].mid) }))
+        .filter((c) => crowd[c.g] && c.v >= 3 && c.v >= T[c.g].high && c.v > T[c.g].mid)
+        .sort((a, b) => b.lift - a.lift)
+        .forEach((c) => {
+          if (said.has(crowd[c.g]) || said.size >= 2) return;
+          said.add(crowd[c.g]);
+          dn.push(`<b>${crowd[c.g]}.</b> ${c.v} ${esc(c.label.toLowerCase())} within the walk, against ${T[c.g].mid} at a typical café spot in ${esc(an)}.`);
+        });
+      if (dn.length) html += `<ul class="lr-notes">${dn.map((n) => `<li>${n}</li>`).join("")}</ul>`;
+    }
+    const ctx2 = [];
+    if (!D.groups.length) ctx2.push(`${s.hotels} ${s.hotels === 1 ? "hotel" : "hotels"}`);
+    ctx2.push(`${s.stops} bus ${s.stops === 1 ? "stop" : "stops"}`);
     ctx2.push(s.metro_m != null && s.metro_m <= 1500 ? `${esc(s.metro)} metro ${s.metro_m >= 1000 ? (s.metro_m / 1000).toFixed(1) + " km" : s.metro_m + " m"} away` : "no metro within a 20-minute walk");
     html += `<p class="lr-ctx"><b>Also within the walk</b>, as mapped in OpenStreetMap: ${ctx2.join(", ")}.</p>`;
     report.innerHTML = html;

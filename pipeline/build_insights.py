@@ -475,7 +475,8 @@ def build(cfg, label=None):
     out["insights"]["findings"] = S.findings(core, k)
     # location check: the five-minute walk around every spot on a grid (aggregates only), written beside the insights
     import location_v2 as L
-    loc = L.build(core, k, parse_day_hours, PRIV / "osm" / "poi.json")
+    dem = sorted(PRIV.glob("raw/*/google_demand.json"), key=lambda p: p.stat().st_mtime)
+    loc = L.build(core, k, parse_day_hours, PRIV / "osm" / "poi.json", dem[-1] if dem else None)
     (ROOT / "data" / "public" / "location_latest.json").write_text(json.dumps(loc, ensure_ascii=False, separators=(",", ":")))
 
     out["meta"] = {

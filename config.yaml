@@ -47,6 +47,7 @@ cadence:
 sources:
   zomato: true
   google_maps_ui: true
+  google_demand: true        # offices, colleges, gyms, coworking… around each spot (location check)
   google_places_api: false   # live lookups only; never stored (Google terms)
   swiggy: true
   magicpin: true

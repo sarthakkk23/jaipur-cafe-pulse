@@ -386,11 +386,12 @@ def location_page(site, au, captured, k, mailto, updates, banner):
   <section class="loc-notes">
     <div class="reveal"><h2>How I read a spot.</h2>
     <p>Every spot on a 150-metre grid gets the cafés within 500 metres, about a five-minute walk. Shares and typical values appear only
-    where {k} or more cafés are counted, rounded so no single café can be picked out. Hotels, bus stops and metro stations come from
-    OpenStreetMap.</p></div>
+    where {k} or more cafés are counted, rounded so no single café can be picked out. Offices, colleges, coaching centres, schools,
+    gyms, hospitals, hotels, malls and big stores come from the same Google Maps searches I run for cafés, sorted by each place's own category
+    and counted, never named. Bus stops and metro stations come from OpenStreetMap.</p></div>
     <div class="reveal"><h2>What it doesn't say.</h2>
-    <p>It doesn't say a café here will do well or badly. Rent, footfall and what you serve matter more than any count. Offices, colleges
-    and residents around each spot arrive in the next update.</p></div>
+    <p>It doesn't say a café here will do well or badly. Rent, footfall and what you serve matter more than any count. A count of
+    places is not a count of people: one large office and one small clinic each count once. Residents are not counted yet.</p></div>
   </section>
   <section class="pair" aria-label="Mornings in Jaipur">
     <figure class="pair-a reveal" data-drift>{pic("kulhad-chai", "(max-width: 760px) 100vw, 40vw", prefix=pre)}<figcaption>Chai in clay kulhads: the city's first order of the day.</figcaption></figure>
