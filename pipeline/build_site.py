@@ -224,7 +224,7 @@ def build(mode):
 <meta name="description" content="{E(site['tagline'])}">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#ffffff">
-<script>document.documentElement.classList.add("js")</script>
+<script>document.documentElement.classList.add("js");setTimeout(function(){{if(!window.__pulse)document.documentElement.classList.remove("js","motion")}},3000)</script>
 <link rel="stylesheet" href="assets/styles.css">
 <script src="assets/app.js" defer></script>
 <script type="importmap">{{"imports": {{"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",

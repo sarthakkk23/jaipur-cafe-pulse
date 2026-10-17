@@ -1,5 +1,6 @@
 // Jaipur Café Pulse — progressive enhancement only. The page reads fine without this file.
 (() => {
+  window.__pulse = true;          // tells the head guard the script arrived
   const root = document.documentElement;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const motion = !reduce && "IntersectionObserver" in window;
@@ -16,8 +17,14 @@
   });
 
   const once = [...document.querySelectorAll(".reveal, .split, .rise")];
+  const revealAll = () => once.forEach((el) => el.classList.add("is-in"));
   if (motion) {
+    // Safety net: some in-app browsers, background tabs and capture tools never run the observer.
+    // If it hasn't reported within 2 s, show everything; the animation is a bonus, never a gate.
+    let alive = false;
+    setTimeout(() => { if (!alive) { root.classList.remove("motion", "js"); revealAll(); } }, 2000);
     const io = new IntersectionObserver((entries) => {
+      alive = true;
       entries.filter((e) => e.isIntersecting).forEach((e, i) => {
         if (e.target.classList.contains("reveal")) e.target.style.transitionDelay = `${i * 90}ms`;
         e.target.classList.add("is-in");
@@ -26,7 +33,7 @@
     }, { rootMargin: "0px 0px -10% 0px" });
     once.forEach((el) => io.observe(el));
   } else {
-    once.forEach((el) => el.classList.add("is-in"));
+    revealAll();
   }
 
   // ---------- scroll scenes: write --p on each [data-scene] ----------

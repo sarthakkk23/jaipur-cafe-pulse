@@ -112,7 +112,7 @@ def profile_page(p, ins, site, meta, head_extra, nav_cta, mailto, k):
 <title>{E(p['name'])} · {E(site['title'])}</title>
 <meta name="description" content="{E(p['tagline'])} What {E(p['name'])} did right, from Jaipur Café Pulse.">
 <meta name="color-scheme" content="light">
-<script>document.documentElement.classList.add("js")</script>
+<script>document.documentElement.classList.add("js");setTimeout(function(){{if(!window.__pulse)document.documentElement.classList.remove("js","motion")}},3000)</script>
 <link rel="stylesheet" href="../../assets/styles.css">
 <script src="../../assets/app.js" defer></script>
 {head_extra}
