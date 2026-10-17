@@ -5,11 +5,11 @@
 #   - Never a platform rating, review count, price or rank for a named café.
 #   - Every story line carries a source (press, a public write-up, or "FIG record" for our own data).
 #   - notes: Sarthak's own visit notes (primary data). Leave blank until he has visited.
+#   - Which venues belong to each profile lives in private/top_cafes_ids.yaml (FIG IDs stay private).
 
 entries:
   - slug: town-coffee
     name: "Town Coffee"
-    fig_ids: [FIG-MN-0316, FIG-CS-0197]   # FIG-MN-0317 'Town Coffee Ampio' left out until Sarthak confirms it's the same brand
     tagline: "The coffee house Jaipur works from."
     story:
       - text: >-
@@ -30,7 +30,6 @@ entries:
 
   - slug: curious-life
     name: "Curious Life Coffee Roasters"
-    fig_ids: [FIG-CS-0065, FIG-CS-0066]
     tagline: "Roasting in Jaipur since 2015."
     story:
       - text: >-

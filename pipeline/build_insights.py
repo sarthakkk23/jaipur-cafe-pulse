@@ -460,6 +460,8 @@ def build(cfg, label=None):
                 T["changes.busiest_type_share"] = fmt_pct(best[1]["share_gaining"])
 
     tc = yaml.safe_load(open(ROOT / "content" / "top_cafes.yaml")).get("entries") or []
+    ids = yaml.safe_load(open(PRIV / "top_cafes_ids.yaml")) or {}
+    tc = [{**e, "fig_ids": ids.get(e["slug"], [])} for e in tc]
     kud = yaml.safe_load(open(ROOT / "content" / "kudos.yaml")).get("entries") or []
     master_rows = json.load(open(PRIV / "master" / f"master_{meta['snapshot']}.json"))
     amen_share = {a["key"]: a["share"] for a in out["insights"]["amenities"]["items"]}
