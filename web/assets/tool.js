@@ -148,12 +148,12 @@
       if (v.open != null) lines.push(`Opens at: ${clock(v.open)}`);
     }
     const body = `Hi Sarthak,\n\nI used the benchmark on Jaipur Café Index.\n${lines.join("\n")}\n\n`;
-    const href = `mailto:${D.email}?subject=${encodeURIComponent("Coffee? " + D.subject)}&body=${encodeURIComponent(body)}`;
-    const head = mode === "owner" ? "Talk it over coffee?" : "Opening soon? Let's have coffee.";
-    const text = mode === "owner" ? "If these figures raise a question about your café, I'd like to hear it over a cup of coffee in Jaipur."
-                                  : "I'd like to hear what you're planning, and what you'd want measured, over a cup of coffee.";
-    return `<article class="res res-cta"><p class="res-k">Next step</p><p class="res-head">${head}</p><p class="res-body">${text}</p>
-      <a class="cta" href="${esc(href)}">Say hello</a></article>`;
+    const href = `mailto:${D.email}?subject=${encodeURIComponent(D.subject)}&body=${encodeURIComponent(body)}`;
+    const head = mode === "owner" ? "Questions about your numbers?" : "Planning a café?";
+    const text = mode === "owner" ? "If these figures raise a question about your café, you're welcome to get in touch. Your numbers come pre-filled in the email."
+                                  : "If you'd like to talk through what you're planning, you're welcome to get in touch.";
+    return `<article class="res res-cta"><p class="res-k">If you'd like</p><p class="res-head">${head}</p><p class="res-body">${text}</p>
+      <a class="cta" href="${esc(href)}">Email Sarthak</a></article>`;
   }
 
   function render() {

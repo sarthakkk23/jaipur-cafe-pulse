@@ -334,13 +334,26 @@ figure { margin: 0; }
 @media (max-width: 900px) { .method-copy, .method-cols { grid-template-columns: 1fr; } .method-pic { aspect-ratio: 4 / 3; } }
 
 /* ---------- contact + footer ---------- */
-.contact { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 32px 48px; padding: clamp(120px, 14vw, 200px) var(--m) clamp(96px, 10vw, 140px); align-items: end; background: var(--pink); }
-.contact h2 { font-size: var(--s-display-s); letter-spacing: -0.04em; line-height: .95; max-width: 10ch; }
+.contact { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 40px clamp(32px, 5vw, 88px); padding: clamp(96px, 12vw, 176px) var(--m) clamp(80px, 9vw, 128px); align-items: end; background: var(--pink); }
+.contact h2 { font-size: var(--s-display-s); letter-spacing: -0.04em; line-height: .95; max-width: 12ch; margin-bottom: 8px; }
+.c-intro { display: grid; gap: 18px; align-content: end; }
+.c-intro p { max-width: 52ch; }
+/* the way to reach Sarthak: plain to read, one tap to use */
+.c-card { background: var(--paper); padding: clamp(24px, 3vw, 36px); display: grid; gap: 10px; align-content: start; }
+.c-k { font-size: var(--s-small); font-weight: 600; }
+.c-k:not(:first-child) { margin-top: 18px; }
+.c-email { font-size: var(--s-lead); letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.c-email a { text-decoration: none; }
+.c-email a:hover { text-decoration: underline; text-underline-offset: .2em; }
+.c-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.c-copy-btn { font: inherit; font-size: var(--s-small); font-weight: 600; min-height: 44px; padding: 0 16px; border: 0; background: var(--stone); color: var(--ink); cursor: pointer; }
+.c-copy-btn:hover { background: var(--stone-2); }
+.c-copied { font-size: var(--s-small); min-height: 1.4em; }
+@media (max-width: 900px) { .contact { grid-template-columns: 1fr; } }
 .c-copy { display: grid; gap: 24px; }
 .c-links { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
 .contact .btn { background: var(--ink); }
 .contact .btn:hover { background: #000; }
-@media (max-width: 900px) { .contact { grid-template-columns: 1fr; } }
 .foot { background: var(--ink); color: var(--stone); padding: 72px var(--m) 32px; display: grid; gap: 14px; }
 .foot-name { font-size: var(--s-display-s); line-height: .95; letter-spacing: -0.045em; color: var(--paper); text-decoration: none; margin-bottom: 40px; font-weight: 500; }
 .foot-name:hover { color: var(--pink); }

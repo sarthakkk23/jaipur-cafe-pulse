@@ -126,7 +126,7 @@ def bar(pre="", here=""):
             f'<details class="menu"><summary aria-label="Open the menu">Menu</summary><nav class="menu-panel" aria-label="Main">'
             + "".join(f'<a href="{pre}{u}"{cur if l == here else ""}>{E(l)}</a>' for u, l in [("", "Home")] + pages_live())
             + f'</nav></details>'
-            f'<a class="btn" href="{pre}about/#contact">Coffee?</a></header>')
+            f'<a class="btn" href="{pre}about/#contact">Contact</a></header>')
 
 
 def footer(pre=""):
@@ -135,7 +135,7 @@ def footer(pre=""):
     live = dict((l, u) for u, l in pages_live())
     explore = [(l, pre + live[l]) for l in ("Insights", "Location check", "Your café", "The best") if l in live]
     learn = [("Method", pre + "method/"), ("About", pre + "about/"), ("Download the figures", pre + "data/insights.json")]
-    touch = ([("Free updates", pre + "updates/")] if "Free updates" in live else []) + [("Coffee?", pre + "about/#contact"), ("LinkedIn", au.get("linkedin", ""))]
+    touch = ([("Free updates", pre + "updates/")] if "Free updates" in live else []) + [("Contact", pre + "about/#contact"), ("Email", CTX["mailto"]), ("LinkedIn", au.get("linkedin", ""))]
     return f"""<footer class="foot">
   <a class="foot-name" href="{pre or './'}">{E(site['title'])}</a>
   <div class="ft-cols">{col("Explore", explore)}{col("Learn", learn)}{col("Stay in touch", touch)}</div>
@@ -165,6 +165,26 @@ def shell(path, title, desc, body, ld=None, here="", scripts="", main_cls="", cr
             + f'\n<main class="{main_cls}">\n' + body + "\n" + nav_end + "\n</main>\n" + footer(pre) + "\n</body>\n</html>\n")
 
 
+def contact(pre="", title="Get in touch.", lead=None, bio=True):
+    """The way to reach Sarthak, the same everywhere: a short introduction, then email and LinkedIn in plain view."""
+    au = CTX["au"]
+    intro = "".join(f"<p>{E(line)}</p>" for line in (au.get("bio") or [])) if bio else ""
+    lead = lead or ("If something here is useful for your café, or you have a question about the data, you're welcome to get in touch. "
+                    "Entirely your call.")
+    email = au.get("email", "")
+    return f"""<section class="contact" id="contact" aria-labelledby="contact-h">
+  <div class="c-intro reveal"><h2 id="contact-h">{E(title)}</h2>{intro}<p>{E(lead)}</p></div>
+  <div class="c-card reveal" data-ui>
+    <p class="c-k">Email</p>
+    <p class="c-email"><a href="{CTX['mailto']}">{CTX['ent'](email)}</a></p>
+    <p class="c-acts"><a class="btn" href="{CTX['mailto']}">Write an email</a><button type="button" class="c-copy-btn" data-copy="{CTX['ent'](email)}">Copy address</button></p>
+    <p class="c-k">LinkedIn</p>
+    <p class="c-acts"><a class="btn btn-ln" href="{E(au.get('linkedin', ''))}" rel="noopener" target="_blank">{E(au['name'])} on LinkedIn</a></p>
+    <p class="c-copied" role="status" aria-live="polite"></p>
+  </div>
+</section>"""
+
+
 def credits_line(prefix=""):
     ph = "; ".join(f'<a href="{E(u)}" rel="noopener" target="_blank">{E(who)}</a>' for _, (_, who, u, _, _) in PHOTOS.items())
     return (f'Photographs on Unsplash by {ph}. Street plate © <a href="https://www.openstreetmap.org/copyright" rel="noopener" target="_blank">'
@@ -180,7 +200,7 @@ def build(mode):
     site, au = cfg["site"], cfg["site"]["author"]
     SEO.update(base=site["base_url"].rstrip("/"), name=site["title"], author=au)
     ent = lambda t: "".join(f"&#{ord(c)};" for c in t)
-    mailto = ent(f"mailto:{au['email']}?subject={quote('Coffee? ' + au.get('email_subject', site['title']))}") if au.get("email") else ""
+    mailto = ent(f"mailto:{au['email']}?subject={quote(au.get('email_subject', site['title']))}") if au.get("email") else ""
     captured = nice(meta["captured_on"])
     core = T.get("scene.core_cafes", "")
     F = {f["id"]: f for f in I.get("findings") or []}
@@ -188,7 +208,7 @@ def build(mode):
     sub = cfg.get("subscribe") or {}
     live = sub.get("provider") in ("google_form", "formspree") and sub.get("action")
     banner = '<p class="draft-note">Draft build. Not for publishing.</p>' if mode == "draft" else ""
-    CTX.update(site=site, au=au, mailto=mailto, captured=captured, k=k, updates=bool(live or mode == "draft"), banner=banner)
+    CTX.update(site=site, au=au, mailto=mailto, ent=ent, captured=captured, k=k, updates=bool(live or mode == "draft"), banner=banner)
     P = "../"                                   # every page except home sits one folder down
 
     # every finding, for the hero to rotate through (the headline numbers only; the page itself carries the rest)
@@ -416,15 +436,6 @@ def build(mode):
   </div>
 </section>"""
 
-    # ---------- coffee ----------
-    def contact(pre, title="Over a cup of coffee?"):
-        return f"""<section class="contact" id="contact" aria-labelledby="contact-h">
-  <h2 id="contact-h" class="reveal">{E(title)}</h2>
-  <div class="c-copy reveal"><p>If you run a café in Jaipur, are about to open one, or just like thinking about them, I'd like to meet.
-    Tell me what you'd want measured next.</p>
-    <p class="c-links"><a class="btn" href="{mailto}">Say hello</a>
-    <a href="{E(au.get('linkedin', ''))}" rel="noopener" target="_blank">{E(au['name'])} on LinkedIn</a></p></div>
-</section>"""
 
     # ---------- home: what you'll find, and three findings to start with ----------
     cards = [("insights/", "Insights", f"{len(F)} findings on {core} cafés, each in one sentence, with what it means for yours."),
@@ -474,7 +485,8 @@ def build(mode):
     # ---------- the pages ----------
     imap = ('<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js"'
             '}}</script>')
-    person = {"@type": "Person", "@id": f"{SEO['base']}/#author", "name": au["name"], "url": au.get("linkedin", ""),
+    person = {"@type": "Person", "@id": f"{SEO['base']}/#author", "name": au["name"], "jobTitle": "Data analyst", "url": au.get("linkedin", ""),
+              "email": f"mailto:{au.get('email', '')}",
               "sameAs": [au.get("linkedin", "")], "knowsAbout": ["Café market research", "Data analysis", "Jaipur"]}
     first = (ins.get("insights", {}).get("history") or [{}])[0].get("captured_on") or meta["captured_on"]
     dataset = {"@type": "Dataset", "name": f"{site['title']}: cafés in C-Scheme and Malviya Nagar, Jaipur",
@@ -540,7 +552,7 @@ def build(mode):
                                 "Fresh findings on Jaipur's cafés, twice a month, free on WhatsApp. Short, and only when there is something new.",
                                 updates, here="Free updates", main_cls="main-updates"))
     write("about/", shell("about/", f"About · {site['title']}",
-                          f"Independent café research in Jaipur by {au['name']}: the house rules, and how to meet over a cup of coffee.",
+                          f"Independent café research in Jaipur by {au['name']}, data analyst: the house rules, and how to get in touch.",
                           about, here="About"))
     if (ROOT / "data/public/location_latest.json").exists():
         shutil.copy(ROOT / "data/public/location_latest.json", out / "data/location.json")
@@ -593,9 +605,7 @@ def location_page(site, au, captured, k, mailto):
     <p>It doesn't say a café here will do well or badly. Rent, footfall and what you serve matter more than any count. A count of
     places is not a count of people: one large office and one small clinic each count once. Residents are not counted yet.</p></div>
   </section>
-  <section class="contact"><h2 class="reveal">A second opinion?</h2><div class="c-copy reveal"><p>Tell me where you're looking. I'd like to
-    walk the spot with you, over a cup of coffee.</p>
-    <p class="c-links"><a class="btn" href="{mailto}">Say hello</a><a href="../insights/">Read the findings</a></p></div></section>"""
+""" + contact(pre, "Questions about a spot?", "If you're weighing a location and want to talk it through, you're welcome to get in touch.", bio=False)
     return shell("location/", f"Where to open a café in Jaipur · {site['title']}",
                  "Opening a café in Jaipur? Pick any spot in C-Scheme or Malviya Nagar: see the cafés, the gaps and who is around to buy coffee.",
                  body, here="Location check", scripts=f'\n<script src="../{asset("location.js")}" defer></script>', main_cls="loc")
@@ -625,8 +635,7 @@ def profile(p, site, au, captured, core, k, mailto, ent):
     <p class="pf-note">Area figures are aggregates. I never show a café's own ratings, review counts or prices.</p></section>
   <section class="pf-sec"><h2>What they offer.</h2><ul class="rare">{feats or '<li><span>Not listed.</span></li>'}</ul>{also}
     <table class="outlets"><caption>Cafés I read</caption><thead><tr><th>Area</th><th>Locality</th><th>Hours, first listed day</th><th>Listed on</th><th>Delivery</th></tr></thead><tbody>{rows}</tbody></table></section>
-  <section class="contact"><h2>Over a cup of coffee?</h2><div class="c-copy"><p>If you run a café in Jaipur or are about to open one, I'd like to meet.</p>
-    <p class="c-links"><a class="btn" href="{mailto}">Say hello</a><a href="{pre}insights/">Read the findings</a></p></div></section>
+""" + contact(pre, bio=False) + f"""
   <p class="pf-src">Facts from the sources linked and from public listings read on {E(captured)}.</p>"""
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "WebPage", "name": f"{p['name']}: what they did right", "url": slug_url, "inLanguage": "en-IN",
