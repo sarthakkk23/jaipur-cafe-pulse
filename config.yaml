@@ -29,11 +29,13 @@ publish:
 # Google Sheet. The section stays off the public page until provider and action are set.
 #   provider: google_form | formspree | none
 #   action:   the form's .../formResponse URL (Google) or the Formspree endpoint
-#   fields:   the form's field name for the WhatsApp number, e.g. contact: entry.654321
+#   fields:   the form's field names: name (optional on the page if the form has no name question) and contact
 subscribe:
-  provider: none
-  action: ""
-  fields: {}
+  provider: google_form
+  action: "https://docs.google.com/forms/d/e/1FAIpQLSdYhCWKQVk3wV8bSlXn7jHBZxEs7hlxZxjSh_ZU1ct7S6T2cw/formResponse"
+  fields:                 # the form's two required questions
+    name: entry.564559113       # Name
+    contact: entry.1429636324   # Mobile Number
 
 cadence:
   every: "2 weeks"

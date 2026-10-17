@@ -131,11 +131,13 @@
   // ---------- free updates: sign-up ----------
   const up = document.querySelector(".up-form");
   if (up) {
-    const status = up.querySelector(".up-status"), contactEl = up.querySelector("input");
+    const status = up.querySelector(".up-status"), inputs = up.querySelectorAll("input");
+    const contactEl = inputs[inputs.length - 1], nameEl = inputs.length > 1 ? inputs[0] : null;
     const isPhone = (v) => /^(\+?91|0)?[6-9]\d{9}$/.test(v.replace(/[\s()-]/g, ""));
     up.addEventListener("submit", async (e) => {
       e.preventDefault();
       const contact = contactEl.value.trim();
+      if (nameEl && !nameEl.value.trim()) { status.textContent = "Please add your name."; nameEl.focus(); return; }
       if (!isPhone(contact)) { status.textContent = "Please add a 10-digit Indian mobile number."; contactEl.focus(); return; }
       const { provider, action } = up.dataset;
       if (!action || provider === "none") { status.textContent = "Sign-ups open soon."; return; }
