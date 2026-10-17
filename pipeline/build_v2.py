@@ -24,7 +24,9 @@ PHOTOS = {
     "jantar-dial": ("A sundial at Jantar Mantar, Jaipur", "Ravi Kumar Meena", "https://unsplash.com/photos/0k3ohtAd7DU", 3200, 4267),
     "patrika-gate-sky": ("Patrika Gate against a clear sky, Jaipur", "Swaroop Satheesh", "https://unsplash.com/photos/n8r8CLJUo2o", 3200, 5689),
     "jantar-field": ("The instruments of Jantar Mantar below Nahargarh, Jaipur", "Ibrahim Rifath", "https://unsplash.com/photos/ZCa9LzaG_9M", 3200, 2134),
-    "morning-cup": ("A cup of coffee steaming in low morning light", "Barney Goodman", "https://unsplash.com/photos/Di2oDZKW2es", 3200, 2209),
+    "hawa-horses": ("Decorated horses passing the Hawa Mahal, Jaipur", "Aditya Siva", "https://unsplash.com/photos/6rDbvXzIVpQ", 3200, 2133),
+    "pink-haveli": ("A pink haveli seen through neem leaves, Jaipur", "Chirag Singhvi", "https://unsplash.com/photos/17tsb--Y72M", 3200, 4231),
+    "kulhad-chai": ("Chai in clay kulhads beside a blue-pottery plate", "VD Photography", "https://unsplash.com/photos/HHM4Ejj0SCE", 3200, 4266),
 }
 
 
@@ -108,29 +110,30 @@ def build(mode):
     <p class="hero-fig"><span class="hero-num">{lead_f['value']}<small>{E(lead_f['unit'])}</small></span>
       <span class="hero-cap">{E(lead_f['headline'])}</span></p>
     <div class="hero-foot"><p class="hero-act"><a class="btn" href="#insights">See what works</a><a class="btn btn-ghost" href="#benchmark">Check your café</a></p>
-    <p class="hero-meta">C-Scheme and Malviya Nagar · updated {E(captured)} · <a href="#f-{E(lead_f['id'])}">How we know</a></p></div>
+    <p class="hero-meta">C-Scheme and Malviya Nagar · updated {E(captured)} · <a href="#f-{E(lead_f['id'])}">How I know</a></p></div>
   </div>
   <div class="hero-obj">
     <canvas class="relief" aria-label="Café density across C-Scheme and Malviya Nagar, sculpted as a relief"></canvas>
     <div class="relief-labels" aria-hidden="true"></div>
     <figure class="relief-still">{pic("jantar-dial", "(max-width: 900px) 100vw, 55vw", eager=True)}</figure>
-    <p class="relief-hint" aria-hidden="true">Drag to turn. Height is how many cafés stand close by.</p>
+    <p class="relief-hint" aria-hidden="true">Drag to turn. The taller the ground, the more cafés stand close together.</p>
+    <p class="relief-note">At the top: Jantar Mantar, the stone observatory Jaipur's founder built to measure the sky. This page measures its cafés.</p>
   </div>
   <script type="application/json" id="relief-data">{terrain}</script>
 </section>"""
 
     # ---------- intro ----------
     intro = f"""<section class="intro" aria-label="About this record">
-  <p class="lead reveal">Every number below is a share of cafés, with what it means for you and how we know it. The record is updated often,
-  so the trends are the latest ones, not last year's.</p>
+  <p class="lead reveal">I read every café listing in C-Scheme and Malviya Nagar, so you don't have to. Then I tell you, in plain words,
+  what the data says and what it doesn't. It is updated often, so the trends are the latest ones.</p>
   <div class="cols">
-    <p class="reveal"><b>Use it to</b> price a menu, choose a street, read a rival's rating, or see where your own café stands.</p>
-    <p class="reveal"><b>Who.</b> Independent research by {E(au['name'])}, based in Jaipur. No platform or café pays to appear in it.</p>
-    <p class="reveal"><b>What.</b> {E(T.get('scene.venues_tracked', ''))} venues from Zomato, Google Maps and Swiggy, matched into one record.
-    Nothing is shown for fewer than {k} cafés.</p>
+    <p class="reveal"><b>Plain words.</b> Each finding is one sentence and one number: a share of cafés, and what it means for yours.</p>
+    <p class="reveal"><b>What it doesn't say.</b> Every finding also says where it stops, so you never read more into it than is there.</p>
+    <p class="reveal"><b>Serious statistics, simply.</b> Resampling, like-for-like models and clustering tests run behind every figure.
+    You get the answer, not the jargon.</p>
     <p class="reveal"><b>Evidence.</b> <span class="ev" data-g="3"><i></i><i></i><i></i></span> strong,
     <span class="ev" data-g="2"><i></i><i></i><i></i></span> moderate, <span class="ev" data-g="1"><i></i><i></i><i></i></span> weak.
-    How sure each finding is.</p>
+    How sure each finding is. Independent research by {E(au['name'])}; no platform or café pays to appear.</p>
   </div>
 </section>"""
 
@@ -145,8 +148,9 @@ def build(mode):
     <p class="fd-num">{f['value']}<small>{E(f['unit'])}</small></p>
     <h3 class="fd-head">{E(f['headline'])}</h3>
     <p class="fd-body">{E(f['body'])}</p>
+    {f'<p class="fd-limit">{E(f["limit"])}</p>' if f.get("limit") else ""}
     <p class="fd-grade"><span class="ev" data-g="{g}"><i></i><i></i><i></i></span>{E(f['grade'])} evidence · {f['n']:,} cafés</p>
-    <details class="fd-how"><summary>How we know</summary><ul>{how}</ul></details>
+    <details class="fd-how"><summary>How I know</summary><ul>{how}</ul></details>
   </div>
   <figure class="fd-chart reveal">{figs.chart(f, 600)}{figs.chart(f, 400)}</figure>
 </article>"""
@@ -161,9 +165,13 @@ def build(mode):
   {body}{after}
 </section>"""
 
-    ch1 = chapter("insights", "Where attention goes.", "Reviews and ratings decide who gets found. Here is how they really behave.",
+    ch1 = chapter("insights", "Where attention goes.", "Reviews and ratings decide who gets found. Here is how they really behave, in plain words.",
                   ["attention", "ratings", "platforms_rate", "delivery"])
-    band = f"""<figure class="band reveal">{pic("morning-cup", "100vw")}</figure>"""
+    band = f"""<figure class="band reveal" data-drift>{pic("hawa-horses", "100vw")}<figcaption>Outside the Hawa Mahal, in the old city.</figcaption></figure>"""
+    pair = f"""<section class="pair" aria-label="Mornings in Jaipur">
+  <figure class="pair-a reveal" data-drift>{pic("kulhad-chai", "(max-width: 760px) 100vw, 40vw")}<figcaption>Chai in clay kulhads: the city's first order of the day.</figcaption></figure>
+  <figure class="pair-b reveal" data-drift>{pic("pink-haveli", "(max-width: 760px) 100vw, 55vw")}<figcaption>A haveli in the Pink City, through neem leaves.</figcaption></figure>
+</section>"""
     ch2 = chapter("offer", "What cafés offer.", "Menus, prices and features: what is common, what is rare, and what actually goes with being chosen.",
                   ["amenities", "price", "menus", "visibility"])
 
@@ -252,14 +260,13 @@ def build(mode):
         updates = f"""<section class="updates" id="updates" aria-labelledby="updates-h">
   <div class="up-copy reveal">
     <h2 id="updates-h">The latest café trends, twice a month. Free.</h2>
-    <p>Each update brings the newest findings on Jaipur's cafés, by email or WhatsApp: what customers reward, what is changing,
+    <p>Each update brings the newest findings on Jaipur's cafés straight to your WhatsApp: what customers reward, what is changing,
     and where the openings are. Short, and only when there is something new.</p>
   </div>
   <form class="up-form reveal" data-ui data-provider="{E(sub.get('provider', 'none'))}" data-action="{E(sub.get('action', ''))}" novalidate>
-    <label class="field"><span>Your name</span><input type="text" name="{E(fields.get('name', 'name'))}" autocomplete="name" required maxlength="80"></label>
-    <label class="field"><span>Email or WhatsApp number</span><input type="text" name="{E(fields.get('contact', 'contact'))}" autocomplete="email" inputmode="email" required maxlength="120" placeholder="you@cafe.in or 98290 12345"></label>
+    <label class="field"><span>Your WhatsApp number</span><input type="tel" name="{E(fields.get('contact', 'contact'))}" autocomplete="tel" inputmode="tel" required maxlength="16" placeholder="98290 12345"></label>
     <button class="btn" type="submit">Send me the updates</button>
-    <p class="up-note">Used only to send these updates. Never shared, never sold. Reply "stop" any time and you are off the list.</p>
+    <p class="up-note">Used only to send these updates on WhatsApp. Never shared, never sold. Reply "stop" any time and you are off the list.</p>
     <p class="up-status" role="status" aria-live="polite"></p>
   </form>
 </section>"""
@@ -273,8 +280,8 @@ def build(mode):
     gloss = [
         ("Median", "The middle café when all are lined up. Unlike an average, one very busy café can't drag it."),
         ("Share", "Every headline figure is a share of cafés: out of every hundred, how many. It reads the same whether the group is fifty cafés or five hundred."),
-        ("Interval", "We resample the cafés thousands of times (the bootstrap) and report the range most results fall in. A narrow range means a firm figure."),
-        ("Shuffle test", "To ask whether a pattern could be luck, we shuffle the labels many times and count how often chance alone produces something as strong."),
+        ("Interval", "I resample the cafés thousands of times (the bootstrap) and report the range most results fall in. A narrow range means a firm figure."),
+        ("Shuffle test", "To ask whether a pattern could be luck, I shuffle the labels many times and count how often chance alone produces something as strong."),
         ("Rank correlation", "From −1 to +1: do cafés that are higher on one measure tend to be higher on another? Zero means no link."),
         ("Like for like", "A regression compares cafés that differ in one listed feature but share area, type and price level, so a feature doesn't get credit for what comes with it."),
         ("Clustering", "The Clark-Evans test compares the distance to the nearest café with what random scatter over the same ground would give."),
@@ -284,7 +291,7 @@ def build(mode):
     method = f"""<section class="method" id="method" aria-labelledby="method-h">
   <figure class="method-pic reveal">{pic("jantar-field", "(max-width: 760px) 100vw, 60vw")}</figure>
   <div class="method-copy"><h2 id="method-h">The methods, in plain words.</h2>
-    <p>Three platforms describe the same café three ways. We read them on the same searches at every update, match them into one record,
+    <p>Three platforms describe the same café three ways. I read them on the same searches at every update, match them into one record,
     and publish only what holds for a group. These are the tools behind every figure above.</p></div>
   <dl class="gloss">{gl}</dl>
   <svg class="many" viewBox="0 0 1200 270" role="img" aria-label="Scattered platform listings compressed into one ordered record"
@@ -317,7 +324,7 @@ def build(mode):
             '}}</script>')
     page = (head(site["title"], site["tagline"])
             + "\n" + imap + '\n<script type="module" src="relief.js"></script>\n<script src="tool.js" defer></script>\n</head>\n<body>\n'
-            + banner + bar(site, updates=bool(updates)) + "\n<main>\n" + "\n".join([hero, intro, ch1, band, ch2, bench, sundial, ch3, best, updates, method, contact])
+            + banner + bar(site, updates=bool(updates)) + "\n<main>\n" + "\n".join([hero, intro, ch1, band, ch2, bench, pair, sundial, ch3, best, updates, method, contact])
             + "\n</main>\n" + footer + "\n</body>\n</html>\n")
 
     out = ROOT / "dist"
@@ -358,10 +365,10 @@ def profile(p, site, au, captured, core, k, mailto, ent):
   <section class="pf-head"><h1 class="reveal">{E(p['name'])}</h1><p class="pf-tag reveal">{E(p['tagline'])}</p>
     <p class="pf-where reveal">{E(' · '.join(sorted({o['area'] for o in p['outlets']})))} · {len(p['outlets'])} {'café' if len(p['outlets']) == 1 else 'cafés'}</p></section>
   <section class="pf-sec"><h2>What they did right.</h2><ul class="story">{story}</ul>{notes}</section>
-  <section class="pf-sec field-stone"><h2>Against the {E(core)} cafés we read.</h2><ul class="bands">{sig}</ul>
-    <p class="pf-note">Area figures are aggregates. We never show a café's own ratings, review counts or prices.</p></section>
+  <section class="pf-sec field-stone"><h2>Against the {E(core)} cafés I read.</h2><ul class="bands">{sig}</ul>
+    <p class="pf-note">Area figures are aggregates. I never show a café's own ratings, review counts or prices.</p></section>
   <section class="pf-sec"><h2>What they offer.</h2><ul class="rare">{feats or '<li><span>Not listed.</span></li>'}</ul>{also}
-    <table class="outlets"><caption>Cafés we read</caption><thead><tr><th>Area</th><th>Locality</th><th>Hours, first listed day</th><th>Listed on</th><th>Delivery</th></tr></thead><tbody>{rows}</tbody></table></section>
+    <table class="outlets"><caption>Cafés I read</caption><thead><tr><th>Area</th><th>Locality</th><th>Hours, first listed day</th><th>Listed on</th><th>Delivery</th></tr></thead><tbody>{rows}</tbody></table></section>
   <section class="contact"><h2>Over a cup of coffee?</h2><div class="c-copy"><p>If you run a café in Jaipur or are about to open one, I'd like to meet.</p>
     <p class="c-links"><a class="btn" href="{mailto}">Say hello</a><a href="{pre}#insights">Read the findings</a></p></div></section>
 </main>

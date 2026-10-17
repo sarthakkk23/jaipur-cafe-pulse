@@ -99,8 +99,11 @@ async function init() {
     renderer.setSize(w, h, false); camera.aspect = w / h;
     camera.fov = w / h < 0.9 ? 34 : 26; camera.updateProjectionMatrix();
   }
+  // scrolling past the hero turns the city a little further, so it answers the reader's first movement
+  let scrollTurn = 0;
+  addEventListener("scroll", () => { if (reduce) return; scrollTurn = Math.min(1.2, scrollY / 900); if (visible) kick(); }, { passive: true });
   function draw() {
-    obj.rotation.y = yaw;
+    obj.rotation.y = yaw + scrollTurn;
     // keep the whole object in frame as it turns: its long side must fit the narrower field of view
     // fit the object's turning radius inside the narrower field of view, so no corner leaves the frame
     const half = Math.tan((camera.fov * Math.PI) / 360) * Math.min(1, camera.aspect), d = Math.max(dist, (0.86 * Math.hypot(W, H) / 2) / half);
