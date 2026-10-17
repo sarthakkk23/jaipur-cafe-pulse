@@ -1,18 +1,20 @@
-# Jaipur Café Pulse — project config.
+# Jaipur Café Index (formerly Jaipur Café Pulse) — project config.
 # Three data layers, kept apart on disk:
 #   private/raw/      RAW: every source pull. Its own private git repo; never in this one.
 #   private/reports/  PER-VENUE: owner reports, delivered privately. Also private.
 #   data/public/      DERIVED AGGREGATES: the only layer the website reads.
 
 site:
-  title: "Jaipur Café Pulse"
-  tagline: "An independent, dated record of Jaipur's café scene."
+  title: "Jaipur Café Index"
+  # what search engines and link previews show; plain words people actually search for
+  tagline: "Independent data on cafés in Jaipur's C-Scheme and Malviya Nagar: what customers reward, where the gaps are, in plain words. Updated twice a month."
+  seo_title: "Jaipur Café Index · Café data for C-Scheme & Malviya Nagar"
   areas: ["C-Scheme", "Malviya Nagar"]
   author:
     name: "Sarthak Oberoi"
     linkedin: "https://www.linkedin.com/in/sarthak-oberoi-analyst/"
     email: "sarthakoberoi12@gmail.com"
-    email_subject: "Jaipur Café Pulse"
+    email_subject: "Jaipur Café Index"
   base_url: "https://sarthakkk23.github.io/jaipur-cafe-pulse"
 
 publish:

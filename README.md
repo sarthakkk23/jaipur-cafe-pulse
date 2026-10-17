@@ -1,4 +1,6 @@
-# Jaipur Café Pulse
+# Jaipur Café Index
+
+Jaipur's cafés, measured. (Formerly Jaipur Café Pulse.)
 
 An independent, dated record of the café scene in C-Scheme and Malviya Nagar, Jaipur,
 refreshed every two weeks. The public site shows aggregates only, and it names a café
@@ -49,5 +51,5 @@ Live at https://sarthakkk23.github.io/jaipur-cafe-pulse once the first deploy ru
 
 ## Licence
 
-Code: MIT (see LICENSE). Published aggregates may be cited with attribution to Jaipur Café Pulse
+Code: MIT (see LICENSE). Published aggregates may be cited with attribution to Jaipur Café Index
 and the snapshot date.

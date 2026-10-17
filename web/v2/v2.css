@@ -1,4 +1,4 @@
-/* Jaipur Café Pulse, v2: "The Instrument".
+/* Jaipur Café Index, v2: "The Instrument".
    Neutral lime-wash ground, ink, the Pink City as whole fields of colour, facade red for the one action.
    Flat colour only; surfaces separate by a step in tone, never by a line or a shadow. */
 
@@ -366,6 +366,9 @@ figure { margin: 0; }
   .loc-map { min-height: 0; }
   .loc-canvas { min-height: 0; aspect-ratio: 1; }
 }
+
+.nf { min-height: 70svh; display: grid; align-content: center; gap: 20px; padding: 96px var(--m); }
+.nf h1 { font-size: var(--s-display-s); letter-spacing: -0.04em; line-height: .95; max-width: 14ch; }
 
 /* ---------- profile pages ---------- */
 .pf-head { padding: clamp(80px, 10vw, 160px) var(--m) 72px; }

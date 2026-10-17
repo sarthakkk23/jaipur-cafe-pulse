@@ -5,7 +5,7 @@ the parity check below skips alternate weeks, since plain cron can't say "every 
 
 ---
 
-You are refreshing **Jaipur Café Pulse**, an independent record of cafés in C-Scheme and
+You are refreshing **Jaipur Café Index** (formerly Jaipur Café Pulse), an independent record of cafés in C-Scheme and
 Malviya Nagar, Jaipur. Project folder: `/Users/sarthak/Documents/projects/jaipur-cafe-pulse`.
 Work only inside it. Two git repositories live here:
 - the folder itself → `sarthakkk23/jaipur-cafe-pulse` (public: site, aggregates, copy)
