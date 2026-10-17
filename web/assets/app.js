@@ -152,31 +152,41 @@
     });
   }
 
-  // ---------- grid overlay toggle ----------
-  const gt = document.querySelector(".grid-toggle");
-  if (gt) gt.addEventListener("click", () => {
-    const on = gt.getAttribute("aria-pressed") !== "true";
-    gt.setAttribute("aria-pressed", String(on));
-    root.classList.toggle("show-grid", on);
-  });
-
-  // ---------- active chip ----------
-  const chips = new Map([...document.querySelectorAll(".chip")].map((c) => [c.getAttribute("href").slice(1), c]));
-  if ("IntersectionObserver" in window) {
+  // ---------- top nav: sliding active pill + reading progress ----------
+  const links = [...document.querySelectorAll(".nav-links .nl[data-for]")];
+  const navEl = document.querySelector(".nav-links");
+  const ind = document.querySelector(".nl-ind");
+  const prog = document.querySelector(".nav-progress i");
+  const owner = new Map();
+  links.forEach((l) => l.dataset.for.split(" ").forEach((id) => owner.set(id, l)));
+  const moveInd = (l) => {
+    links.forEach((x) => x.toggleAttribute("aria-current", x === l));
+    if (!ind) return;
+    if (!l) { ind.style.opacity = 0; return; }
+    ind.style.opacity = 1;
+    ind.style.transform = `translateX(${l.offsetLeft}px)`;
+    ind.style.width = `${l.offsetWidth}px`;
+    // keep the active link in view on narrow screens (scroll only the link row)
+    if (navEl.scrollWidth > navEl.clientWidth)
+      navEl.scrollTo({ left: l.offsetLeft - (navEl.clientWidth - l.offsetWidth) / 2, behavior: reduce ? "auto" : "smooth" });
+  };
+  if ("IntersectionObserver" in window && links.length) {
+    let current = null;
     const so = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         if (!e.isIntersecting) return;
-        chips.forEach((c) => c.removeAttribute("aria-current"));
-        const c = chips.get(e.target.id);
-        if (c) {
-          c.setAttribute("aria-current", "true");
-          // Scroll only the chip row; scrollIntoView on a sticky header would move the page.
-          const row = c.parentElement;
-          row.scrollTo({ left: c.offsetLeft - (row.clientWidth - c.offsetWidth) / 2, behavior: reduce ? "auto" : "smooth" });
-        }
+        const l = e.target.id === "overview" ? null : owner.get(e.target.id) || current;
+        if (l !== current) { current = l; moveInd(l); }
       });
     }, { rootMargin: "-45% 0px -50% 0px" });
-    chips.forEach((_, id) => { const s = document.getElementById(id); if (s) so.observe(s); });
+    ["overview", ...owner.keys()].forEach((id) => { const el = document.getElementById(id); if (el) so.observe(el); });
+    addEventListener("resize", () => current && moveInd(current));
+  }
+  if (prog) {
+    let pt = false;
+    const progress = () => { pt = false; const max = document.documentElement.scrollHeight - innerHeight; prog.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`; };
+    addEventListener("scroll", () => { if (!pt) { pt = true; requestAnimationFrame(progress); } }, { passive: true });
+    progress();
   }
 
   // ---------- tooltips: enhance, never gate (every value is also in the table view) ----------

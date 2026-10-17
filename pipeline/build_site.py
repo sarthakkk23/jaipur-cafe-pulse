@@ -109,10 +109,13 @@ def build(mode):
         "demand_lines": (lambda: C.demand(ins), "Google Trends, Rajasthan", "index 0–100 within each query set"),
     }
 
-    nav = ([("overview", "Overview"), ("timemachine", "What moved"), ("map", "Map")]
-           + ([("top", "Top cafés")] if ins.get("profiles") else []) + [(s["id"], s["nav"]) for s in nar["sections"]]
-           + [("benchmark", "Benchmark"), ("makers", "Makers"), ("method", "Method"), ("contact", "Contact")])
-    nav_html = "".join(f'<a class="chip" href="#{i}">{E(l)}</a>' for i, l in nav)
+    # a few clear destinations; the six insight sections share one "Insights" link
+    first_insight = nar["sections"][0]["id"]
+    nav = ([("timemachine", "What moved", ["timemachine"]), ("map", "Map", ["map"])]
+           + ([("top", "Top cafés", ["top"])] if ins.get("profiles") else [])
+           + [(first_insight, "Insights", [s["id"] for s in nar["sections"]]),
+              ("benchmark", "Benchmark", ["benchmark"]), ("method", "Method", ["makers", "method"])])
+    nav_html = "".join(f'<a class="nl" href="#{i}" data-for="{" ".join(ids)}">{E(l)}</a>' for i, l, ids in nav)
 
     cards = "".join(f"""
       <div class="hl-slot">
@@ -237,15 +240,13 @@ def build(mode):
 <body>
 {banner}
 <header class="localnav">
-  <div class="localnav-inner">
-    <a class="brand" href="#overview">{E(site['title'])}</a>
-    <span class="asof">C-Scheme / Malviya Nagar · Snapshot {E(nice_date(meta['captured_on']))}</span>
-    <div class="nav-right">
-      <button class="grid-toggle" type="button" aria-pressed="false">Grid <span class="sw-on">On</span><span class="sw-off">Off</span></button>
-      {nav_cta}
-    </div>
+  <div class="nav-bar">
+    <a class="brand" href="#overview"><span class="brand-mark" aria-hidden="true"></span>{E(site['title'])}</a>
+    <span class="asof" title="Snapshot of {E(nice_date(meta['captured_on']))}">Updated {E(date.fromisoformat(meta['captured_on']).strftime('%-d %b'))}</span>
+    <nav class="nav-links" aria-label="Sections">{nav_html}<span class="nl-ind" aria-hidden="true"></span></nav>
+    {nav_cta}
   </div>
-  <nav class="chips" aria-label="Sections">{nav_html}</nav>
+  <div class="nav-progress" aria-hidden="true"><i></i></div>
 </header>
 
 <main>
@@ -331,7 +332,6 @@ def build(mode):
 </footer>
 <div class="tip" role="tooltip" hidden></div>
 <script type="application/json" id="pulse-data">{tool_data}</script>
-<div class="grid-overlay" aria-hidden="true"><div class="wrap">{"".join("<span></span>" for _ in range(12))}</div></div>
 </body>
 </html>
 """

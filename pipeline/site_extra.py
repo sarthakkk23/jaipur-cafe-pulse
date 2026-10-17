@@ -119,10 +119,12 @@ def profile_page(p, ins, site, meta, head_extra, nav_cta, mailto, k):
 </head>
 <body class="profile">
 <header class="localnav">
-  <div class="localnav-inner">
-    <a class="brand" href="../../">{E(site['title'])}</a>
-    <div class="nav-right"><a class="share-back" href="../../#top">← All top cafés</a>{nav_cta}</div>
+  <div class="nav-bar">
+    <a class="brand" href="../../"><span class="brand-mark" aria-hidden="true"></span>{E(site['title'])}</a>
+    <nav class="nav-links" aria-label="Back"><a class="nl" href="../../#top">← All top cafés</a></nav>
+    {nav_cta}
   </div>
+  <div class="nav-progress" aria-hidden="true"><i></i></div>
 </header>
 <main>
 <section class="hero pf-hero">
