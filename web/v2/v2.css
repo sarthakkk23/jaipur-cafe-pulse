@@ -445,6 +445,11 @@ figure { margin: 0; }
 .tr-next span { font-size: var(--s-small); color: var(--soft); font-weight: 400; }
 .tr-next:hover { color: var(--red); }
 .rules { padding: clamp(72px, 9vw, 128px) var(--m); }
+.who { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px 48px; padding: clamp(72px, 9vw, 128px) var(--m) 0; align-items: start; }
+.who-text { display: grid; gap: 20px; }
+.who-text p:first-child { font-size: var(--s-lead); line-height: 1.3; }
+.c-more { font-weight: 600; }
+@media (max-width: 900px) { .who { grid-template-columns: 1fr; } }
 .rules h2 { margin-bottom: 24px; }
 .rule-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 24px; align-items: baseline; padding: 30px 24px; background: var(--stone); }
 .rule-list li:nth-child(odd) .rule-row { background: var(--blush); }
