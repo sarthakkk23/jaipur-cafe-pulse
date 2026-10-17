@@ -13,7 +13,7 @@ written_for_snapshot: "2026-09"
 
 hero:
   eyebrow: "Jaipur Café Pulse"
-  headline: "Jaipur's café scene, measured."
+  headline: "Jaipur's café scene, *measured*."
   lede: >-
     {{scene.core_cafes}} operating cafés across C-Scheme and Malviya Nagar, counted,
     compared and re-measured every two weeks. Every figure here is an aggregate,
@@ -23,27 +23,33 @@ highlights:
   - value: "{{hours.open_by_8}}"
     caption: "of cafés are serving by 8am. The morning is wide open."
     link: "#mornings"
+    short: "open by 8am"
   - value: "{{price.coffee.cs}} · {{price.coffee.mn}}"
     caption: "Typical cost for two at a coffee-led café, C-Scheme and Malviya Nagar."
     link: "#prices"
+    short: "coffee for two · C-Scheme · Malviya Nagar"
   - value: "{{attention.top10_share.all}}"
     caption: "of all Google reviews belong to the top 10% of cafés."
     link: "#attention"
+    short: "of Google reviews go to the top 10%"
   - value: "{{ratings.share48.newest}}"
-    caption: "of the newest cafés rate 4.8 or above. It settles as they grow."
+    caption: "of cafés with under ten reviews rate 4.8 or above. It settles as they grow."
     link: "#ratings"
+    short: "of cafés with under ten reviews rate 4.8+"
   - value: "{{demand.matcha.multiple}}"
     caption: "Rajasthan's search interest in matcha, 2025 against 2019."
     link: "#demand"
+    short: "matcha searches since 2019"
   - value: "{{scene.independent_share}}"
     caption: "of the cafés we track are independent, not national chains."
     link: "#makers"
+    short: "of cafés are independent"
 
 sections:
   - id: mornings
     nav: "Mornings"
     eyebrow: "Opening hours"
-    headline: "The city wakes before its cafés do."
+    headline: "The city wakes before its *cafés* do."
     body:
       - >-
         Across the {{hours.n}} cafés that list their hours, the typical one opens at
@@ -64,7 +70,7 @@ sections:
   - id: prices
     nav: "Prices"
     eyebrow: "Prices"
-    headline: "Same cup, different street."
+    headline: "Same cup, *different* street."
     body:
       - >-
         A coffee-led café's typical cost for two is {{price.coffee.cs}} in C-Scheme and
@@ -85,7 +91,7 @@ sections:
   - id: attention
     nav: "Attention"
     eyebrow: "Attention"
-    headline: "A few cafés hold most of the conversation."
+    headline: "A few cafés hold most of the *conversation*."
     body:
       - >-
         The top 10% of cafés hold {{attention.top10_share.all}} of all Google reviews.
@@ -107,7 +113,7 @@ sections:
   - id: ratings
     nav: "Ratings"
     eyebrow: "Ratings"
-    headline: "A rating that settles is usually a café that's growing."
+    headline: "A rating that settles is usually a café that's *growing*."
     body:
       - >-
         Among cafés with fewer than ten Google reviews, {{ratings.share48.newest}} rate
@@ -125,7 +131,7 @@ sections:
   - id: amenities
     nav: "What cafés offer"
     eyebrow: "What cafés offer"
-    headline: "What cafés make room for."
+    headline: "What cafés make *room* for."
     body:
       - >-
         Of the {{amenities.n}} cafés we can see on Zomato, {{amenities.share.breakfast}}
@@ -147,7 +153,7 @@ sections:
   - id: demand
     nav: "Demand"
     eyebrow: "Demand"
-    headline: "Rajasthan is searching for coffee."
+    headline: "Rajasthan is *searching* for coffee."
     body:
       - >-
         Search interest in "coffee" across Rajasthan in 2025 was {{demand.coffee.multiple}}
@@ -163,16 +169,24 @@ sections:
       planner: >-
         The category is growing state-wide, not only in the two areas we track.
 
+benchmark:
+  eyebrow: "Benchmark"
+  headline: "How does *your* café compare?"
+  lede: >-
+    Pick your area and type, add what you know, and see where you sit among the
+    {{scene.core_cafes}} cafés we track. It all runs in your browser. Nothing you type
+    is sent anywhere.
+
 makers:
   eyebrow: "Who built it"
-  headline: "Jaipur's coffee was built here."
+  headline: "Jaipur's coffee was built *here*."
   lede: >-
     {{scene.independent_share}} of the cafés we track are independent. A few of the
     people and places that shaped the scene, as reported in the press.
 
 method:
   eyebrow: "How this is made"
-  headline: "Sourced. Dated. Never guessed."
+  headline: "Sourced. Dated. Never *guessed*."
   points:
     - title: "Public listings, same method every time"
       text: >-

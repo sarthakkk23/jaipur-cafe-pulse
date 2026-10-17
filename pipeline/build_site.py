@@ -38,13 +38,28 @@ def fmt_min(m):
     return f"{h % 12}{'am' if h < 12 else 'pm'}"
 
 
+ACCENT = re.compile(r"^\*(.+?)\*([.,!?:;]*)$")
+
+
+def accent(word):
+    """*word* in copy -> the serif italic accent."""
+    m = ACCENT.match(word)
+    return f'<em class="acc">{E(m.group(1))}</em>{E(m.group(2))}' if m else E(word)
+
+
+def plain(text):
+    return text.replace("*", "")
+
+
 def words(text):
     """Headline split into masked words for the staggered reveal (plain text without JS)."""
-    return " ".join(f'<span class="w"><span style="--d:{i}">{E(w)}</span></span>' for i, w in enumerate(text.split()))
+    return " ".join(f'<span class="w"><span style="--d:{i}">{accent(w)}</span></span>' for i, w in enumerate(text.split()))
 
 
-def sec_head(eyebrow, idx):
-    return (f'<div class="sec-head"><p class="eyebrow">{E(eyebrow)}</p><span class="idx">({idx:02d})</span>'
+def sec_head(eyebrow, idx, sid=None):
+    share = (f'<button class="share" type="button" data-share="#{sid}" aria-label="Copy a link to this section">'
+             f'Share</button>') if sid else ""
+    return (f'<div class="sec-head"><p class="eyebrow">{E(eyebrow)}</p><span class="idx">{share}({idx:02d})</span>'
             f'<span class="rule" data-scene="enter" aria-hidden="true"></span></div>')
 
 
@@ -284,7 +299,7 @@ def section_html(sec, tokens, chart_html, meta, source, n_note, alt, idx):
     return f"""
 <section id="{sec['id']}" class="insight alt{' first' if alt == 'first' else ''}" aria-labelledby="{sec['id']}-h">
   <div class="wrap">
-    {sec_head(sec['eyebrow'], idx)}
+    {sec_head(sec['eyebrow'], idx, sec['id'])}
     <h2 id="{sec['id']}-h" class="headline split">{words(sec['headline'])}</h2>
     <div class="copy reveal">{body}</div>
     <figure class="card chart draw reveal">
@@ -320,7 +335,8 @@ def build(mode):
         "demand_lines": (lambda: chart_demand(ins), "Google Trends, Rajasthan", "index 0–100 within each query set"),
     }
 
-    nav = [("overview", "Overview")] + [(s["id"], s["nav"]) for s in nar["sections"]] + [("makers", "Makers"), ("method", "Method"), ("contact", "Contact")]
+    nav = ([("overview", "Overview")] + [(s["id"], s["nav"]) for s in nar["sections"]]
+           + [("benchmark", "Benchmark"), ("makers", "Makers"), ("method", "Method"), ("contact", "Contact")])
     nav_html = "".join(f'<a class="chip" href="#{i}">{E(l)}</a>' for i, l in nav)
 
     cards = "".join(f"""
@@ -334,6 +350,8 @@ def build(mode):
         </a>
       </div>""" for i, h in enumerate(nar["highlights"]))
 
+    ticker = "".join(f'<span class="tk"><b>{fill(h["value"], T)}</b> {E(h.get("short", ""))}</span><span class="tk-dot">✦</span>'
+                     for h in nar["highlights"])
     secs = "".join(section_html(s, T, charts[s["chart"]][0](), meta, charts[s["chart"]][1], charts[s["chart"]][2], "first" if i == 0 else "", i + 1)
                    for i, s in enumerate(nar["sections"]))
 
@@ -372,6 +390,50 @@ def build(mode):
     if not contact and mode == "draft":
         contact.append('<span class="badge-draft">Add your LinkedIn and email in config.yaml</span>')
 
+    tool_data = json.dumps({
+        "areas": areas, "types": TYPES, "k": k, "captured_on": nice_date(meta["captured_on"]),
+        "price": ins["insights"]["price"], "attention": ins["insights"]["attention"]["by_area"],
+        "ratings": ins["insights"]["ratings"]["buckets"], "open_cdf": ins["insights"]["hours"]["open_cdf"],
+        "amenities": [{"key": a["key"], "label": a["label"], "share": a["share"]} for a in ins["insights"]["amenities"]["items"]],
+        "counts": ins["insights"]["scene"]["by_type"],
+        "demand": {s["term"]: s["x2025_vs_2019"] for q in ins["insights"]["demand"]["sets"] for s in q["series"]},
+        "email": au.get("email", ""), "subject": au.get("email_subject", site["title"]),
+    }, ensure_ascii=False).replace("</", "<\\/")
+    bm = nar["benchmark"]
+    opts = "".join(f'<option value="{m}">{fmt_clock(m)}</option>' for m in range(360, 781, 30))
+    chips = lambda name, vals: "".join(
+        f'<label class="chip-in"><input type="radio" name="{name}" value="{E(v)}"{" checked" if i == 0 else ""}><span>{E(v)}</span></label>'
+        for i, v in enumerate(vals))
+    am_chips = "".join(f'<label class="chip-in"><input type="checkbox" name="am" value="{a["key"]}"><span>{E(a["label"])}</span></label>'
+                       for a in ins["insights"]["amenities"]["items"])
+    tool_html = f"""<section id="benchmark" class="tool" aria-labelledby="benchmark-h">
+  <div class="wrap">
+    {sec_head(bm['eyebrow'], len(nar['sections']) + 1, 'benchmark')}
+    <h2 id="benchmark-h" class="headline split">{words(bm['headline'])}</h2>
+    <p class="lede-sm reveal">{fill(bm['lede'], T)}</p>
+    <div class="tool-card reveal">
+      <div class="seg" role="group" aria-label="Mode">
+        <button type="button" class="seg-btn" data-mode="owner" aria-pressed="true">I run a café</button>
+        <button type="button" class="seg-btn" data-mode="planner" aria-pressed="false">I'm opening one</button>
+      </div>
+      <form class="tool-form" autocomplete="off">
+        <fieldset><legend>Area</legend><div class="chip-row">{chips("area", areas)}</div></fieldset>
+        <fieldset><legend>Type</legend><div class="chip-row">{chips("type", TYPES)}</div></fieldset>
+        <div class="owner-only field-grid">
+          <label class="field"><span>Cost for two (₹)</span><input type="number" name="price" min="50" max="20000" step="10" inputmode="numeric" placeholder="700"></label>
+          <label class="field"><span>Google reviews</span><input type="number" name="reviews" min="0" max="100000" step="1" inputmode="numeric" placeholder="120"></label>
+          <label class="field"><span>Google rating</span><input type="number" name="rating" min="1" max="5" step="0.1" inputmode="decimal" placeholder="4.5"></label>
+          <label class="field"><span>Opens at</span><select name="open"><option value="">Choose</option>{opts}</select></label>
+        </div>
+        <fieldset class="owner-only"><legend>What you offer</legend><div class="chip-row">{am_chips}</div></fieldset>
+      </form>
+      <div class="tool-results" aria-live="polite"></div>
+      <p class="tool-note">Approximate positions from rounded group distributions (groups of {k}+ cafés; finer detail only for 20+).
+      Snapshot of {nice_date(meta['captured_on'])}. Nothing you enter leaves this page.</p>
+    </div>
+  </div>
+</section>"""
+
     banner = ('<div class="draft-banner" role="status">Draft build. Not for publishing. Pending kudos are shown with a badge.</div>'
               if mode == "draft" else "")
     hero = nar["hero"]
@@ -390,6 +452,8 @@ def build(mode):
 <script type="importmap">{{"imports": {{"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}}}</script>
 <script type="module" src="assets/scene3d.js"></script>
+<script src="assets/tool.js" defer></script>
+<link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
 </head>
 <body>
 {banner}
@@ -411,11 +475,17 @@ def build(mode):
   <canvas class="scene3d" data-scene3d="hero" aria-hidden="true"></canvas>
   <div class="wrap">
     <p class="eyebrow reveal">{E(hero['eyebrow'])}</p>
-    <h1 id="hero-h" class="hero-title rise"><span class="glow-text">{E(hero['headline'])}</span></h1>
+    <h1 id="hero-h" class="hero-title rise"><span class="glow-text">{" ".join(accent(w) for w in hero['headline'].split())}</span></h1>
     <p class="lede reveal">{fill(hero['lede'], T)}</p>
+    <div class="hero-ctas reveal">
+      <a class="cta" href="#benchmark">Benchmark your café</a>
+      <a class="cta ghost" href="#mornings">Read the findings</a>
+    </div>
     <p class="badge reveal">C-Scheme · Malviya Nagar · refreshed every two weeks</p>
   </div>
 </section>
+
+<div class="ticker" aria-hidden="true"><div class="ticker-track">{ticker}{ticker}</div></div>
 
 <section class="highlights" data-scene="pin" aria-labelledby="hl-h" style="--n:{len(nar['highlights'])}">
   <div class="pin">
@@ -435,9 +505,11 @@ def build(mode):
 </div>
 {secs}
 
+{tool_html}
+
 <section id="makers" class="makers" aria-labelledby="makers-h">
   <div class="wrap">
-    {sec_head(nar['makers']['eyebrow'], len(nar['sections']) + 1)}
+    {sec_head(nar['makers']['eyebrow'], len(nar['sections']) + 2, 'makers')}
     <h2 id="makers-h" class="headline split">{words(nar['makers']['headline'])}</h2>
     <p class="lede-sm reveal">{fill(nar['makers']['lede'], T)}</p>
     <div class="maker-grid">{makers}</div>
@@ -446,7 +518,7 @@ def build(mode):
 
 <section id="method" class="method alt" aria-labelledby="method-h">
   <div class="wrap">
-    {sec_head(nar['method']['eyebrow'], len(nar['sections']) + 2)}
+    {sec_head(nar['method']['eyebrow'], len(nar['sections']) + 3, 'method')}
     <h2 id="method-h" class="headline split">{words(nar['method']['headline'])}</h2>
     <div class="point-grid">{method}</div>
     <p class="download reveal"><a href="data/insights.json" download>Download this snapshot's aggregates (JSON)</a></p>
@@ -456,7 +528,7 @@ def build(mode):
 <section id="contact" class="about" aria-labelledby="about-h">
   <div class="wrap about-grid">
     <div class="about-copy">
-      {sec_head("Made in Jaipur", len(nar['sections']) + 3)}
+      {sec_head("Made in Jaipur", len(nar['sections']) + 4)}
       <h2 id="about-h" class="headline split">{words("Let's talk over coffee.")}</h2>
       <p class="lede-sm reveal">I'm {E(au['name'])}. I'm building a dated, honest record of how Jaipur's cafés change.
       If you run a café, or you're about to open one, I'd love to hear what you'd want measured.</p>
@@ -478,6 +550,7 @@ def build(mode):
   </div>
 </footer>
 <div class="tip" role="tooltip" hidden></div>
+<script type="application/json" id="pulse-data">{tool_data}</script>
 <div class="grid-overlay" aria-hidden="true"><div class="wrap">{"".join("<span></span>" for _ in range(12))}</div></div>
 </body>
 </html>

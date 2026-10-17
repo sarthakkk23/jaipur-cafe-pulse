@@ -145,6 +145,25 @@ def quantile(xs, q):
     return float(s.quantile(q)) if len(s) else None
 
 
+# Distributions feed the in-browser benchmark tool. They are published only for groups
+# of at least DIST_MIN venues and rounded, so no single listing's figure can be read back.
+DIST_MIN = 20
+
+
+def sig2(v):
+    if v is None or v <= 0:
+        return 0
+    from math import floor, log10
+    return int(round(v, -int(floor(log10(v))) + 1))
+
+
+def deciles(xs, rnd):
+    xs = [x for x in xs if pd.notna(x)]
+    if len(xs) < DIST_MIN:
+        return None
+    return [rnd(quantile(xs, q / 10)) for q in range(1, 10)]
+
+
 def fmt_pct(p):
     return "—" if p is None else f"{p}%"
 
@@ -225,6 +244,11 @@ def build(cfg):
             continue
         hours["curve"][a] = {"n": int(len(g)), "points": [
             [s, pct(((g.open_m <= s) & (g.close_m > s)).mean())] for s in slots]}
+    open_slots = list(range(6 * 60, 13 * 60 + 1, 30))
+    hours["open_cdf"] = {"slots": open_slots, "all": [pct((h.open_m <= m).mean()) for m in open_slots]}
+    for t in TYPE_LABEL.values():
+        g = h[h.type_base == t]
+        hours["open_cdf"][t] = [pct((g.open_m <= m).mean()) for m in open_slots] if len(g) >= DIST_MIN else None
     out["insights"]["hours"] = hours
 
     # --- prices (Zomato cost for two) ---
@@ -234,13 +258,16 @@ def build(cfg):
             v = core[(core.type_base == t) & (core.area == a)]["zomato_cost_for_two_inr"].dropna()
             cell = {"type": t, "area": a, "n": int(len(v))}
             if pub.ok(len(v), f"price {t} {a}"):
-                cell.update(median=med(v), p25=quantile(v, .25), p75=quantile(v, .75))
+                cell.update(median=med(v), p25=quantile(v, .25), p75=quantile(v, .75),
+                            deciles=deciles(v, lambda x: int(round(x / 50) * 50)))
                 T[f"price.{TYPE_SHORT[t]}.{AREA_SHORT[a]}"] = fmt_inr(cell["median"])
             price["cells"].append(cell)
+    price["by_area"] = {}
     for a in areas:
         v = core[core.area == a]["zomato_cost_for_two_inr"].dropna()
         if pub.ok(len(v), f"price all {a}"):
             T[f"price.all.{AREA_SHORT[a]}"] = fmt_inr(med(v))
+            price["by_area"][a] = {"n": int(len(v)), "deciles": deciles(v, lambda x: int(round(x / 50) * 50))}
     out["insights"]["price"] = price
 
     # --- attention concentration (Google review counts) ---
@@ -257,10 +284,11 @@ def build(cfg):
         bounds = [round(i * n / 10) for i in range(11)]
         dec = [sum(v[bounds[i]:bounds[i + 1]]) / tot for i in range(10)]
         att["by_area"][key] = {"n": n, "deciles": [round(100 * d, 1) for d in dec],
-                               "top10_share": pct(dec[0]), "median_reviews": med(v)}
+                               "top10_share": pct(dec[0]), "median_reviews": int(round(med(v))),
+                               "review_deciles": deciles(v, sig2)}
         sk = "all" if a is None else AREA_SHORT[a]
         T[f"attention.top10_share.{sk}"] = fmt_pct(pct(dec[0]))
-        T[f"attention.median_reviews.{sk}"] = f"{int(round(med(v))):,}"
+        T[f"attention.median_reviews.{sk}"] = f"{att['by_area'][key]['median_reviews']:,}"
         T[f"attention.bottom_half_share.{sk}"] = fmt_pct(pct(sum(dec[5:])))
     out["insights"]["attention"] = att
 
@@ -274,6 +302,8 @@ def build(cfg):
         if pub.ok(len(b), f"ratings {lab}"):
             row["share_48_plus"] = pct((b.google_rating >= 4.8).mean())
             row["median_rating"] = med(b.google_rating)
+            row["lo"], row["hi"] = lo, hi
+            row["rating_deciles"] = deciles(b.google_rating, lambda x: round(x, 1))
         rm["buckets"].append(row)
     first, last = rm["buckets"][0], rm["buckets"][-1]
     T["ratings.share48.newest"] = fmt_pct(first.get("share_48_plus"))

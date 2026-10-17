@@ -134,15 +134,15 @@ const LAYOUTS = {
   // tall = narrower than 5:4; objects then sit above and below the headline instead of beside it
   hero: () => [
     { obj: makeCup(), tilt: [0.5, -0.4, 0.08], spin: 0.12, bob: 0.08, drift: 0.9,
-      at: (w, h, tall) => (tall ? [w * 0.24, -h * 0.3, 0.9] : [w * 0.38, -h * 0.16, 0.95]) },
+      at: (w, h, tall) => (tall ? [w * 0.26, -h * 0.385, 0.9] : [w * 0.38, -h * 0.16, 0.95]) },
     { obj: makeDonut(), tilt: [-1.05, 0.3, 0.4], spin: -0.1, bob: 0.1, drift: 1.2,
-      at: (w, h, tall) => (tall ? [-w * 0.27, h * 0.33, 0.85] : [-w * 0.38, h * 0.12, 0.95]) },
+      at: (w, h, tall) => (tall ? [-w * 0.27, h * 0.385, 0.85] : [-w * 0.38, h * 0.12, 0.95]) },
     { obj: makeBean(), tilt: [0.4, 0.8, 0.3], spin: 0.5, bob: 0.06, drift: 1.8,
       at: (w, h, tall) => (tall ? [w * 0.33, h * 0.36, 1.4] : [-w * 0.26, -h * 0.34, 1.4]) },
     { obj: makeBean(), tilt: [-0.6, 0.2, 1.1], spin: -0.4, bob: 0.07, drift: 2.2,
-      at: (w, h, tall) => (tall ? [-w * 0.34, -h * 0.38, 1.2] : [w * 0.22, h * 0.36, 1.2]) },
+      at: (w, h, tall) => (tall ? [-w * 0.32, -h * 0.42, 1.2] : [w * 0.22, h * 0.36, 1.2]) },
     { obj: makeBean(), tilt: [0.2, -0.5, -0.8], spin: 0.35, bob: 0.05, drift: 1.5,
-      at: (w, h, tall) => (tall ? [w * 0.02, h * 0.42, 1.0] : [w * 0.44, h * 0.3, 1.0]) },
+      at: (w, h, tall) => (tall ? [w * 0.06, h * 0.44, 1.0] : [w * 0.44, h * 0.3, 1.0]) },
   ],
   coffee: () => [
     { obj: makeCup(), tilt: [0.55, -0.5, 0.06], spin: 0.18, bob: 0.06, drift: 0.6,

@@ -89,6 +89,30 @@
     });
   });
 
+  // ---------- share a section ----------
+  document.querySelectorAll(".share[data-share]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const url = location.origin + location.pathname + btn.dataset.share;
+      const title = btn.closest(".sec-head")?.querySelector(".eyebrow")?.textContent || document.title;
+      try {
+        if (navigator.share && matchMedia("(pointer: coarse)").matches) await navigator.share({ title: `${title} · ${document.title}`, url });
+        else { await navigator.clipboard.writeText(url); btn.textContent = "Link copied"; }
+      } catch { /* dismissed */ }
+      setTimeout(() => (btn.textContent = "Share"), 2000);
+    });
+  });
+
+  // ---------- buttons lean toward the pointer ----------
+  if (motion && matchMedia("(pointer: fine)").matches) {
+    document.querySelectorAll(".cta, .nav-cta").forEach((b) => {
+      b.addEventListener("pointermove", (e) => {
+        const r = b.getBoundingClientRect();
+        b.style.transform = `translate(${((e.clientX - r.left) / r.width - 0.5) * 8}px, ${((e.clientY - r.top) / r.height - 0.5) * 6}px)`;
+      });
+      b.addEventListener("pointerleave", () => (b.style.transform = ""));
+    });
+  }
+
   // ---------- grid overlay toggle ----------
   const gt = document.querySelector(".grid-toggle");
   if (gt) gt.addEventListener("click", () => {
