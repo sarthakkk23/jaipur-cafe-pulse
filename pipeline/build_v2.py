@@ -21,6 +21,7 @@ E = html.escape
 TYPES = ["Coffee-led", "Tea & chai", "Bakery", "All-day café"]
 
 PHOTOS = {
+    "hawa-mahal-sky": ("The Hawa Mahal's pink sandstone face against a pale morning sky, Jaipur", "Nikunj Mundra", "https://unsplash.com/photos/W3qWtMNwRf0", 3200, 3706),
     "jantar-dial": ("A sundial at Jantar Mantar, Jaipur", "Ravi Kumar Meena", "https://unsplash.com/photos/0k3ohtAd7DU", 3200, 4267),
     "patrika-gate-sky": ("Patrika Gate against a clear sky, Jaipur", "Swaroop Satheesh", "https://unsplash.com/photos/n8r8CLJUo2o", 3200, 5689),
     "jantar-field": ("The instruments of Jantar Mantar below Nahargarh, Jaipur", "Ibrahim Rifath", "https://unsplash.com/photos/ZCa9LzaG_9M", 3200, 2134),
@@ -102,6 +103,7 @@ def build(mode):
     terrain = json.dumps({"grid": I["terrain"]["grid"], "bbox": I["terrain"]["bbox"],
                           "all": I["terrain"]["frames"][meta["snapshot"]]["all"]}).replace("</", "<\\/")
     hero = f"""<section class="hero" id="top" aria-labelledby="hero-h">
+  <figure class="hero-pic">{pic("hawa-mahal-sky", "(max-width: 900px) 100vw, 25vw", eager=True)}</figure>
   <div class="hero-copy">
     <div class="hero-top">
       <h1 id="hero-h" class="hero-h">Jaipur's cafés, measured.</h1>
