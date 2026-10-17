@@ -25,6 +25,12 @@ def _core(df):
     return d
 
 
+def _confirmed(d):
+    """On Zomato (whose area listings are close to a census) or on two platforms: not search churn."""
+    n = sum((d[c] == "Y").astype(int) for c in ("on_zomato", "on_google", "on_swiggy", "on_magicpin"))
+    return (d.on_zomato == "Y") | (n >= 2)
+
+
 def _med(xs):
     xs = [float(x) for x in xs if pd.notna(x)]
     return statistics.median(xs) if xs else None
@@ -33,12 +39,11 @@ def _med(xs):
 def summary(df, failed, k):
     """A small, comparable summary of one run (for the time machine)."""
     c = _core(df)
-    s = {"core": int(len(c)), "by_area": {a: int((c.area == a).sum()) for a in ("C-Scheme", "Malviya Nagar")},
+    cc = c[_confirmed(c)]
+    s = {"core": int(len(c)), "core_confirmed": int(len(cc)),
+         "by_area": {a: int((cc.area == a).sum()) for a in ("C-Scheme", "Malviya Nagar")},
          "by_type": {t: int((c.type_base == t).sum()) for t in TYPE_LABEL.values()},
          "independent_share": round(100 * (1 - (c.national_chain == "Y").mean()))}
-    if "google_maps_ui" not in failed:
-        s["median_reviews"] = {a: (int(round(_med(c[c.area == a].google_reviews))) if c[c.area == a].google_reviews.notna().sum() >= k else None)
-                               for a in ("C-Scheme", "Malviya Nagar")}
     if "zomato" not in failed:
         s["median_price"] = {a: (_med(c[c.area == a].zomato_cost_for_two_inr) if c[c.area == a].zomato_cost_for_two_inr.notna().sum() >= k else None)
                              for a in ("C-Scheme", "Malviya Nagar")}
@@ -51,13 +56,18 @@ def changes(prev, cur, days, failed, k, max_share):
     out = {"days": days}
     seen_prev = set(prev.loc[prev.seen].fig_id)
     new = cc[~cc.fig_id.isin(seen_prev)]
-    out["newly_listed"] = {a: int((new.area == a).sum()) for a in ("C-Scheme", "Malviya Nagar")}
-    out["newly_listed_total"] = int(len(new))
+    newc = new[_confirmed(new)]
+    out["newly_listed"] = {a: int((newc.area == a).sum()) for a in ("C-Scheme", "Malviya Nagar")}
+    out["newly_listed_total"] = int(len(newc))
+    out["search_churn_in"] = int(len(new) - len(newc))
     gone = pc[~pc.fig_id.isin(set(cc.fig_id))]
     gone_now = cur.set_index("fig_id").reindex(gone.fig_id)
-    out["not_found"] = int((gone_now.status.fillna("").str.startswith("Not found")).sum())
-    out["closed"] = int((gone_now.status.fillna("").str.contains("closed")).sum())
-    out["source_unavailable"] = int((gone_now.status.fillna("").str.startswith("Source unavailable")).sum())
+    gconf = gone.set_index("fig_id")[_confirmed(gone).values]
+    st = gone_now.status.fillna("")
+    out["not_found"] = int((st.str.startswith("Not found") & st.index.isin(gconf.index)).sum())
+    out["search_churn_out"] = int((st.str.startswith("Not found") & ~st.index.isin(gconf.index)).sum())
+    out["closed"] = int((st.str.contains("closed")).sum())
+    out["source_unavailable"] = int((st.str.startswith("Source unavailable")).sum())
 
     if "google_maps_ui" not in failed:
         both = pc[["fig_id", "google_reviews"]].merge(cc[["fig_id", "area", "type_base", "google_reviews"]], on="fig_id", suffixes=("_a", "_b"))
@@ -78,15 +88,13 @@ def changes(prev, cur, days, failed, k, max_share):
                                      if len(g) >= k else None)
             for t in TYPE_LABEL.values():
                 g = both[both.type_base == t]
-                mom["by_type"][t] = ({"n": int(len(g)), "median_gain": _med(g.gain),
+                mom["by_type"][t] = ({"n": int(len(g)), "median_gain": _med(g.gain), "share_gaining": round(100 * (g.gain > 0).mean()),
                                       "median_growth_pct": _med((g.gain / g.google_reviews_a.clip(lower=1)) * 100)}
                                      if len(g) >= k else None)
         out["momentum"] = mom
 
-    if "zomato" not in failed:
-        pr = pc[["fig_id", "zomato_cost_for_two_inr"]].merge(cc[["fig_id", "zomato_cost_for_two_inr"]], on="fig_id", suffixes=("_a", "_b")).dropna()
-        out["price"] = {"n": int(len(pr)), "up": int((pr.zomato_cost_for_two_inr_b > pr.zomato_cost_for_two_inr_a).sum()),
-                        "down": int((pr.zomato_cost_for_two_inr_b < pr.zomato_cost_for_two_inr_a).sum())}
+    # Price moves are not published: on 17 Oct 2026, 71% of cafés' Zomato cost-for-two moved by ±30–50% while
+    # area medians stayed identical, which reads as a change in how Zomato computes the figure, not repricing.
     return out
 
 
@@ -183,7 +191,7 @@ def profiles(entries, master_rows, df, open_cdf, amen_share, kudos, fmt_clock, a
             signals.append({"k": "Neighbourhood", "v": str(busiest["near"]["cafes_500m"]),
                             "t": f"Shares its 500 m in {busiest['area']} with {busiest['near']['cafes_500m']} other cafés"
                                  + (f", {busiest['near']['coffee_500m']} of them coffee-led." if busiest['near']['coffee_500m'] else ".")})
-        press = [x for x in kudos if x["id"] in e.get("kudos", [])]
+        press = [x for x in kudos if x["id"] in e.get("kudos", []) and x.get("approved")]
         out.append({"slug": e["slug"], "name": e["name"], "tagline": e.get("tagline", ""), "story": e.get("story", []),
                     "notes": e.get("notes", ""), "outlets": o, "features": flist, "signals": signals,
                     "press": [{"praise": x["praise"], "sources": x["sources"]} for x in press]})

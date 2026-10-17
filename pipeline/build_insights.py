@@ -443,6 +443,7 @@ def build(cfg, label=None):
         T["changes.newly_listed"] = str(ch["newly_listed_total"])
         T["changes.not_found"] = str(ch["not_found"])
         T["changes.closed"] = str(ch["closed"])
+        T["changes.churn_in"] = str(ch["search_churn_in"]); T["changes.churn_out"] = str(ch["search_churn_out"])
         mom = ch.get("momentum") or {}
         if mom.get("median_gain") is not None:
             T["changes.median_gain"] = f"{int(round(mom['median_gain'])):,}"
@@ -452,14 +453,11 @@ def build(cfg, label=None):
             for a, v in (mom.get("by_area") or {}).items():
                 if v:
                     T[f"changes.median_gain.{AREA_SHORT[a]}"] = f"{int(round(v['median_gain'])):,}"
-                    T[f"changes.growth_pct.{AREA_SHORT[a]}"] = f"{v['median_growth_pct']:.0f}%"
-            best = max(((t, v) for t, v in (mom.get("by_type") or {}).items() if v), key=lambda tv: tv[1]["median_growth_pct"], default=None)
+                    T[f"changes.share_gaining.{AREA_SHORT[a]}"] = fmt_pct(v["share_gaining"])
+            best = max(((t, v) for t, v in (mom.get("by_type") or {}).items() if v), key=lambda tv: tv[1]["share_gaining"], default=None)
             if best:
-                T["changes.fastest_type"] = best[0].lower()
-                T["changes.fastest_type_growth"] = f"{best[1]['median_growth_pct']:.0f}%"
-        if ch.get("price"):
-            T["changes.price_up"] = str(ch["price"]["up"]); T["changes.price_down"] = str(ch["price"]["down"])
-            T["changes.price_n"] = str(ch["price"]["n"])
+                T["changes.busiest_type"] = best[0].lower()
+                T["changes.busiest_type_share"] = fmt_pct(best[1]["share_gaining"])
 
     tc = yaml.safe_load(open(ROOT / "content" / "top_cafes.yaml")).get("entries") or []
     kud = yaml.safe_load(open(ROOT / "content" / "kudos.yaml")).get("entries") or []

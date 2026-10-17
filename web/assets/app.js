@@ -105,8 +105,10 @@
       const h = H[i], p = H[i - 1];
       stopsEl.forEach((b, j) => b.setAttribute("aria-pressed", String(j === i)));
       const cell = (k, v, d) => `<div class="tm-stat"><span class="tm-sk">${k}</span><span class="tm-sv">${v}${d || ""}</span></div>`;
-      const rows = [cell("Cafés tracked", fmt(h.core), p && delta(p.core, h.core))];
-      for (const a of Object.keys(h.by_area)) rows.push(cell(a, fmt(h.by_area[a]), p && delta(p.by_area[a], h.by_area[a])));
+      const conf = h.core_confirmed ?? h.core, pconf = p ? (p.core_confirmed ?? p.core) : null;
+      const rows = [cell("Confirmed cafés", fmt(conf), p && delta(pconf, conf))];
+      for (const a of Object.keys(h.by_area)) rows.push(cell(`Confirmed · ${a}`, fmt(h.by_area[a]), p && delta(p.by_area[a], h.by_area[a])));
+      rows.push(cell("All cafés seen (incl. single searches)", fmt(h.core)));
       if (h.median_reviews) for (const a of Object.keys(h.median_reviews))
         rows.push(cell(`Typical Google reviews · ${a}`, fmt(h.median_reviews[a]), p?.median_reviews && delta(p.median_reviews[a], h.median_reviews[a])));
       if (h.median_price) for (const a of Object.keys(h.median_price))
