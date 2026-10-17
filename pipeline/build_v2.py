@@ -184,6 +184,10 @@ def build(mode):
     CTX.update(site=site, au=au, mailto=mailto, captured=captured, k=k, updates=bool(live or mode == "draft"), banner=banner)
     P = "../"                                   # every page except home sits one folder down
 
+    # every finding, for the hero to rotate through (the headline numbers only; the page itself carries the rest)
+    rot_data = json.dumps([{"id": f["id"], "value": f["value"], "unit": f["unit"], "headline": f["headline"]} for f in F.values()],
+                          ensure_ascii=False).replace("</", "<\\/")
+
     # ---------- hero: the city's cafés as an object you can turn ----------
     terrain = json.dumps({"grid": I["terrain"]["grid"], "bbox": I["terrain"]["bbox"],
                           "all": I["terrain"]["frames"][meta["snapshot"]]["all"]}).replace("</", "<\\/")
@@ -194,10 +198,15 @@ def build(mode):
       <h1 id="hero-h" class="hero-h">Jaipur's cafés, measured.</h1>
       <p class="hero-sub">I take my coffee seriously.<br>The data, more so.</p>
     </div>
-    <p class="hero-fig"><span class="hero-num">{lead_f['value']}<small>{E(lead_f['unit'])}</small></span>
-      <span class="hero-cap">{E(lead_f['headline'])}</span></p>
+    <div class="hero-fig" data-rot>
+      <a class="rot-link" href="insights/#f-{E(lead_f['id'])}"><span class="hero-num">{lead_f['value']}<small>{E(lead_f['unit'])}</small></span>
+      <span class="hero-cap">{E(lead_f['headline'])}</span></a>
+      <div class="rot-ctrl" data-ui hidden><span class="rot-bar" aria-hidden="true"><i></i></span>
+        <button type="button" class="rot-btn">Pause</button><span class="rot-count" aria-hidden="true"></span></div>
+    </div>
+    <script type="application/json" id="rot-data">{rot_data}</script>
     <div class="hero-foot"><p class="hero-act"><a class="btn" href="insights/">See what works</a><a class="btn btn-ghost" href="your-cafe/">Check your café</a></p>
-    <p class="hero-meta">C-Scheme and Malviya Nagar · updated {E(captured)} · <a href="insights/#f-{E(lead_f['id'])}">How I know</a></p></div>
+    <p class="hero-meta">C-Scheme and Malviya Nagar · updated {E(captured)} · <a class="rot-how" href="insights/#f-{E(lead_f['id'])}">How I know</a></p></div>
   </div>
   <div class="hero-obj">
     <canvas class="relief" aria-label="Café density across C-Scheme and Malviya Nagar, sculpted as a relief"></canvas>
