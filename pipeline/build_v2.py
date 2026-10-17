@@ -484,8 +484,8 @@ def build(mode):
 <section class="who" id="who" aria-labelledby="who-h">
   <div class="who-side">
     <h2 id="who-h" class="reveal">Who's behind it.</h2>
-    <picture class="who-photo reveal"><source type="image/webp" srcset="{P}img/sarthak-full-400.webp 400w, {P}img/sarthak-full-800.webp 800w" sizes="(max-width: 900px) 240px, 380px">
-    <img src="{P}img/sarthak-full-800.jpg" srcset="{P}img/sarthak-full-400.jpg 400w, {P}img/sarthak-full-800.jpg 800w" sizes="(max-width: 900px) 240px, 380px" width="800" height="1408" alt="{E(au['name'])}" loading="lazy" decoding="async"></picture>
+    <picture class="who-photo reveal"><source type="image/webp" srcset="{P}img/sarthak-street-400.webp 400w, {P}img/sarthak-street-800.webp 800w" sizes="(max-width: 900px) 240px, 380px">
+    <img src="{P}img/sarthak-street-800.jpg" srcset="{P}img/sarthak-street-400.jpg 400w, {P}img/sarthak-street-800.jpg 800w" sizes="(max-width: 900px) 240px, 380px" width="800" height="1542" alt="{E(au['name'])}" loading="lazy" decoding="async"></picture>
   </div>
   <div class="who-text">{"".join(f'<p class="reveal">{E(l)}</p>' for l in bio_lines("bio_long"))}</div>
 </section>
@@ -504,7 +504,7 @@ def build(mode):
     imap = ('<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js"'
             '}}</script>')
     person = {"@type": "Person", "@id": f"{SEO['base']}/#author", "name": au["name"], "description": (bio_lines("bio_short") or [""])[0], "url": au.get("linkedin", ""),
-              "email": f"mailto:{au.get('email', '')}", "image": f"{SEO['base']}/img/sarthak-full-800.jpg",
+              "email": f"mailto:{au.get('email', '')}", "image": f"{SEO['base']}/img/sarthak-street-800.jpg",
               "sameAs": [au.get("linkedin", "")], "knowsAbout": ["Café market research", "Data analysis", "Jaipur"]}
     first = (ins.get("insights", {}).get("history") or [{}])[0].get("captured_on") or meta["captured_on"]
     dataset = {"@type": "Dataset", "name": f"{site['title']}: cafés in C-Scheme and Malviya Nagar, Jaipur",
