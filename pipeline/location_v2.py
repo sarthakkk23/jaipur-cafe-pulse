@@ -7,6 +7,7 @@ spots that differ by one café cannot be subtracted to read that café. No venue
 Context from OpenStreetMap (ODbL): hotels and bus stops within the walk, and the nearest operating metro station.
 """
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -25,6 +26,53 @@ PLACES = {
     "Malviya Nagar": [["World Trade Park", 26.85397, 75.80524], ["Gaurav Tower", 26.85564, 75.80658], ["MNIT", 26.86184, 75.80994],
                       ["Jawahar Circle", 26.84177, 75.8021], ["Sector 10", 26.84676, 75.80915]],
 }
+
+
+# who is around to buy coffee: Google Maps place categories sorted into plain groups, most specific first
+DEMAND = [
+    ("coworking", "Coworking spaces", ["coworking", "co-working", "shared office", "office space rental", "business center", "business centre"]),
+    ("college", "Colleges", ["college", "university", "institute of technology", "engineering institute", "management institute", "academic department"]),
+    ("coaching", "Coaching centres and institutes", ["coaching", "tutor", "tuition", "training institute", "training centre", "training center", "academy",
+                                                     "education center", "education centre", "educational institution"]),
+    ("school", "Schools", ["school"]),
+    ("gym", "Gyms and yoga studios", ["gym", "fitness", "yoga", "pilates", "crossfit", "health club", "martial arts", "personal trainer", "meditation", "wellness center"]),
+    ("hospital", "Hospitals and clinics", ["hospital", "medical center", "medical centre", "nursing home", "clinic", "diagnostic", "physiotherapy"]),
+    ("hotel", "Hotels", ["hotel", "resort", "guest house", "hostel", "lodge"]),
+    ("mall", "Malls and big stores", ["shopping mall", "mall", "shopping center", "shopping centre"]),
+    ("office", "Offices and banks", ["corporate office", "corporate campus", "company", "software", "it services", "consultant", "bank", "insurance",
+                                     "financial", "accounting", "marketing", "advertising", "office", "telecommunications", "chartered",
+                                     "loan agency", "website designer", "computer support", "bpo"]),
+]
+NOT_DEMAND = ["cafe", "café", "coffee", "restaurant", "bakery", "tea house", "dessert", "food", "atm", "store", "wholesaler", "supplier", "dealer"]
+STAY = re.compile(r"^(\d-star hotel|hotel|resort hotel|resort|guest house|hostel|backpacker hostel|lodge|homestay)$", re.I)
+
+
+def _category(lines):
+    """The category text in a Google Maps result card ('4.6(5,025) | Gym · 33, Mahavir Marg | Open ...')."""
+    segs = [x.strip() for x in (lines or "").split(" | ")]
+    for seg in segs:
+        if "·" in seg and not seg.startswith(("Open", "Closed", "Closes", "Opens")):
+            return seg.split("·")[0].strip()
+    return next((x for x in segs if STAY.match(x)), "")      # hotel cards carry their category on its own
+
+
+def demand_places(raw_path):
+    """Unique places, each sorted into one group by its own Google category (not by the query that found it)."""
+    raw = json.load(open(raw_path)) if raw_path and Path(raw_path).exists() else {}
+    seen, out = set(), []
+    for key, rows in raw.items():
+        for r in rows or []:
+            k = r.get("cid") or r.get("name")
+            if not k or k in seen or not r.get("lat"):
+                continue
+            seen.add(k)
+            cat = _category(r.get("lines")).lower()
+            if not cat or any(w in cat for w in NOT_DEMAND):
+                continue
+            kind = next((g for g, _, words in DEMAND if any(w in cat for w in words)), None)
+            if kind:
+                out.append([float(r["lat"]), float(r["lon"]), kind])
+    return out
 
 
 def _r5(x):
@@ -66,7 +114,7 @@ def _summary(g, k):
     return out
 
 
-def build(core, k, parse_hours, poi_path):
+def build(core, k, parse_hours, poi_path, demand_path=None):
     c = core.dropna(subset=["lat", "lon"]).copy()
     c["open_m"] = c.zomato_hours.map(lambda t: (parse_hours(t) or (None,))[0])
     P = np.c_[c.lat.values, c.lon.values]
@@ -75,6 +123,10 @@ def build(core, k, parse_hours, poi_path):
     M = np.array([m[:2] for m in metro], float).reshape(-1, 2)
     Hh = np.array([h[:2] for h in poi["hotels"]], float).reshape(-1, 2)
     Bs = np.array([b[:2] for b in poi["bus_stops"]], float).reshape(-1, 2)
+    places = demand_places(demand_path)
+    kinds = [g for g, _, _ in DEMAND]
+    Dp = np.array([p[:2] for p in places], float).reshape(-1, 2)
+    Dk = np.array([kinds.index(p[2]) for p in places], int)
 
     areas, spots = {}, []
     for ai, (area, (la0, la1, lo0, lo1)) in enumerate(BOX.items()):
@@ -86,6 +138,9 @@ def build(core, k, parse_hours, poi_path):
             for lo in lons:
                 la, lo = round(float(la), 5), round(float(lo), 5)      # count from exactly the coordinates that are published
                 s = _summary(c[_dist(P, la, lo) <= RADIUS], k)
+                if len(Dp):                                  # counts of places, never their names
+                    near = Dk[_dist(Dp, la, lo) <= RADIUS]
+                    s["demand"] = {g: int((near == i).sum()) for i, g in enumerate(kinds) if (near == i).any()}
                 s["hotels"] = int((_dist(Hh, la, lo) <= RADIUS).sum())
                 s["stops"] = int((_dist(Bs, la, lo) <= RADIUS).sum())
                 if len(M):
@@ -94,6 +149,10 @@ def build(core, k, parse_hours, poi_path):
                     s["metro"] = metro[int(dm.argmin())][2]
                 spots.append([la, lo, ai, s])
                 ns.append(s["n"])
-        areas[area] = {"box": [la0, la1, lo0, lo1], "cafes": base, "spot_counts": sorted(ns), "places": PLACES[area]}
+        inbox = [p for p in places if la0 <= p[0] <= la1 and lo0 <= p[1] <= lo1]
+        areas[area] = {"box": [la0, la1, lo0, lo1], "cafes": base, "spot_counts": sorted(ns), "places": PLACES[area],
+                       "demand": {g: sum(1 for p in inbox if p[2] == g) for g in kinds}}
     return {"radius_m": RADIUS, "spacing_m": SPACING, "k": k, "types": TYPES, "areas": areas, "spots": spots,
-            "source": "Operating cafés from the latest update; hotels, bus stops and metro stations from OpenStreetMap (ODbL)."}
+            "demand_groups": [[g, label] for g, label, _ in DEMAND], "demand_places": len(places),
+            "source": "Operating cafés from the latest update; offices, colleges, gyms and other places from Google Maps searches; "
+                      "bus stops and metro stations from OpenStreetMap (ODbL)."}

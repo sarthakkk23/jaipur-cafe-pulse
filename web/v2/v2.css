@@ -355,6 +355,7 @@ figure { margin: 0; }
 .lr-tab td:first-child { text-align: left; padding-left: 0; }
 .lr-tab td i { display: inline-block; width: 10px; height: 10px; margin-right: 8px; }
 .lr-tab tbody tr:nth-child(odd) { background: rgba(255, 255, 255, .35); }
+.lr-h { font-weight: 600; margin-top: 18px; }
 .lr-notes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
 .lr-notes li { background: var(--paper); padding: 12px 14px; }
 .lr-ctx { font-size: var(--s-small); }
