@@ -70,10 +70,12 @@ def head(title, desc, prefix=""):
 <script src="{prefix}v2.js" defer></script>"""
 
 
-def bar(site, prefix="", home=True, updates=True):
-    h = "" if home else "../../"
-    links = [("Insights", "insights"), ("The best", "best"), ("Method", "method")] + ([("Free updates", "updates")] if updates else [])
-    nav = "".join(f'<a href="{h}#{i}">{E(l)}</a>' for l, i in links)
+def bar(site, prefix="", home=True, updates=True, here=""):
+    h = "" if home else (prefix or "../../")
+    links = [("Insights", f"{h}#insights"), ("Location check", f"{h}location/"), ("The best", f"{h}#best"), ("Method", f"{h}#method")]
+    links += [("Free updates", f"{h}#updates")] if updates else []
+    cur = ' aria-current="page"'
+    nav = "".join(f'<a href="{u}"{cur if l == here else ""}>{E(l)}</a>' for l, u in links)
     return (f'<header class="bar"><a class="wordmark" href="{h}#top">{E(site["title"])}</a>'
             f'<nav class="bar-links" aria-label="Sections">{nav}</nav>'
             f'<a class="btn" href="{h}#contact">Coffee?</a></header>')
@@ -199,8 +201,11 @@ def build(mode):
 </section>"""
 
     # ---------- where they gather ----------
+    loc_cta = """<a class="loc-cta reveal" href="location/"><span class="loc-cta-h">Check a location.</span>
+  <span class="loc-cta-p">Pick any spot in C-Scheme or Malviya Nagar and read its five-minute walk: how many cafés, what kind, and where the gaps are.</span>
+  <span class="btn">Open the location check</span></a>"""
     ch3 = chapter("place", "Where they gather.", "Cafés pull towards each other, and customers always have a neighbour to compare.",
-                  ["cluster", "areas"], after="")
+                  ["cluster", "areas"], after=loc_cta)
 
     # ---------- the best right now ----------
     profs = ins.get("profiles") or []
@@ -341,12 +346,65 @@ def build(mode):
     shutil.copy(ROOT / "data/public/insights_latest.json", out / "data/insights.json")
     (out / ".nojekyll").write_text("")
     (out / "index.html").write_text(page)
+    if (ROOT / "data/public/location_latest.json").exists():
+        shutil.copy(ROOT / "data/public/location_latest.json", out / "data/location.json")
+        (out / "location").mkdir(exist_ok=True)
+        (out / "location" / "index.html").write_text(location_page(site, au, captured, k, mailto, bool(updates), banner))
     for p in profs:
         d = out / "cafes" / p["slug"]
         d.mkdir(parents=True, exist_ok=True)
         (d / "index.html").write_text(profile(p, site, au, captured, core, k, mailto, ent))
     return out / "index.html"
 
+
+
+def location_page(site, au, captured, k, mailto, updates, banner):
+    """The location check: pick a spot, read its five-minute walk. Everything is computed from published aggregates."""
+    pre = "../"
+    return (head(f"Location check · {site['title']}", "Pick a spot in C-Scheme or Malviya Nagar and see, in plain words, what is within a five-minute walk.", pre)
+            + '\n<script src="../location.js" defer></script>\n</head>\n<body>\n' + banner
+            + bar(site, pre, home=False, updates=updates, here="Location check") + f"""
+<main class="loc">
+  <section class="loc-head">
+    <div class="loc-head-copy"><h1 class="reveal">Check a location.</h1>
+    <p class="loc-lede reveal">Pick a spot in C-Scheme or Malviya Nagar. I'll tell you, in plain words, what is within a five-minute walk:
+    how many cafés, what kind, when they open, what they charge, and where the gaps are.</p></div>
+    <figure class="loc-head-pic reveal" data-drift>{pic("patrika-gate-sky", "(max-width: 900px) 100vw, 40vw", eager=True, prefix=pre)}</figure>
+  </section>
+  <section class="loc-tool">
+    <div class="loc-map">
+      <div class="loc-ctrl" data-ui>
+        <div class="seg-group" role="group" aria-label="Area"><button type="button" class="seg" data-area="0" aria-pressed="true">C-Scheme</button><button type="button" class="seg" data-area="1" aria-pressed="false">Malviya Nagar</button></div>
+        <div class="seg-group loc-places" role="group" aria-label="Start from"></div>
+      </div>
+      <canvas class="loc-canvas" aria-label="Map of the area. Click a spot to read its five-minute walk."></canvas>
+      <p class="loc-key">Darker ground: more cafés within a five-minute walk. Click anywhere on the map.</p>
+    </div>
+    <article class="loc-report" aria-live="polite"><p class="lr-k">Pick a spot to begin.</p></article>
+  </section>
+  <figure class="band reveal" data-drift>{pic("hawa-horses", "100vw", prefix=pre)}<figcaption>Outside the Hawa Mahal, in the old city.</figcaption></figure>
+  <section class="loc-notes">
+    <div class="reveal"><h2>How I read a spot.</h2>
+    <p>Every spot on a 150-metre grid gets the cafés within 500 metres, about a five-minute walk. Shares and typical values appear only
+    where {k} or more cafés are counted, rounded so no single café can be picked out. Hotels, bus stops and metro stations come from
+    OpenStreetMap.</p></div>
+    <div class="reveal"><h2>What it doesn't say.</h2>
+    <p>It doesn't say a café here will do well or badly. Rent, footfall and what you serve matter more than any count. Offices, colleges
+    and residents around each spot arrive in the next update.</p></div>
+  </section>
+  <section class="pair" aria-label="Mornings in Jaipur">
+    <figure class="pair-a reveal" data-drift>{pic("kulhad-chai", "(max-width: 760px) 100vw, 40vw", prefix=pre)}<figcaption>Chai in clay kulhads: the city's first order of the day.</figcaption></figure>
+    <figure class="pair-b reveal" data-drift>{pic("pink-haveli", "(max-width: 760px) 100vw, 55vw", prefix=pre)}<figcaption>A haveli in the Pink City, through neem leaves.</figcaption></figure>
+  </section>
+  <section class="contact"><h2 class="reveal">A second opinion?</h2><div class="c-copy reveal"><p>Tell me where you're looking. I'd like to
+    walk the spot with you, over a cup of coffee.</p>
+    <p class="c-links"><a class="btn" href="{mailto}">Say hello</a><a href="../#insights">Read the findings</a></p></div></section>
+</main>
+<footer class="foot"><a class="foot-name" href="../">{E(site['title'])}</a><p>{credits_line()}</p>
+<p>Updated {E(captured)} · groups under {k} cafés withheld</p></footer>
+</body>
+</html>
+""")
 
 
 def profile(p, site, au, captured, core, k, mailto, ent):

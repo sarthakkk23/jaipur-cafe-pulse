@@ -473,6 +473,10 @@ def build(cfg, label=None):
 
     # statistical findings on the full latest run (aggregates only)
     out["insights"]["findings"] = S.findings(core, k)
+    # location check: the five-minute walk around every spot on a grid (aggregates only), written beside the insights
+    import location_v2 as L
+    loc = L.build(core, k, parse_day_hours, PRIV / "osm" / "poi.json")
+    (ROOT / "data" / "public" / "location_latest.json").write_text(json.dumps(loc, ensure_ascii=False, separators=(",", ":")))
 
     out["meta"] = {
         **meta,
