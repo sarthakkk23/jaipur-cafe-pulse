@@ -158,7 +158,7 @@ def check(mode="draft", html_path=None):
                     errors.append(f"profile[{p['slug']}]: contains '{w}…'")
     blob = json.dumps(ins, ensure_ascii=False)
     if FIG_ID.search(blob):
-        errors.append("public insights contain a FIG venue ID")
+        errors.append("public insights contain a private venue ID")
     leaked = [n for n in find_names(blob, names) if not any(n in a or a in n for a in allowed_names)]
     if leaked:
         errors.append(f"public insights contain venue names: {leaked[:5]}")
@@ -171,7 +171,7 @@ def check(mode="draft", html_path=None):
         html = page.read_text()
         text = re.sub(r"<[^>]+>", " ", html)
         if FIG_ID.search(html):
-            errors.append(f"{page.name if page == Path(html_path) else page.parent.name}: contains a FIG venue ID")
+            errors.append(f"{page.name if page == Path(html_path) else page.parent.name}: contains a private venue ID")
         leaked = [n for n in find_names(text, names) if not any(n in a or a in n for a in allowed_names)]
         if leaked:
             errors.append(f"{page.parent.name}: names cafés outside kudos/top picks: {leaked[:5]}")

@@ -23,7 +23,7 @@ Never copy anything from `private/` into the public repo except through
   refused) and saves raw pulls to `private/raw/<YYYY-Www>/` before any processing. Takes 45–75 minutes.
   If Zomato rate-limits detail pages (429), the collector pauses and retries once, slowly. Never more.
 - `.venv/bin/python private/process/run_refresh.py --label <YYYY-Www>`: QA, consolidation (regression-
-  tested port), FIG ID carry-over, snapshot rows, master, run report in `private/reports/runs/`.
+  tested port), venue ID carry-over, snapshot rows, master, run report in `private/reports/runs/`.
 - A source that fails QA is null for this run (never reuse last run's numbers); a site that blocks or
   shows a CAPTCHA is recorded as failed, never worked around. A fatal QA failure stops everything.
 - Commit and push `private/`: `git -C private add -A && git -C private commit -m "run <YYYY-Www>" && git -C private push`.

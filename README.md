@@ -43,7 +43,7 @@ Live at https://sarthakkk23.github.io/jaipur-cafe-pulse once the first deploy ru
 ## Status
 
 - [x] Site, motion layer, aggregates, publish gate, CI and Pages deploy, September 2026 baseline
-- [ ] Collectors and refresh pipeline in `private/collect/`, per the FIG pipeline spec.
+- [ ] Collectors and refresh pipeline in `private/collect/`, per the pipeline spec.
       Needs the decision on which sources stay on.
 - [ ] Author name, LinkedIn and email in `config.yaml`
 - [ ] Kudos entries checked against their sources and approved
