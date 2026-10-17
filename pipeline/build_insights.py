@@ -471,9 +471,8 @@ def build(cfg, label=None):
     amen_share = {a["key"]: a["share"] for a in out["insights"]["amenities"]["items"]}
     out["profiles"] = X.profiles(tc, master_rows, df, hours["open_cdf"], amen_share, kud, fmt_hour, dict(AMENITIES))
 
-    # statistical findings and map bins on the full latest run (aggregates only)
+    # statistical findings on the full latest run (aggregates only)
     out["insights"]["findings"] = S.findings(core, k)
-    out["insights"]["hexes"] = S.hexes(core, k, X.BBOX, parse_hours=parse_day_hours)
 
     out["meta"] = {
         **meta,
