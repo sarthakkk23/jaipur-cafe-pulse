@@ -56,6 +56,13 @@ def short(iso):
 SEO = {"base": "", "name": "", "author": {}}     # filled from config.yaml at build time
 
 
+def asset(name):
+    """name?v=<content hash>: a new deploy changes the address, so no browser keeps an old copy."""
+    import hashlib
+    src = ROOT / "web" / ("assets" if name == "tool.js" else "v2") / name
+    return f"{name}?v={hashlib.sha1(src.read_bytes()).hexdigest()[:10]}" if src.exists() else name
+
+
 def head(title, desc, prefix="", path="", ld=None):
     """Everything a search engine or a link preview reads: title, description, canonical address, Open Graph and
     Twitter cards, icons, and structured data (JSON-LD) describing the page."""
@@ -94,8 +101,8 @@ def head(title, desc, prefix="", path="", ld=None):
 <meta name="theme-color" content="#f5f5f2">{ld_tag}
 <script>{guard}</script>
 <link rel="preload" href="{prefix}fonts/literata.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="{prefix}v2.css">
-<script src="{prefix}v2.js" defer></script>"""
+<link rel="stylesheet" href="{prefix}{asset("v2.css")}">
+<script src="{prefix}{asset("v2.js")}" defer></script>"""
 
 
 CTX = {}   # site, author, mailto, dates and switches, filled at build time
@@ -205,7 +212,7 @@ def build(mode):
         <button type="button" class="rot-btn">Pause</button><span class="rot-count" aria-hidden="true"></span></div>
     </div>
     <script type="application/json" id="rot-data">{rot_data}</script>
-    <div class="hero-foot"><p class="hero-act"><a class="btn" href="insights/">See what works</a><a class="btn btn-ghost" href="your-cafe/">Check your café</a></p>
+    <div class="hero-foot"><p class="hero-act"><a class="btn" href="insights/">Read the {len(F)} insights</a>{'<a class="btn btn-ghost" href="updates/">Get them free on WhatsApp</a>' if CTX["updates"] else ""}</p>
     <p class="hero-meta">C-Scheme and Malviya Nagar · updated {E(captured)} · <a class="rot-how" href="insights/#f-{E(lead_f['id'])}">How I know</a></p></div>
   </div>
   <div class="hero-obj">
@@ -507,7 +514,7 @@ def build(mode):
 
     write("", shell("", site.get("seo_title", site["title"]), site["tagline"],
                     "\n".join([hero, intro, explore, teasers, contact("")]), ld=ld_home,
-                    scripts="\n" + imap + '\n<script type="module" src="relief.js"></script>\n' + legacy))
+                    scripts="\n" + imap + '\n<script type="module" src="' + asset("relief.js") + '"></script>\n' + legacy))
     ins_ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "WebPage", "@id": f"{SEO['base']}/insights/#page", "name": "What the data says about Jaipur's cafés", "url": f"{SEO['base']}/insights/",
          "inLanguage": "en-IN", "isPartOf": {"@id": f"{SEO['base']}/#site"}, "author": {"@id": f"{SEO['base']}/#author"}},
@@ -520,7 +527,7 @@ def build(mode):
     write("your-cafe/", shell("your-cafe/", f"Compare your café with Jaipur's · {site['title']}",
                               "Set your area, type and numbers and see where your café stands among cafés in C-Scheme and Malviya Nagar, Jaipur. Computed in your browser.",
                               bench,
-                              here="Your café", scripts='\n<script src="../tool.js" defer></script>', main_cls="main-bench"))
+                              here="Your café", scripts=f'\n<script src="../{asset("tool.js")}" defer></script>', main_cls="main-bench"))
     if best:
         write("best/", shell("best/", f"The best cafés in Jaipur right now · {site['title']}",
                              "The cafés in C-Scheme and Malviya Nagar doing it best right now, and what each one did right, from public facts.",
@@ -591,7 +598,7 @@ def location_page(site, au, captured, k, mailto):
     <p class="c-links"><a class="btn" href="{mailto}">Say hello</a><a href="../insights/">Read the findings</a></p></div></section>"""
     return shell("location/", f"Where to open a café in Jaipur · {site['title']}",
                  "Opening a café in Jaipur? Pick any spot in C-Scheme or Malviya Nagar: see the cafés, the gaps and who is around to buy coffee.",
-                 body, here="Location check", scripts='\n<script src="../location.js" defer></script>', main_cls="loc")
+                 body, here="Location check", scripts=f'\n<script src="../{asset("location.js")}" defer></script>', main_cls="loc")
 
 
 def profile(p, site, au, captured, core, k, mailto, ent):

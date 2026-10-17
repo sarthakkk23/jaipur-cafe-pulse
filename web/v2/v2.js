@@ -138,7 +138,7 @@
     const order = [items[Math.max(0, first)], ...rest];
     const link = rot.querySelector(".rot-link"), num = rot.querySelector(".hero-num"), cap = rot.querySelector(".hero-cap");
     const how = document.querySelector(".rot-how"), bar = rot.querySelector(".rot-bar"), btn = rot.querySelector(".rot-btn"), count = rot.querySelector(".rot-count");
-    const MS = 6500, auto = !reduce;
+    const MS = 6500, auto = true;           // reduced motion still changes the finding, just without the fade
     let idx = 0, timer = 0, paused = false, held = false;
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
     const label = () => { count.textContent = `${idx + 1} of ${order.length}`; };
@@ -165,10 +165,6 @@
       rot.addEventListener("focusin", () => hold(true)); rot.addEventListener("focusout", () => hold(false));
       document.addEventListener("visibilitychange", () => hold(document.hidden));
       schedule();
-    } else {
-      btn.textContent = "Next finding";
-      btn.addEventListener("click", () => show(idx + 1));
-      bar.hidden = true;
     }
   }
 

@@ -483,6 +483,8 @@ figure { margin: 0; }
 .js .reveal .fd-num { clip-path: inset(0 0 100% 0); transform: translateY(30%); transition: clip-path 1s var(--ease) .1s, transform 1s var(--ease) .1s; }
 .js .reveal.is-in .fd-num { clip-path: inset(0 0 -10% 0); transform: none; }
 @media (prefers-reduced-motion: reduce) {
+  .rot-bar.run i { animation: none; width: 100%; }
+  .rot-link { transition: none; }
   .js .reveal, .js .hero-copy > * { opacity: 1 !important; transform: none !important; transition: none !important; }
   [data-drift] img { transform: none; }
   .js figure.reveal, .js .reveal .fd-num { clip-path: none !important; }
