@@ -67,9 +67,9 @@ def head(title, desc, prefix=""):
 <script src="{prefix}v2.js" defer></script>"""
 
 
-def bar(site, prefix="", home=True):
+def bar(site, prefix="", home=True, updates=True):
     h = "" if home else "../../"
-    links = [("Insights", "insights"), ("Map", "map"), ("The best", "best"), ("Method", "method")]
+    links = [("Insights", "insights"), ("The best", "best"), ("Method", "method")] + ([("Free updates", "updates")] if updates else [])
     nav = "".join(f'<a href="{h}#{i}">{E(l)}</a>' for l, i in links)
     return (f'<header class="bar"><a class="wordmark" href="{h}#top">{E(site["title"])}</a>'
             f'<nav class="bar-links" aria-label="Sections">{nav}</nav>'
@@ -188,42 +188,8 @@ def build(mode):
   <script type="application/json" id="dial-data">{dial_data}</script>
 </section>"""
 
-    # ---------- where they gather: findings, then the map ----------
-    hx = I["hexes"]
-    rich = sorted([c for c in hx["cells"] if "mix" in c], key=lambda c: -c["n"])
-    marks = [["Jantar Mantar", 26.92473, 75.82451], ["Albert Hall", 26.91168, 75.8195],
-             ["Statue Circle", 26.9076, 75.8040], ["SMS Stadium", 26.89401, 75.80323],
-             ["Birla Mandir", 26.89216, 75.81549], ["MNIT", 26.86184, 75.80994], ["World Trade Park", 26.85397, 75.80524],
-             ["Jawahar Circle", 26.84177, 75.8021]]
-    def nearest(c):
-        return min(marks, key=lambda m: (m[1] - c["lat"]) ** 2 + ((m[2] - c["lon"]) * 0.89) ** 2)[0]
-    rows = "".join(f'<tr><td>Near {E(nearest(c))}</td><td>{c["n"]}</td><td>{c["mix"]["Coffee-led"]}%</td><td>{c["mix"]["Tea & chai"]}%</td>'
-                   f'<td>{"—" if c.get("open_by_8") is None else str(c["open_by_8"]) + "%"}</td><td>{"—" if c.get("price") is None else "₹" + format(c["price"], ",")}</td></tr>'
-                   for c in rich[:6])
-    map_data = json.dumps({"hexes": hx, "marks": marks, "k": k}).replace("</", "<\\/")
-    types_btn = "".join(f'<button type="button" class="seg" data-type="{E(t)}" aria-pressed="{str(t == "All").lower()}">{E(t if t != "All" else "All cafés")}</button>'
-                        for t in ["All"] + TYPES)
-    fly_btn = "".join(f'<button type="button" class="seg" data-fly="{i}">{E(l)}</button>' for i, l in enumerate(["Both areas", "C-Scheme", "Malviya Nagar"]))
-    mp = f"""<section class="map" id="map" aria-labelledby="map-h">
-  <header class="map-head reveal"><h2 id="map-h">Every cluster, block by block.</h2>
-    <p>Each column is a 300-metre cell; its height is the number of cafés inside. Point at a column for what the cafés there have in common.
-    Shares appear only where a cell holds {k} or more.</p></header>
-  <div class="stage" data-ui>
-    <canvas class="stage-canvas" aria-hidden="true"></canvas>
-    <div class="stage-labels" aria-hidden="true"></div>
-    <div class="stage-ctrl">
-      <div class="seg-group" role="group" aria-label="Café type">{types_btn}</div>
-      <div class="seg-group" role="group" aria-label="Go to">{fly_btn}</div>
-    </div>
-    <div class="stage-zoom"><button type="button" class="seg" data-zoom="-1" aria-label="Zoom in">+</button><button type="button" class="seg" data-zoom="1" aria-label="Zoom out">−</button></div>
-    <aside class="readout" aria-live="polite"><p class="ro-k">Point at a column</p><p class="ro-v">Drag to turn the map. Hold Ctrl or ⌘ and scroll to zoom.</p></aside>
-  </div>
-  <div class="map-table reveal"><h3>The six busiest cells.</h3>
-    <table><thead><tr><th>Cell</th><th>Cafés</th><th>Coffee-led</th><th>Tea &amp; chai</th><th>Open by 8am</th><th>Typical cost for two</th></tr></thead><tbody>{rows}</tbody></table>
-  </div>
-  <script type="application/json" id="map-data">{map_data}</script>
-</section>"""
-    ch3 = chapter("place", "Where they gather.", "Cafés pull towards each other. Then explore every cluster on the map.",
+    # ---------- where they gather ----------
+    ch3 = chapter("place", "Where they gather.", "Cafés pull towards each other, and customers always have a neighbour to compare.",
                   ["cluster", "areas"], after="")
 
     # ---------- the best right now ----------
@@ -278,6 +244,30 @@ def build(mode):
   <script type="application/json" id="pulse-data">{tool_data}</script>
 </section>"""
 
+    # ---------- free updates, twice a month ----------
+    sub = cfg.get("subscribe") or {}
+    live = sub.get("provider") in ("google_form", "formspree") and sub.get("action")
+    if live or mode == "draft":
+        fields = sub.get("fields") or {}
+        updates = f"""<section class="updates" id="updates" aria-labelledby="updates-h">
+  <div class="up-copy reveal">
+    <h2 id="updates-h">The latest café trends, twice a month. Free.</h2>
+    <p>Each update brings the newest findings on Jaipur's cafés, by email or WhatsApp: what customers reward, what is changing,
+    and where the openings are. Short, and only when there is something new.</p>
+  </div>
+  <form class="up-form reveal" data-ui data-provider="{E(sub.get('provider', 'none'))}" data-action="{E(sub.get('action', ''))}" novalidate>
+    <label class="field"><span>Your name</span><input type="text" name="{E(fields.get('name', 'name'))}" autocomplete="name" required maxlength="80"></label>
+    <label class="field"><span>Email or WhatsApp number</span><input type="text" name="{E(fields.get('contact', 'contact'))}" autocomplete="email" inputmode="email" required maxlength="120" placeholder="you@cafe.in or 98290 12345"></label>
+    <button class="btn" type="submit">Send me the updates</button>
+    <p class="up-note">Used only to send these updates. Never shared, never sold. Reply "stop" any time and you are off the list.</p>
+    <p class="up-status" role="status" aria-live="polite"></p>
+  </form>
+</section>"""
+        if not live:
+            updates = updates.replace('<p class="up-note">', '<p class="up-note"><b>Draft: not connected yet, nothing is sent.</b> ')
+    else:
+        updates = ""
+
     # ---------- method: the statistics in plain words ----------
     listings = (I.get("method") or {}).get("listings")
     gloss = [
@@ -323,11 +313,11 @@ def build(mode):
 </footer>"""
 
     banner = '<p class="draft-note">Draft build. Not for publishing.</p>' if mode == "draft" else ""
-    imap = ('<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js", '
-            '"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>')
+    imap = ('<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js"'
+            '}}</script>')
     page = (head(site["title"], site["tagline"])
-            + "\n" + imap + '\n<script type="module" src="relief.js"></script>\n<script type="module" src="map.js"></script>\n<script src="tool.js" defer></script>\n</head>\n<body>\n'
-            + banner + bar(site) + "\n<main>\n" + "\n".join([hero, intro, ch1, band, ch2, bench, sundial, ch3, mp, best, method, contact])
+            + "\n" + imap + '\n<script type="module" src="relief.js"></script>\n<script src="tool.js" defer></script>\n</head>\n<body>\n'
+            + banner + bar(site, updates=bool(updates)) + "\n<main>\n" + "\n".join([hero, intro, ch1, band, ch2, bench, sundial, ch3, best, updates, method, contact])
             + "\n</main>\n" + footer + "\n</body>\n</html>\n")
 
     out = ROOT / "dist"
@@ -363,7 +353,7 @@ def profile(p, site, au, captured, core, k, mailto, ent):
                    f'<td>{E(", ".join(o["on"]))}</td><td>{"Yes" if o["delivers"] else "Dine-in"}</td></tr>' for o in p["outlets"])
     notes = f'<blockquote class="notes">{E(p["notes"])}</blockquote>' if p.get("notes") else ""
     return (head(f"{p['name']} · {site['title']}", f"{p['tagline']} What {p['name']} did right.", pre)
-            + "\n</head>\n<body>\n" + bar(site, pre, home=False) + f"""
+            + "\n</head>\n<body>\n" + bar(site, pre, home=False, updates=False) + f"""
 <main class="pf">
   <section class="pf-head"><h1 class="reveal">{E(p['name'])}</h1><p class="pf-tag reveal">{E(p['tagline'])}</p>
     <p class="pf-where reveal">{E(' · '.join(sorted({o['area'] for o in p['outlets']})))} · {len(p['outlets'])} {'café' if len(p['outlets']) == 1 else 'cafés'}</p></section>

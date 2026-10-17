@@ -16,23 +16,29 @@ async function init() {
   const [rows, cols] = D.grid;
   const roads = await (await fetch("data/roads.json")).json();
   const [Wm, Hm] = roads.size_m, U = 1000;                          // one unit = 1 km
-  const W = Wm / U, H = Hm / U, PEAK = 1.5, BASE = 0.55;
+  const W = Wm / U, H = Hm / U, PEAK = 2.3, BASE = 0.55;
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "low-power" });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 200);
 
-  // height field, sampled bilinearly so the streets can sit on it
-  const v = D.all.map((x) => x / 255);
+  // height field: lightly blurred, then sampled with a cubic so the slopes have no creases
+  let v = D.all.map((x) => x / 255);
+  const K = [1, 4, 6, 4, 1].map((x) => x / 16);
+  const blur = (src, dx, dy) => src.map((_, i) => {
+    const r = Math.floor(i / cols), c = i % cols;
+    return K.reduce((s, w, j) => { const rr = Math.min(rows - 1, Math.max(0, r + (j - 2) * dy)), cc = Math.min(cols - 1, Math.max(0, c + (j - 2) * dx)); return s + w * src[rr * cols + cc]; }, 0);
+  });
+  for (let k = 0; k < 2; k++) v = blur(blur(v, 1, 0), 0, 1);       // two passes: broad hills, not needles
+  const peak = Math.max(...v); v = v.map((x) => x / peak);
+  const cell = (c, r) => v[Math.min(rows - 1, Math.max(0, r)) * cols + Math.min(cols - 1, Math.max(0, c))];
+  const cr = (p0, p1, p2, p3, t) => p1 + 0.5 * t * (p2 - p0 + t * (2 * p0 - 5 * p1 + 4 * p2 - p3 + t * (3 * (p1 - p2) + p3 - p0)));
   const at = (gx, gz) => {                                          // gx 0..cols-1 west to east, gz 0..rows-1 north to south
-    const x0 = Math.max(0, Math.min(cols - 2, Math.floor(gx))), z0 = Math.max(0, Math.min(rows - 2, Math.floor(gz)));
-    const fx = Math.min(1, Math.max(0, gx - x0)), fz = Math.min(1, Math.max(0, gz - z0));
-    const a = v[z0 * cols + x0], b = v[z0 * cols + x0 + 1], c = v[(z0 + 1) * cols + x0], d = v[(z0 + 1) * cols + x0 + 1];
-    return (a * (1 - fx) + b * fx) * (1 - fz) + (c * (1 - fx) + d * fx) * fz;
+    const x0 = Math.floor(gx), z0 = Math.floor(gz), fx = gx - x0, fz = gz - z0;
+    const row = (r) => cr(cell(x0 - 1, r), cell(x0, r), cell(x0 + 1, r), cell(x0 + 2, r), fx);
+    return Math.max(0, cr(row(z0 - 1), row(z0), row(z0 + 1), row(z0 + 2), fz));
   };
   const hAt = (x, z) => at((x / W + 0.5) * (cols - 1), (z / H + 0.5) * (rows - 1));
 
@@ -43,17 +49,16 @@ async function init() {
   const stone = new THREE.Color(0xe9e8e4), pink = new THREE.Color(0xe3ad9f), red = new THREE.Color(0xb0533d), tmp = new THREE.Color();
   for (let i = 0; i < pos.count; i++) {
     const h = hAt(pos.getX(i), pos.getZ(i));
-    pos.setY(i, Math.pow(h, 0.85) * PEAK);
+    pos.setY(i, Math.pow(h, 0.75) * PEAK);
     if (h < 0.45) tmp.copy(stone).lerp(pink, h / 0.45); else tmp.copy(pink).lerp(red, Math.min(1, (h - 0.45) / 0.45));
     col.set([tmp.r, tmp.g, tmp.b], i * 3);
   }
   geo.setAttribute("color", new THREE.BufferAttribute(col, 3)); geo.computeVertexNormals();
   const relief = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0 }));
-  relief.castShadow = relief.receiveShadow = true;
 
   // the plinth: a dark slab under the ground plane
   const plinth = new THREE.Mesh(new THREE.BoxGeometry(W + 0.24, BASE, H + 0.24), new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.7 }));
-  plinth.position.y = -BASE / 2 - 0.002; plinth.receiveShadow = true;
+  plinth.position.y = -BASE / 2 - 0.002;
 
   // streets, draped on the relief
   const lp = [];
@@ -61,7 +66,7 @@ async function init() {
     for (let i = 0; i + 3 < w.length; i += 2) {
       const x1 = w[i] / U - W / 2, z1 = w[i + 1] / U - H / 2, x2 = w[i + 2] / U - W / 2, z2 = w[i + 3] / U - H / 2;
       if (Math.max(Math.abs(x1), Math.abs(x2)) > W / 2 || Math.max(Math.abs(z1), Math.abs(z2)) > H / 2) continue;   // stay on the plinth
-      lp.push(x1, Math.pow(hAt(x1, z1), 0.85) * PEAK + 0.012, z1, x2, Math.pow(hAt(x2, z2), 0.85) * PEAK + 0.012, z2);
+      lp.push(x1, Math.pow(hAt(x1, z1), 0.75) * PEAK + 0.012, z1, x2, Math.pow(hAt(x2, z2), 0.75) * PEAK + 0.012, z2);
     }
   }));
   const lg = new THREE.BufferGeometry(); lg.setAttribute("position", new THREE.Float32BufferAttribute(lp, 3));
@@ -69,19 +74,16 @@ async function init() {
 
   const obj = new THREE.Group(); obj.add(relief, plinth, streets); scene.add(obj);
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xcfcac2, 1.25));
-  const sun = new THREE.DirectionalLight(0xfff4ea, 2.4);
-  sun.position.set(-6, 7, 3); sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 30 });
-  sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xf1ece6, 1.9));
+  const sun = new THREE.DirectionalLight(0xfff6ee, 1.15);
+  sun.position.set(-5, 10, 4);                                         // raking light shades the slopes; no cast shadows, which smeared
   scene.add(sun);
 
   // two quiet labels that ride with the object
   const toXZ = (lat, lon) => [((lon - D.bbox.lon[0]) / (D.bbox.lon[1] - D.bbox.lon[0]) - 0.5) * W, ((D.bbox.lat[1] - lat) / (D.bbox.lat[1] - D.bbox.lat[0]) - 0.5) * H];
   const labels = [["C-Scheme", 26.905, 75.806], ["Malviya Nagar", 26.853, 75.812], ["Jantar Mantar", 26.9247, 75.8245]].map(([name, la, lo]) => {
     const [x, z] = toXZ(la, lo); const n = document.createElement("span"); n.className = "relief-label"; n.textContent = name; labelsEl.appendChild(n);
-    return { n, p: new THREE.Vector3(x, Math.pow(hAt(x, z), 0.85) * PEAK + 0.25, z) };
+    return { n, p: new THREE.Vector3(x, Math.pow(hAt(x, z), 0.75) * PEAK + 0.25, z) };
   });
 
   // turning: slow by itself, by hand when dragged, with a little inertia
@@ -100,7 +102,8 @@ async function init() {
   function draw() {
     obj.rotation.y = yaw;
     // keep the whole object in frame as it turns: its long side must fit the narrower field of view
-    const half = Math.tan((camera.fov * Math.PI) / 360), d = Math.max(dist, 4.7 / (half * Math.min(1, camera.aspect)));
+    // fit the object's turning radius inside the narrower field of view, so no corner leaves the frame
+    const half = Math.tan((camera.fov * Math.PI) / 360) * Math.min(1, camera.aspect), d = Math.max(dist, (0.86 * Math.hypot(W, H) / 2) / half);
     camera.position.set(0, Math.sin(pitch) * d, Math.cos(pitch) * d);
     camera.lookAt(0, -0.2, 0);
     renderer.render(scene, camera);
