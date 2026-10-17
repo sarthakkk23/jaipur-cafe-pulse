@@ -389,7 +389,7 @@ def build(cfg, label=None):
     out["insights"]["amenities"] = am
 
     # --- platform presence ---
-    pp = {"source": "FIG cross-platform match", "shares": {}}
+    pp = {"source": "Jaipur Café Index cross-platform match", "shares": {}}
     src_of = {"on_google": "google_maps_ui", "on_zomato": "zomato", "on_swiggy": "swiggy", "on_magicpin": "magicpin"}
     for col, lab in [("on_google", "Google Maps"), ("on_zomato", "Zomato"), ("on_swiggy", "Swiggy"), ("on_magicpin", "magicpin")]:
         pp["shares"][lab] = None if src_of[col] in meta["failed_sources"] else pct((core[col] == "Y").mean())

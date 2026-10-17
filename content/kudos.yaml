@@ -2,7 +2,7 @@
 #
 # Rules (enforced by pipeline/check_publish.py):
 #   - Praise only, built from published facts (press, the café's own announcements)
-#     or a FIG visit. Never a platform rating, review count, price or rank.
+#     or a visit by Sarthak. Never a platform rating, review count, price or rank.
 #   - Every entry has at least one source with a URL and a date.
 #   - approved: false entries appear only in draft builds. Sarthak flips them to
 #     true (with approved_on) after checking each fact against its source.

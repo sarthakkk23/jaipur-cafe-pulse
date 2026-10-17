@@ -5,7 +5,7 @@
   "failed_sources": [
    "magicpin"
   ],
-  "generated_at": "2026-10-17T15:30:15+00:00",
+  "generated_at": "2026-10-17T19:29:49+00:00",
   "areas": [
    "C-Scheme",
    "Malviya Nagar"
@@ -1129,7 +1129,7 @@
    ]
   },
   "platforms": {
-   "source": "FIG cross-platform match",
+   "source": "Jaipur Café Index cross-platform match",
    "shares": {
     "Google Maps": 80,
     "Zomato": 41,
@@ -24729,7 +24729,7 @@
     {
      "text": "The format has travelled: Town Coffee now appears in both areas we track, Malviya Nagar and C-Scheme.",
      "source": {
-      "publication": "FIG record",
+      "publication": "Jaipur Café Index record",
       "title": "Jaipur Café Index venue census",
       "url": "",
       "date": "2026-10-17"
