@@ -106,7 +106,7 @@ async function init() {
     obj.rotation.y = yaw + scrollTurn;
     // keep the whole object in frame as it turns: its long side must fit the narrower field of view
     // fit the object's turning radius inside the narrower field of view, so no corner leaves the frame
-    const half = Math.tan((camera.fov * Math.PI) / 360) * Math.min(1, camera.aspect), d = Math.max(dist, (0.86 * Math.hypot(W, H) / 2) / half);
+    const half = Math.tan((camera.fov * Math.PI) / 360) * Math.min(1, camera.aspect), d = Math.max(dist, (1.0 * Math.hypot(W, H) / 2) / half);
     camera.position.set(0, Math.sin(pitch) * d, Math.cos(pitch) * d);
     camera.lookAt(0, -0.2, 0);
     renderer.render(scene, camera);

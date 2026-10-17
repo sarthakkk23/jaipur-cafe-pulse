@@ -103,7 +103,7 @@ def build(mode):
     terrain = json.dumps({"grid": I["terrain"]["grid"], "bbox": I["terrain"]["bbox"],
                           "all": I["terrain"]["frames"][meta["snapshot"]]["all"]}).replace("</", "<\\/")
     hero = f"""<section class="hero" id="top" aria-labelledby="hero-h">
-  <figure class="hero-pic">{pic("hawa-mahal-sky", "(max-width: 900px) 100vw, 25vw", eager=True)}</figure>
+  <figure class="hero-pic" aria-hidden="true">{pic("hawa-mahal-sky", "(max-width: 900px) 100vw, 55vw", eager=True)}</figure>
   <div class="hero-copy">
     <div class="hero-top">
       <h1 id="hero-h" class="hero-h">Jaipur's cafés, measured.</h1>
