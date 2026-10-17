@@ -106,7 +106,7 @@
 
   // ---------- scroll-linked: sundial needle, photo drift ----------
   const sundial = document.querySelector(".sundial");
-  const photo = document.querySelector(".band img");
+  const photos = [...document.querySelectorAll("[data-drift] img")];
   const bar = parseFloat(getComputedStyle(root).getPropertyValue("--bar-h")) || 64;
   let ticking = false;
   const frame = () => {
@@ -116,10 +116,11 @@
       const p = clamp((bar - r.top) / Math.max(1, r.height - (innerHeight - bar)));
       setHour(300 + p * 1320);                       // 5am to 3am
     }
-    if (photo && root.classList.contains("motion")) {
-      const r = photo.parentElement.getBoundingClientRect();
+    if (root.classList.contains("motion")) for (const ph of photos) {   // each picture drifts against the scroll, so the page has depth
+      const r = ph.closest("figure").getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight) continue;
       const p = clamp((innerHeight - r.top) / (innerHeight + r.height));
-      photo.style.setProperty("--drift", `${(0.5 - p) * 8}%`);
+      ph.style.setProperty("--drift", `${(0.5 - p) * 9}%`);
     }
   };
   const request = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };

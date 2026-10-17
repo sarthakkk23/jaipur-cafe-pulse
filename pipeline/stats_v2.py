@@ -90,9 +90,10 @@ def findings(core, k, parse_hours=None):
             "id": "attention", "value": _pct(top), "unit": "%",
             "headline": "of all Google reviews go to the top 10% of cafés.",
             "body": "Everyone else shares a thin slice of attention, so each new review counts for more. Asking happy customers for one is the cheapest way up.",
+            "limit": "It doesn't say the most-reviewed cafés are the best, only that they are found the most.",
             "grade": _grade(len(g), True, k),
             "how": [f"The typical café has {int(np.median(g)):,} Google reviews; {_pct((g < 100).mean())}% have fewer than a hundred.",
-                    f"We sorted the {len(g):,} cafés with Google reviews from most reviewed to least and added up the top tenth.",
+                    f"I sorted the {len(g):,} cafés with Google reviews from most reviewed to least and added up the top tenth.",
                     f"Resampling the cafés 2,000 times puts the share between {_pct(lo)}% and {_pct(hi)}% (95% interval).",
                     f"The Gini coefficient, a 0-to-1 measure of how unevenly something is shared, is {gini:.2f}. "
                     "Zero would mean every café had the same number of reviews."],
@@ -125,11 +126,12 @@ def findings(core, k, parse_hours=None):
             "id": "cluster", "value": _pct(share10), "unit": "%",
             "headline": "of cafés have 10 or more cafés within a 5-minute walk.",
             "body": "Customers here always have a choice next door. Location alone won't set a café apart; what it offers has to.",
+            "limit": "It doesn't say whether a crowded street helps or hurts a café's trade.",
             "grade": _grade(len(geo), decisive, k),
-            "how": [f"For each of the {len(geo):,} mapped cafés we counted the others within 500 metres, about a five-minute walk. "
+            "how": [f"For each of the {len(geo):,} mapped cafés I counted the others within 500 metres, about a five-minute walk. "
                     f"The typical café has {int(np.median(near)):,}.",
                     f"Cafés sit closer together than chance would put them: {closer}.",
-                    "To test for clustering we compared the average distance to the nearest café with what the same number "
+                    "To test for clustering I compared the average distance to the nearest café with what the same number "
                     "of cafés, scattered at random over the same ground, would give (the Clark-Evans test).",
                     "; ".join(f"{x['area']}: {x['observed_m']} m observed against {x['random_m']} m at random" for x in areas)
                     + ". Gaps this large would arise by chance less than one time in a hundred."],
@@ -155,8 +157,9 @@ def findings(core, k, parse_hours=None):
             "id": "ratings", "value": bands[0]["share48"], "unit": "%",
             "headline": "of cafés with under 10 reviews rate 4.8 or more.",
             "body": f"With 1,000+ reviews, just {bands[-1]['share48']}% do. A perfect score on a few reviews is mostly luck: judge any rating, yours or a rival's, by the reviews behind it.",
+            "limit": "It doesn't say new cafés inflate their scores; a few reviews simply swing more.",
             "grade": _grade(len(r), p < 0.01, k),
-            "how": [f"We grouped the {len(r):,} rated cafés by how many reviews they have and took the share rated 4.8 or above in each group.",
+            "how": [f"I grouped the {len(r):,} rated cafés by how many reviews they have and took the share rated 4.8 or above in each group.",
                     f"Ratings also spread less as reviews grow: the typical gap from the group average falls from "
                     f"{bands[0]['spread']} stars to {bands[-1]['spread']}.",
                     f"Across all cafés, more reviews go with a lower rating (rank correlation {rho:.2f}; a shuffle test puts the chance "
@@ -176,8 +179,9 @@ def findings(core, k, parse_hours=None):
             "id": "platforms_rate", "value": _pct(higher), "unit": "%",
             "headline": "of cafés rate higher on Google than on Zomato.",
             "body": f"By about {d.mean():.1f} stars for the very same café. Compare yourself with cafés on the same app, never across apps.",
+            "limit": "It doesn't say which app is right, only that their scores are not interchangeable.",
             "grade": _grade(len(d), lo > 0 or hi < 0, k),
-            "how": [f"We took the {len(d):,} cafés rated on both Google and Zomato dine-in and subtracted one rating from the other, café by café.",
+            "how": [f"I took the {len(d):,} cafés rated on both Google and Zomato dine-in and subtracted one rating from the other, café by café.",
                     f"Resampling those cafés 4,000 times puts the average gap between {lo:.2f} and {hi:.2f} stars (95% interval), "
                     "clear of zero.",
                     f"{_pct(equal)}% score the same on both; {_pct(1 - higher - equal)}% score higher on Zomato."],
@@ -195,8 +199,9 @@ def findings(core, k, parse_hours=None):
             "id": "delivery", "value": _pct(more), "unit": "%",
             "headline": "of cafés on Zomato get more delivery reviews than dine-in reviews.",
             "body": "For most cafés, the delivery order shapes the reputation more than the table does. Packaging and delivery time deserve the same care as the room.",
+            "limit": "It doesn't say delivery earns more than the dining room, only that it is reviewed more.",
             "grade": _grade(len(dv), lo > 0.5 or hi < 0.5, k),
-            "how": [f"For the {len(dv):,} cafés listed on Zomato we compared each café's count of delivery reviews with its dine-in reviews. "
+            "how": [f"For the {len(dv):,} cafés listed on Zomato I compared each café's count of delivery reviews with its dine-in reviews. "
                     f"{_pct(anyd)}% have at least one delivery review.",
                     f"The share is between {_pct(lo)}% and {_pct(hi)}% (95% Wilson interval)."],
             "chart": {"kind": "split", "parts": [["More delivery reviews", _pct(more)], ["More dine-in reviews", 100 - _pct(more)]]},
@@ -235,6 +240,7 @@ def findings(core, k, parse_hours=None):
             "body": (f"Cafés with Wi-Fi get {1 + lead['raw'] / 100:.1f}× the reviews, mostly because they tend to offer more of everything. "
                      + ("Wi-Fi alone won't bring reviews." if not lead["holds"] else "Some of the boost is Wi-Fi itself.")
                      + (f" The one feature that still stands out is {', '.join(held)}." if held else "")),
+            "limit": "It doesn't say Wi-Fi is worthless; customers may still choose a café for it.",
             "grade": "Moderate",
             "how": [f"All cafés: the median Google reviews of cafés that list a feature against those that don't, for the {len(z):,} "
                     f"cafés on Zomato with a listed price. Cafés with Wi-Fi list {others(wf):.1f} other features on average, against "
@@ -264,6 +270,7 @@ def findings(core, k, parse_hours=None):
             "id": "price", "value": _pct((p.zomato_cost_for_two_inr <= 500).mean()), "unit": "%",
             "headline": "of cafés charge ₹500 or less for two.",
             "body": "Price has no link to rating: dearer cafés rate no higher, cheaper ones no lower. Price for your customer, not for your score.",
+            "limit": "It doesn't say price doesn't matter to customers, only that it doesn't predict the rating.",
             "grade": _grade(len(pr2), True, k),
             "how": [f"Cost for two as listed on Zomato, for {len(p):,} cafés. The typical café charges ₹{int(p.zomato_cost_for_two_inr.median()):,}: "
                     + " and ".join(f"₹{v:,} in {a}" for a, v in by_area.items()) + ".",
@@ -285,6 +292,7 @@ def findings(core, k, parse_hours=None):
             "id": "menus", "value": _pct((cu.map(len) >= 5).mean()), "unit": "%",
             "headline": "of cafés list 5 or more cuisines.",
             "body": f"More list fast food ({_pct(cnt['fast food'] / len(cu))}%) than coffee ({_pct(cnt['coffee'] / len(cu))}%). A short, focused menu stands out simply by being rare.",
+            "limit": "It doesn't say a short menu does better, only that it is rarer.",
             "grade": _grade(len(cu), True, k),
             "how": [f"The typical menu spans {int(cu.map(len).median())} cuisines. The cuisine tags each of {len(cu):,} cafés lists on Zomato. 'Café' and 'Beverages', which nearly all list, are left out of the chart."],
             "chart": {"kind": "bars", "bars": top},
@@ -298,9 +306,10 @@ def findings(core, k, parse_hours=None):
         "id": "visibility", "value": _pct((npl == 1).mean()), "unit": "%",
         "headline": "of cafés show up on only one app.",
         "body": f"Only {_pct((c.on_zomato == 'Y').mean())}% are on Zomato and {_pct((c.on_swiggy == 'Y').mean())}% on Swiggy. Every app a café is missing from is a crowd that never sees it.",
-        "grade": "Moderate",
+        "limit": "It doesn't count apps outside Google Maps, Zomato, Swiggy and magicpin.",
+            "grade": "Moderate",
         "how": ["; ".join(f"{_pct((v == 'Y').mean())}% on {name}" for name, v in on.items()) + ".",
-                f"Each of the {len(c):,} cafés matched across the platform searches we run on every update.",
+                f"Each of the {len(c):,} cafés matched across the platform searches I run on every update.",
                 "Absent means it did not appear in our searches of that platform, which is how a customer browsing the area would miss it too."],
         "chart": {"kind": "split", "parts": [["One app", _pct((npl == 1).mean())], ["Two", _pct((npl == 2).mean())], ["Three or more", _pct((npl >= 3).mean())]]},
         "n": int(len(c)),
