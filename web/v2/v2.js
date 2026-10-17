@@ -128,6 +128,50 @@
   addEventListener("resize", request);
   request();
 
+  // ---------- the hero's finding, rotating through all of them in a shuffled order ----------
+  const rot = document.querySelector("[data-rot]"), rotData = document.getElementById("rot-data");
+  if (rot && rotData) {
+    const items = JSON.parse(rotData.textContent);
+    const first = items.findIndex((f) => rot.querySelector(".rot-link").getAttribute("href").endsWith("#f-" + f.id));
+    const rest = items.filter((_, i) => i !== first);
+    for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
+    const order = [items[Math.max(0, first)], ...rest];
+    const link = rot.querySelector(".rot-link"), num = rot.querySelector(".hero-num"), cap = rot.querySelector(".hero-cap");
+    const how = document.querySelector(".rot-how"), bar = rot.querySelector(".rot-bar"), btn = rot.querySelector(".rot-btn"), count = rot.querySelector(".rot-count");
+    const MS = 6500, auto = !reduce;
+    let idx = 0, timer = 0, paused = false, held = false;
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const label = () => { count.textContent = `${idx + 1} of ${order.length}`; };
+    const restartBar = () => { bar.classList.remove("run"); void bar.offsetWidth; if (auto && !paused) bar.classList.add("run"); };
+    function show(i) {
+      idx = (i + order.length) % order.length;
+      const f = order[idx], href = `insights/#f-${f.id}`;
+      const swap = () => {
+        num.innerHTML = `${esc(f.value)}<small>${esc(f.unit)}</small>`; cap.textContent = f.headline;
+        link.setAttribute("href", href); if (how) how.setAttribute("href", href); label();
+      };
+      if (reduce) { swap(); return; }
+      rot.classList.add("out");
+      setTimeout(() => { swap(); rot.classList.remove("out"); rot.classList.add("in"); void rot.offsetWidth; rot.classList.remove("in"); }, 450);
+    }
+    const schedule = () => { clearTimeout(timer); if (!auto || paused || held) return; restartBar(); timer = setTimeout(() => { show(idx + 1); schedule(); }, MS); };
+    const hold = (on) => { held = on; rot.classList.toggle("paused", on || paused); if (on) clearTimeout(timer); else schedule(); };
+    rot.style.setProperty("--rot-ms", MS + "ms");
+    rot.querySelector(".rot-ctrl").hidden = false;
+    label();
+    if (auto) {
+      btn.addEventListener("click", () => { paused = !paused; btn.textContent = paused ? "Play" : "Pause"; btn.setAttribute("aria-pressed", String(paused)); rot.classList.toggle("paused", paused); paused ? clearTimeout(timer) : schedule(); });
+      rot.addEventListener("mouseenter", () => hold(true)); rot.addEventListener("mouseleave", () => hold(false));
+      rot.addEventListener("focusin", () => hold(true)); rot.addEventListener("focusout", () => hold(false));
+      document.addEventListener("visibilitychange", () => hold(document.hidden));
+      schedule();
+    } else {
+      btn.textContent = "Next finding";
+      btn.addEventListener("click", () => show(idx + 1));
+      bar.hidden = true;
+    }
+  }
+
   // ---------- free updates: sign-up ----------
   const up = document.querySelector(".up-form");
   if (up) {
