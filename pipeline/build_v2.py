@@ -252,14 +252,13 @@ def build(mode):
         updates = f"""<section class="updates" id="updates" aria-labelledby="updates-h">
   <div class="up-copy reveal">
     <h2 id="updates-h">The latest café trends, twice a month. Free.</h2>
-    <p>Each update brings the newest findings on Jaipur's cafés, by email or WhatsApp: what customers reward, what is changing,
+    <p>Each update brings the newest findings on Jaipur's cafés straight to your WhatsApp: what customers reward, what is changing,
     and where the openings are. Short, and only when there is something new.</p>
   </div>
   <form class="up-form reveal" data-ui data-provider="{E(sub.get('provider', 'none'))}" data-action="{E(sub.get('action', ''))}" novalidate>
-    <label class="field"><span>Your name</span><input type="text" name="{E(fields.get('name', 'name'))}" autocomplete="name" required maxlength="80"></label>
-    <label class="field"><span>Email or WhatsApp number</span><input type="text" name="{E(fields.get('contact', 'contact'))}" autocomplete="email" inputmode="email" required maxlength="120" placeholder="you@cafe.in or 98290 12345"></label>
+    <label class="field"><span>Your WhatsApp number</span><input type="tel" name="{E(fields.get('contact', 'contact'))}" autocomplete="tel" inputmode="tel" required maxlength="16" placeholder="98290 12345"></label>
     <button class="btn" type="submit">Send me the updates</button>
-    <p class="up-note">Used only to send these updates. Never shared, never sold. Reply "stop" any time and you are off the list.</p>
+    <p class="up-note">Used only to send these updates on WhatsApp. Never shared, never sold. Reply "stop" any time and you are off the list.</p>
     <p class="up-status" role="status" aria-live="polite"></p>
   </form>
 </section>"""

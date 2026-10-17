@@ -25,11 +25,11 @@ publish:
   # false: the biweekly task stops at a draft for review. true: it builds and deploys.
   auto_publish: true   # set 17 Oct 2026 by Sarthak: merge refreshes when every check passes
 
-# Free twice-a-month updates. The site is static, so sign-ups post to a Google Form that writes to Sarthak's own
+# Free twice-a-month updates on WhatsApp. The site is static, so sign-ups (a mobile number only) post to a Google Form that writes to Sarthak's own
 # Google Sheet. The section stays off the public page until provider and action are set.
 #   provider: google_form | formspree | none
 #   action:   the form's .../formResponse URL (Google) or the Formspree endpoint
-#   fields:   the form's field names, e.g. name: entry.123456, contact: entry.654321
+#   fields:   the form's field name for the WhatsApp number, e.g. contact: entry.654321
 subscribe:
   provider: none
   action: ""

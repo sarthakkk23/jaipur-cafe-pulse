@@ -130,14 +130,12 @@
   // ---------- free updates: sign-up ----------
   const up = document.querySelector(".up-form");
   if (up) {
-    const status = up.querySelector(".up-status"), [nameEl, contactEl] = up.querySelectorAll("input");
-    const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
-    const isPhone = (v) => /^(\+?91)?[6-9]\d{9}$/.test(v.replace(/[\s-]/g, ""));
+    const status = up.querySelector(".up-status"), contactEl = up.querySelector("input");
+    const isPhone = (v) => /^(\+?91|0)?[6-9]\d{9}$/.test(v.replace(/[\s()-]/g, ""));
     up.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const name = nameEl.value.trim(), contact = contactEl.value.trim();
-      if (!name) { status.textContent = "Please add your name."; nameEl.focus(); return; }
-      if (!isEmail(contact) && !isPhone(contact)) { status.textContent = "Please add an email address or a 10-digit mobile number."; contactEl.focus(); return; }
+      const contact = contactEl.value.trim();
+      if (!isPhone(contact)) { status.textContent = "Please add a 10-digit Indian mobile number."; contactEl.focus(); return; }
       const { provider, action } = up.dataset;
       if (!action || provider === "none") { status.textContent = "Sign-ups open soon."; return; }
       up.classList.add("sending"); status.textContent = "Sending…";
@@ -145,7 +143,7 @@
         const body = new FormData(up);
         if (provider === "google_form") await fetch(action, { method: "POST", mode: "no-cors", body });   // Google Forms gives no readable reply
         else { const r = await fetch(action, { method: "POST", body, headers: { Accept: "application/json" } }); if (!r.ok) throw new Error(r.status); }
-        up.classList.add("done"); status.textContent = `Thank you, ${name.split(" ")[0]}. The next update comes to you.`;
+        up.classList.add("done"); status.textContent = "Thank you. The next update comes to your WhatsApp.";
         up.reset();
       } catch { status.textContent = "That didn't go through. Please try again in a moment."; }
       up.classList.remove("sending");
