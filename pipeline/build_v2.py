@@ -45,6 +45,21 @@ def pic(name, sizes, cls="", eager=False, prefix=""):
             f'<img src="{prefix}img/{name}-1600.jpg" srcset="{srcset("jpg")}" sizes="{sizes}" width="{w}" height="{h}" alt="{E(alt)}" {load}></picture>')
 
 
+CAPTIONS = {"hawa-mahal-sky": "The Hawa Mahal, old city.", "jantar-dial": "A sundial at Jantar Mantar.", "patrika-gate-sky": "Patrika Gate, by Jawahar Circle.",
+            "jantar-field": "Jantar Mantar's instruments.", "hawa-horses": "Outside the Hawa Mahal.", "pink-haveli": "A haveli through neem leaves.",
+            "kulhad-chai": "Chai in clay kulhads."}
+
+
+def strip(pre, names):
+    return ('<section class="strip3" aria-label="Scenes from Jaipur">' + "".join(
+        f'<figure class="reveal" data-drift>{pic(n, "(max-width: 760px) 100vw, 33vw", prefix=pre)}<figcaption>{E(CAPTIONS[n])}</figcaption></figure>'
+        for n in names) + "</section>")
+
+
+def ph(pre, name):
+    return f'<figure class="ph-pic reveal" data-drift>{pic(name, "(max-width: 900px) 100vw, 40vw", eager=True, prefix=pre)}</figure>'
+
+
 def nice(iso):
     return date.fromisoformat(iso).strftime("%-d %B %Y")
 
@@ -98,15 +113,64 @@ def head(title, desc, prefix="", path="", ld=None):
 <script src="{prefix}v2.js" defer></script>"""
 
 
-def bar(site, prefix="", home=True, updates=True, here=""):
-    h = "" if home else (prefix or "../../")
-    links = [("Insights", f"{h}#insights"), ("Location check", f"{h}location/"), ("The best", f"{h}#best"), ("Method", f"{h}#method")]
-    links += [("Free updates", f"{h}#updates")] if updates else []
+CTX = {}   # site, author, mailto, dates and switches, filled at build time
+
+# every page, in reading order: (path, label in the menu)
+PAGES = [("insights/", "Insights"), ("location/", "Location check"), ("your-cafe/", "Your café"), ("best/", "The best"),
+         ("method/", "Method"), ("updates/", "Free updates"), ("about/", "About")]
+
+
+def pages_live():
+    return [(u, l) for u, l in PAGES if u != "updates/" or CTX.get("updates")]
+
+
+def bar(pre="", here=""):
+    """The same menu on every page; on phones it folds into a menu button."""
     cur = ' aria-current="page"'
-    nav = "".join(f'<a href="{u}"{cur if l == here else ""}>{E(l)}</a>' for l, u in links)
-    return (f'<header class="bar"><a class="wordmark" href="{h}#top">{E(site["title"])}</a>'
-            f'<nav class="bar-links" aria-label="Sections">{nav}</nav>'
-            f'<a class="btn" href="{h}#contact">Coffee?</a></header>')
+    links = "".join(f'<a href="{pre}{u}"{cur if l == here else ""}>{E(l)}</a>' for u, l in pages_live() if u != "about/")
+    site = CTX["site"]
+    return (f'<header class="bar"><a class="wordmark" href="{pre or "./"}">{E(site["title"])}</a>'
+            f'<nav class="bar-links" aria-label="Main">{links}</nav>'
+            f'<details class="menu"><summary aria-label="Open the menu">Menu</summary><nav class="menu-panel" aria-label="Main">'
+            + "".join(f'<a href="{pre}{u}"{cur if l == here else ""}>{E(l)}</a>' for u, l in [("", "Home")] + pages_live())
+            + f'</nav></details>'
+            f'<a class="btn" href="{pre}about/#contact">Coffee?</a></header>')
+
+
+def footer(pre=""):
+    site, au = CTX["site"], CTX["au"]
+    col = lambda title, items: f'<div><p class="ft-h">{E(title)}</p>' + "".join(f'<a href="{u}">{E(l)}</a>' for l, u in items) + "</div>"
+    live = dict((l, u) for u, l in pages_live())
+    explore = [(l, pre + live[l]) for l in ("Insights", "Location check", "Your café", "The best") if l in live]
+    learn = [("Method", pre + "method/"), ("About", pre + "about/"), ("Download the figures", pre + "data/insights.json")]
+    touch = ([("Free updates", pre + "updates/")] if "Free updates" in live else []) + [("Coffee?", pre + "about/#contact"), ("LinkedIn", au.get("linkedin", ""))]
+    return f"""<footer class="foot">
+  <a class="foot-name" href="{pre or './'}">{E(site['title'])}</a>
+  <div class="ft-cols">{col("Explore", explore)}{col("Learn", learn)}{col("Stay in touch", touch)}</div>
+  <p>{credits_line()}</p>
+  <p>Updated {E(CTX['captured'])} · groups under {CTX['k']} cafés withheld · built {E(date.today().strftime('%-d %B %Y'))}</p>
+</footer>"""
+
+
+def shell(path, title, desc, body, ld=None, here="", scripts="", main_cls="", crumb=None):
+    """One page: head, menu, the page's own content, a breadcrumb with the next page, and the footer."""
+    pre = "../" * path.count("/")
+    site = CTX["site"]
+    trail = [("Home", "", f"{SEO['base']}/")] + (crumb or ([(here, path, f"{SEO['base']}/{path}")] if here else []))
+    graph = [{"@type": "WebPage", "@id": f"{SEO['base']}/{path}#page", "name": title, "url": f"{SEO['base']}/{path}", "inLanguage": "en-IN",
+              "isPartOf": {"@id": f"{SEO['base']}/#site"}, "author": {"@id": f"{SEO['base']}/#author"}}]
+    if len(trail) > 1:
+        graph.append({"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": i + 1, "name": n, "item": u}
+                                                                     for i, (n, _, u) in enumerate(trail)]})
+    ld = ld or {"@context": "https://schema.org", "@graph": graph}
+    order = [("", "Home")] + pages_live()
+    paths = [u for u, _ in order]
+    nxt = order[(paths.index(path) + 1) % len(order)] if path in paths else ("", "Home")
+    where = " › ".join(f'<a href="{pre}{u}">{E(n)}</a>' for n, u, _ in trail[:-1]) + (f" › <span>{E(trail[-1][0])}</span>" if len(trail) > 1 else "")
+    nav_end = (f'<nav class="trail" aria-label="Breadcrumb and next page"><p class="tr-where">{where}</p>'
+               f'<a class="tr-next" href="{pre}{nxt[0]}"><span>Next</span>{E(nxt[1] if nxt[0] else "Back to the start")}</a></nav>') if path else ""
+    return (head(title, desc, pre, path, ld) + scripts + "\n</head>\n<body>\n" + CTX["banner"] + bar(pre, here)
+            + f'\n<main class="{main_cls}">\n' + body + "\n" + nav_end + "\n</main>\n" + footer(pre) + "\n</body>\n</html>\n")
 
 
 def credits_line(prefix=""):
@@ -129,6 +193,11 @@ def build(mode):
     core = T.get("scene.core_cafes", "")
     F = {f["id"]: f for f in I.get("findings") or []}
     lead_f = F.get("cluster") or next(iter(F.values()))
+    sub = cfg.get("subscribe") or {}
+    live = sub.get("provider") in ("google_form", "formspree") and sub.get("action")
+    banner = '<p class="draft-note">Draft build. Not for publishing.</p>' if mode == "draft" else ""
+    CTX.update(site=site, au=au, mailto=mailto, captured=captured, k=k, updates=bool(live or mode == "draft"), banner=banner)
+    P = "../"                                   # every page except home sits one folder down
 
     # ---------- hero: the city's cafés as an object you can turn ----------
     terrain = json.dumps({"grid": I["terrain"]["grid"], "bbox": I["terrain"]["bbox"],
@@ -142,8 +211,8 @@ def build(mode):
     </div>
     <p class="hero-fig"><span class="hero-num">{lead_f['value']}<small>{E(lead_f['unit'])}</small></span>
       <span class="hero-cap">{E(lead_f['headline'])}</span></p>
-    <div class="hero-foot"><p class="hero-act"><a class="btn" href="#insights">See what works</a><a class="btn btn-ghost" href="#benchmark">Check your café</a></p>
-    <p class="hero-meta">C-Scheme and Malviya Nagar · updated {E(captured)} · <a href="#f-{E(lead_f['id'])}">How I know</a></p></div>
+    <div class="hero-foot"><p class="hero-act"><a class="btn" href="insights/">See what works</a><a class="btn btn-ghost" href="your-cafe/">Check your café</a></p>
+    <p class="hero-meta">C-Scheme and Malviya Nagar · updated {E(captured)} · <a href="insights/#f-{E(lead_f['id'])}">How I know</a></p></div>
   </div>
   <div class="hero-obj">
     <canvas class="relief" aria-label="Café density across C-Scheme and Malviya Nagar, sculpted as a relief"></canvas>
@@ -201,10 +270,10 @@ def build(mode):
 
     ch1 = chapter("insights", "Where attention goes.", "Reviews and ratings decide who gets found. Here is how they really behave, no sugar added.",
                   ["attention", "ratings", "platforms_rate", "delivery"])
-    band = f"""<figure class="band reveal" data-drift>{pic("hawa-horses", "100vw")}<figcaption>Outside the Hawa Mahal, in the old city.</figcaption></figure>"""
+    band = f"""<figure class="band reveal" data-drift>{pic("hawa-horses", "100vw", prefix=P)}<figcaption>Outside the Hawa Mahal, in the old city.</figcaption></figure>"""
     pair = f"""<section class="pair" aria-label="Mornings in Jaipur">
-  <figure class="pair-a reveal" data-drift>{pic("kulhad-chai", "(max-width: 760px) 100vw, 40vw")}<figcaption>Chai in clay kulhads: the city's first order of the day.</figcaption></figure>
-  <figure class="pair-b reveal" data-drift>{pic("pink-haveli", "(max-width: 760px) 100vw, 55vw")}<figcaption>A haveli in the Pink City, through neem leaves.</figcaption></figure>
+  <figure class="pair-a reveal" data-drift>{pic("kulhad-chai", "(max-width: 760px) 100vw, 40vw", prefix=P)}<figcaption>Chai in clay kulhads: the city's first order of the day.</figcaption></figure>
+  <figure class="pair-b reveal" data-drift>{pic("pink-haveli", "(max-width: 760px) 100vw, 55vw", prefix=P)}<figcaption>A haveli in the Pink City, through neem leaves.</figcaption></figure>
 </section>"""
     ch2 = chapter("offer", "What cafés offer.", "Good coffee. Bad assumptions. Let's fix that: what is common, what is rare, and what actually goes with being chosen.",
                   ["amenities", "price", "menus", "visibility"])
@@ -231,7 +300,7 @@ def build(mode):
 </section>"""
 
     # ---------- where they gather ----------
-    loc_cta = """<a class="loc-cta reveal" href="location/"><span class="loc-cta-h">Check a location.</span>
+    loc_cta = """<a class="loc-cta reveal" href="../location/"><span class="loc-cta-h">Check a location.</span>
   <span class="loc-cta-p">Pick any spot in C-Scheme or Malviya Nagar and read its five-minute walk: how many cafés, what kind, and where the gaps are.</span>
   <span class="btn">Open the location check</span></a>"""
     ch3 = chapter("place", "Where they gather.", "Cafés pull towards each other, so choose your grounds carefully.",
@@ -239,18 +308,19 @@ def build(mode):
 
     # ---------- the best right now ----------
     profs = ins.get("profiles") or []
-    plist = "".join(f"""<li><a href="cafes/{E(p['slug'])}/">
+    plist = "".join(f"""<li class="reveal"><a href="../cafes/{E(p['slug'])}/">
       <span class="best-name">{E(p['name'])}</span>
       <span class="best-tag">{E(p['tagline'])}</span>
       <span class="best-where">{E(' · '.join(sorted({o['area'] for o in p['outlets']})))}</span>
       <span class="best-go">What they did right</span></a></li>""" for p in profs)
     best = f"""<section class="best" id="best" aria-labelledby="best-h">
-  <figure class="best-pic reveal">{pic("patrika-gate-sky", "(max-width: 900px) 100vw, 40vw")}</figure>
+  <figure class="best-pic reveal">{pic("patrika-gate-sky", "(max-width: 900px) 100vw, 40vw", eager=True, prefix=P)}</figure>
   <div class="best-copy">
-    <h2 id="best-h">The best, right now.</h2>
-    <p class="best-sub">What each one did right, from public facts and its neighbourhood.</p>
+    <h1 id="best-h" class="reveal">The best, right now.</h1>
+    <p class="best-sub reveal">The cafés I would point a friend to right now. Each profile says what the café did right, from public facts and
+    how it stands in its neighbourhood, never from its ratings, reviews or prices.</p>
     <ul class="best-list">{plist}</ul>
-    <p class="best-note">Chosen by {E(au['name'])}. Never ranked by ratings, reviews or prices.</p>
+    <p class="best-note reveal">Chosen by {E(au['name'])}. Never ranked by ratings, reviews or prices.</p>
   </div>
 </section>""" if profs else ""
 
@@ -268,13 +338,13 @@ def build(mode):
                                         for i, v in enumerate(vals))
     am_opts = "".join(f'<label class="opt"><input type="checkbox" name="am" value="{a["key"]}"><span>{E(a["label"])}</span></label>' for a in I["amenities"]["items"])
     bench = f"""<section class="bench" id="benchmark" aria-labelledby="bench-h">
-  <div class="bench-copy"><h2 id="bench-h">Where does your café stand?</h2>
+  <div class="bench-copy reveal"><h1 id="bench-h">Where does your café stand?</h1>
     <p>Set your area and type and add what you know. Everything is computed in your browser from the published figures;
     nothing you type leaves this page.</p>
     <div class="seg-row" role="group" aria-label="Mode" data-ui><button type="button" class="seg-btn" data-mode="owner" aria-pressed="true">I run a café</button>
     <button type="button" class="seg-btn" data-mode="planner" aria-pressed="false">I'm opening one</button></div>
   </div>
-  <form class="tool-form" autocomplete="off" data-ui>
+  <form class="tool-form reveal" autocomplete="off" data-ui>
     <fieldset><legend>Area</legend><div class="opts">{radios("area", meta["areas"])}</div></fieldset>
     <fieldset><legend>Type</legend><div class="opts">{radios("type", TYPES)}</div></fieldset>
     <div class="owner-only fields">
@@ -290,15 +360,13 @@ def build(mode):
 </section>"""
 
     # ---------- free updates, twice a month ----------
-    sub = cfg.get("subscribe") or {}
-    live = sub.get("provider") in ("google_form", "formspree") and sub.get("action")
     if live or mode == "draft":
         fields = sub.get("fields") or {}
         name_field = (f'<label class="field"><span>Your name</span><input type="text" name="{E(fields["name"])}" '
                       f'autocomplete="name" required maxlength="80"></label>') if fields.get("name") else ""
         updates = f"""<section class="updates" id="updates" aria-labelledby="updates-h">
   <div class="up-copy reveal">
-    <h2 id="updates-h">Fresh findings, twice a month. Free.</h2>
+    <h1 id="updates-h">Fresh findings, twice a month. Free.</h1>
     <p>Each update brings the newest findings on Jaipur's cafés straight to your WhatsApp: what customers reward, what is changing,
     and where the openings are. Short, and only when there is something new. No stale beans.</p>
   </div>
@@ -329,51 +397,93 @@ def build(mode):
     ]
     gl = "".join(f"<div><dt>{E(a)}</dt><dd>{E(b)}</dd></div>" for a, b in gloss)
     method = f"""<section class="method" id="method" aria-labelledby="method-h">
-  <figure class="method-pic reveal">{pic("jantar-field", "(max-width: 760px) 100vw, 60vw")}</figure>
-  <div class="method-copy"><h2 id="method-h">The methods, in plain words.</h2>
+  <figure class="method-pic reveal">{pic("jantar-field", "(max-width: 760px) 100vw, 60vw", eager=True, prefix=P)}</figure>
+  <div class="method-copy"><h1 id="method-h">The methods, in plain words.</h1>
     <p>How the beans get counted. Three platforms describe the same café three ways. I read them on the same searches at every update, match them into one record,
     and publish only what holds for a group. These are the tools behind every figure above.</p></div>
   <dl class="gloss">{gl}</dl>
   <svg class="many" viewBox="0 0 1200 270" role="img" aria-label="Scattered platform listings compressed into one ordered record"
        data-listings="{listings or 0}" data-venues="{(I.get('method') or {}).get('venues', 0)}"></svg>
-  <div class="method-cols">
+  <div class="method-cols method-cols-4">
     <p><b>Gather.</b> {E(T.get('method.listings', '—'))} platform listings in the latest update, from identical searches of Google Maps, Zomato and
     Swiggy, collected slowly and never past a block.</p>
     <p><b>Match.</b> One record of {E(T.get('scene.venues_tracked', ''))} venues with permanent IDs, matched by name and distance.</p>
     <p><b>Publish.</b> Aggregates only. Any group under {k} cafés is withheld; a café is named only to credit it, never next to its
-    ratings, reviews or prices. <a href="data/insights.json" download>Download the figures</a>.</p>
+    ratings, reviews or prices. <a href="../data/insights.json" download>Download the figures</a>.</p>
+    <p><b>Check.</b> Before anything is published, every figure is re-counted from the source data by separate code. Each
+    finding names its evidence grade and the number of cafés behind it.</p>
   </div>
 </section>"""
 
-    # ---------- coffee, and the footer ----------
-    contact = f"""<section class="contact" id="contact" aria-labelledby="contact-h">
-  <h2 id="contact-h" class="reveal">Over a cup of coffee?</h2>
+    # ---------- coffee ----------
+    def contact(pre, title="Over a cup of coffee?"):
+        return f"""<section class="contact" id="contact" aria-labelledby="contact-h">
+  <h2 id="contact-h" class="reveal">{E(title)}</h2>
   <div class="c-copy reveal"><p>If you run a café in Jaipur, are about to open one, or just like thinking about them, I'd like to meet.
     Tell me what you'd want measured next.</p>
     <p class="c-links"><a class="btn" href="{mailto}">Say hello</a>
     <a href="{E(au.get('linkedin', ''))}" rel="noopener" target="_blank">{E(au['name'])} on LinkedIn</a></p></div>
 </section>"""
-    footer = f"""<footer class="foot">
-  <a class="foot-name" href="#top">{E(site['title'])}</a>
-  <p>{credits_line()}</p>
-  <p>Updated {E(captured)} · groups under {k} cafés withheld · built {E(date.today().strftime('%-d %B %Y'))}</p>
-</footer>"""
 
-    banner = '<p class="draft-note">Draft build. Not for publishing.</p>' if mode == "draft" else ""
+    # ---------- home: what you'll find, and three findings to start with ----------
+    cards = [("insights/", "Insights", f"{len(F)} findings on {core} cafés, each in one sentence, with what it means for yours."),
+             ("location/", "Location check", "Pick any spot and read its five-minute walk: cafés, gaps, and who is around to buy coffee."),
+             ("your-cafe/", "Your café", "Set your area, type and numbers; see where you stand. Nothing you type leaves the page."),
+             ("best/", "The best", "The cafés doing it best right now, and what each one did right."),
+             ("method/", "Method", "How the beans get counted: the statistics in plain words, and the data to download.")]
+    if CTX["updates"]:
+        cards.append(("updates/", "Free updates", "Fresh findings on WhatsApp, twice a month. No stale beans."))
+    explore = f"""<section class="explore" aria-labelledby="explore-h">
+  <h2 id="explore-h" class="reveal">Find what you came for.</h2>
+  <div class="ex-grid">{"".join(f'<a class="ex-card reveal" href="{u}"><span class="ex-h">{E(t)}</span><span class="ex-p">{E(d)}</span><span class="ex-go">Open</span></a>' for u, t, d in cards)}</div>
+</section>"""
+    picks = [F[x] for x in ("attention", "platforms_rate", "delivery") if x in F]
+    teasers = f"""<section class="teasers" aria-labelledby="teasers-h">
+  <h2 id="teasers-h" class="reveal">Three findings to start with.</h2>
+  <div class="tz-grid">{"".join(f'<a class="tz reveal" href="insights/#f-{E(f["id"])}"><span class="tz-num">{f["value"]}<small>{E(f["unit"])}</small></span><span class="tz-head">{E(f["headline"])}</span></a>' for f in picks)}</div>
+</section>"""
+    home_band = f"""<figure class="band reveal" data-drift>{pic("hawa-horses", "100vw")}<figcaption>Outside the Hawa Mahal, in the old city.</figcaption></figure>"""
+
+    # ---------- insights: the findings, with a jump bar ----------
+    chapters = [("insights-attention", "Where attention goes"), ("offer", "What cafés offer"), ("day", "When they open"), ("place", "Where they gather")]
+    ins_head = f"""<section class="page-head with-pic">
+  {ph(P, "hawa-mahal-sky")}
+  <h1 class="reveal">What the data says.</h1>
+  <p class="page-lede reveal">{len(F)} findings on {E(core)} cafés in C-Scheme and Malviya Nagar. Each is one sentence and one number,
+  with what it means for you, what it doesn't say, and how I know.</p>
+  <nav class="jump reveal" aria-label="On this page">{"".join(f'<a href="#{a}">{E(t)}</a>' for a, t in chapters)}</nav>
+</section>"""
+    ch1 = ch1.replace('id="insights"', 'id="insights-attention"').replace('aria-labelledby="insights-h"', 'aria-labelledby="insights-attention-h"').replace('id="insights-h"', 'id="insights-attention-h"')
+
+    # ---------- about ----------
+    about = f"""<section class="page-head about-head with-pic">
+  {ph(P, "pink-haveli")}
+  <h1 class="reveal">Caffeinated, not biased.</h1>
+  <p class="page-lede reveal">Jaipur Café Index is independent research by {E(au['name'])}, based in Jaipur. I read every café listing in
+  C-Scheme and Malviya Nagar, match them into one record, and publish what the data says in plain words, updated twice a month.</p>
+</section>
+<section class="rules">
+  <h2 class="reveal">The house rules.</h2>
+  <ul class="rule-list">
+    <li class="reveal"><b>Aggregates only.</b> Figures describe groups of cafés, never one café. Any group under {k} is withheld.</li>
+    <li class="reveal"><b>Praise, never criticism.</b> A café is named only to credit it. No café's ratings, reviews or prices appear here.</li>
+    <li class="reveal"><b>Nobody pays.</b> No platform or café pays for this record or to appear in it.</li>
+    <li class="reveal"><b>Every number checked.</b> Each figure is re-counted from the source data by separate code before it is published.</li>
+  </ul>
+</section>
+{contact(P)}"""
+
+    # ---------- the pages ----------
     imap = ('<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js"'
             '}}</script>')
     person = {"@type": "Person", "@id": f"{SEO['base']}/#author", "name": au["name"], "url": au.get("linkedin", ""),
               "sameAs": [au.get("linkedin", "")], "knowsAbout": ["Café market research", "Data analysis", "Jaipur"]}
     first = (ins.get("insights", {}).get("history") or [{}])[0].get("captured_on") or meta["captured_on"]
-    ld_home = {"@context": "https://schema.org", "@graph": [
-        {"@type": "WebSite", "@id": f"{SEO['base']}/#site", "name": site["title"], "url": f"{SEO['base']}/", "inLanguage": "en-IN",
-         "description": site["tagline"], "publisher": {"@id": f"{SEO['base']}/#author"}},
-        person,
-        {"@type": "Dataset", "name": f"{site['title']}: cafés in C-Scheme and Malviya Nagar, Jaipur",
+    dataset = {"@type": "Dataset", "name": f"{site['title']}: cafés in C-Scheme and Malviya Nagar, Jaipur",
          "description": (f"Independent, aggregate data on {core} operating cafés in C-Scheme and Malviya Nagar, Jaipur: opening hours, "
                          "cost for two, review concentration, ratings by platform, menus, platform reach and clustering. "
                          f"Groups under {k} cafés are withheld; no café's own ratings, reviews or prices are published."),
-         "url": f"{SEO['base']}/", "creator": {"@id": f"{SEO['base']}/#author"}, "isAccessibleForFree": True,
+         "url": f"{SEO['base']}/insights/", "creator": {"@id": f"{SEO['base']}/#author"}, "isAccessibleForFree": True,
          "keywords": ["cafés in Jaipur", "C-Scheme cafés", "Malviya Nagar cafés", "Jaipur café market", "opening a café in Jaipur", "coffee shops Jaipur"],
          "temporalCoverage": f"{first}/{meta['captured_on']}", "dateModified": meta["captured_on"],
          "spatialCoverage": {"@type": "Place", "name": "C-Scheme and Malviya Nagar, Jaipur, Rajasthan, India",
@@ -381,12 +491,14 @@ def build(mode):
          "variableMeasured": ["Share of cafés open by 8am", "Typical cost for two", "Share of Google reviews held by the top tenth of cafés",
                               "Share of cafés rated 4.8 or more by review count", "Google against Zomato rating", "Delivery against dine-in reviews",
                               "Cuisines per menu", "Platforms per café", "Cafés within a five-minute walk"],
-         "distribution": {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": f"{SEO['base']}/data/insights.json"}},
-    ]}
-    page = (head(site.get("seo_title", site["title"]), site["tagline"], ld=ld_home)
-            + "\n" + imap + '\n<script type="module" src="relief.js"></script>\n<script src="tool.js" defer></script>\n</head>\n<body>\n'
-            + banner + bar(site, updates=bool(updates)) + "\n<main>\n" + "\n".join([hero, intro, ch1, band, ch2, bench, pair, sundial, ch3, best, updates, method, contact])
-            + "\n</main>\n" + footer + "\n</body>\n</html>\n")
+         "distribution": {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": f"{SEO['base']}/data/insights.json"}}
+    ld_home = {"@context": "https://schema.org", "@graph": [
+        {"@type": "WebSite", "@id": f"{SEO['base']}/#site", "name": site["title"], "url": f"{SEO['base']}/", "inLanguage": "en-IN",
+         "description": site["tagline"], "publisher": {"@id": f"{SEO['base']}/#author"}}, person, dataset]}
+    # old one-page links (#insights, #best …) still land somewhere sensible
+    legacy = ('<script>(function(){var m={"#insights":"insights/","#offer":"insights/#offer","#day":"insights/#day","#place":"insights/#place",'
+              '"#best":"best/","#benchmark":"your-cafe/","#method":"method/","#updates":"updates/","#contact":"about/#contact"};'
+              'var h=location.hash;if(m[h])location.replace(m[h]);else if(/^#f-/.test(h))location.replace("insights/"+h);})();</script>')
 
     out = ROOT / "dist"
     if out.exists():
@@ -396,43 +508,74 @@ def build(mode):
     (out / "data").mkdir(exist_ok=True)
     shutil.copy(ROOT / "data/public/insights_latest.json", out / "data/insights.json")
     (out / ".nojekyll").write_text("")
-    (out / "index.html").write_text(page)
-    pages = ["", "location/"] + [f"cafes/{p['slug']}/" for p in profs]
-    (out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        + "".join(f"  <url><loc>{SEO['base']}/{u}</loc><lastmod>{meta['captured_on']}</lastmod><changefreq>weekly</changefreq>"
-                  f"<priority>{'1.0' if not u else '0.8' if u == 'location/' else '0.6'}</priority></url>\n" for u in pages) + "</urlset>\n")
-    (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SEO['base']}/sitemap.xml\n")
-    (out / "404.html").write_text(head(f"Page not found · {site['title']}", "This page wandered off for a coffee.", "/" + SEO["base"].split("/", 3)[-1] + "/" if SEO["base"].count("/") > 2 else "/")
-        .replace('content="index, follow, max-image-preview:large"', 'content="noindex"')
-        + '\n</head>\n<body>\n<main class="nf"><h1>This page wandered off for a coffee.</h1>'
-        + f'<p>It isn\'t here, but the findings are. <a href="{SEO["base"]}/">Back to {E(site["title"])}</a>.</p></main>\n</body>\n</html>\n')
+
+    def write(path, html):
+        d = out / path
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "index.html").write_text(html)
+
+    write("", shell("", site.get("seo_title", site["title"]), site["tagline"],
+                    "\n".join([hero, intro, explore, teasers, home_band, strip("", ["kulhad-chai", "pink-haveli", "patrika-gate-sky"]), contact("")]), ld=ld_home,
+                    scripts="\n" + imap + '\n<script type="module" src="relief.js"></script>\n' + legacy))
+    ins_ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "WebPage", "@id": f"{SEO['base']}/insights/#page", "name": "What the data says about Jaipur's cafés", "url": f"{SEO['base']}/insights/",
+         "inLanguage": "en-IN", "isPartOf": {"@id": f"{SEO['base']}/#site"}, "author": {"@id": f"{SEO['base']}/#author"}},
+        {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": f"{SEO['base']}/"},
+                                                         {"@type": "ListItem", "position": 2, "name": "Insights", "item": f"{SEO['base']}/insights/"}]},
+        dataset]}
+    write("insights/", shell("insights/", f"What the data says about Jaipur's cafés · {site['title']}",
+                             f"{len(F)} findings on {core} cafés in C-Scheme and Malviya Nagar, Jaipur: reviews, ratings, delivery, prices, menus, hours and clustering, in plain words.",
+                             "\n".join([ins_head, ch1, band, ch2, pair, sundial, ch3]), ld=ins_ld, here="Insights"))
+    write("your-cafe/", shell("your-cafe/", f"Compare your café with Jaipur's · {site['title']}",
+                              "Set your area, type and numbers and see where your café stands among cafés in C-Scheme and Malviya Nagar, Jaipur. Computed in your browser.",
+                              f'<section class="page-head with-pic">{ph(P, "kulhad-chai")}<h1 class="reveal">Where does your café stand?</h1>'
+                              '<p class="page-lede reveal">Set your area and type, add what you know, and see your café against the others around it, '
+                              'in plain words. Everything is worked out in your browser; nothing you type leaves this page.</p></section>'
+                              + bench.replace('<h1 id="bench-h">Where does your café stand?</h1>', '<h2 id="bench-h">Your numbers.</h2>')
+                              + strip(P, ["hawa-horses", "pink-haveli", "jantar-field"]),
+                              here="Your café", scripts='\n<script src="../tool.js" defer></script>', main_cls="main-bench"))
+    if best:
+        write("best/", shell("best/", f"The best cafés in Jaipur right now · {site['title']}",
+                             "The cafés in C-Scheme and Malviya Nagar doing it best right now, and what each one did right, from public facts.",
+                             best + strip(P, ["hawa-horses", "kulhad-chai", "pink-haveli"]), here="The best"))
+    write("method/", shell("method/", f"How the numbers are made · {site['title']}",
+                           "The statistics behind Jaipur Café Index in plain words: medians, intervals, shuffle tests, like-for-like models and clustering. Data to download.",
+                           method + strip(P, ["jantar-dial", "hawa-horses", "pink-haveli"]), here="Method"))
+    if updates:
+        write("updates/", shell("updates/", f"Free café insights on WhatsApp · {site['title']}",
+                                "Fresh findings on Jaipur's cafés, twice a month, free on WhatsApp. Short, and only when there is something new.",
+                                f'<section class="page-head with-pic">{ph(P, "kulhad-chai")}<h1 class="reveal">Fresh findings, twice a month.</h1>'
+                                '<p class="page-lede reveal">Free, on WhatsApp: the newest findings on Jaipur\'s cafés. No stale beans.</p></section>'
+                                + updates.replace('<h1 id="updates-h">Fresh findings, twice a month. Free.</h1>', '<h2 id="updates-h">Sign up in ten seconds.</h2>')
+                                + strip(P, ["hawa-horses", "pink-haveli", "patrika-gate-sky"]), here="Free updates"))
+    write("about/", shell("about/", f"About · {site['title']}",
+                          f"Independent café research in Jaipur by {au['name']}: the house rules, and how to meet over a cup of coffee.",
+                          about + strip(P, ["hawa-mahal-sky", "jantar-dial", "kulhad-chai"]), here="About"))
     if (ROOT / "data/public/location_latest.json").exists():
         shutil.copy(ROOT / "data/public/location_latest.json", out / "data/location.json")
-        (out / "location").mkdir(exist_ok=True)
-        (out / "location" / "index.html").write_text(location_page(site, au, captured, k, mailto, bool(updates), banner))
+        write("location/", location_page(site, au, captured, k, mailto))
     for p in profs:
-        d = out / "cafes" / p["slug"]
-        d.mkdir(parents=True, exist_ok=True)
-        (d / "index.html").write_text(profile(p, site, au, captured, core, k, mailto, ent))
+        write(f"cafes/{p['slug']}/", profile(p, site, au, captured, core, k, mailto, ent))
+
+    urls = ["", "insights/", "location/", "your-cafe/"] + (["best/"] if best else []) + ["method/"] + (["updates/"] if updates else []) + ["about/"]
+    urls += [f"cafes/{p['slug']}/" for p in profs]
+    prio = {"": "1.0", "insights/": "0.9", "location/": "0.9", "your-cafe/": "0.8", "best/": "0.8"}
+    (out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "".join(f"  <url><loc>{SEO['base']}/{u}</loc><lastmod>{meta['captured_on']}</lastmod><changefreq>weekly</changefreq>"
+                  f"<priority>{prio.get(u, '0.6')}</priority></url>\n" for u in urls) + "</urlset>\n")
+    (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SEO['base']}/sitemap.xml\n")
+    root = "/" + SEO["base"].split("/", 3)[-1] + "/" if SEO["base"].count("/") > 2 else "/"
+    (out / "404.html").write_text(head(f"Page not found · {site['title']}", "This page wandered off for a coffee.", root)
+        .replace('content="index, follow, max-image-preview:large"', 'content="noindex"')
+        + '\n</head>\n<body>\n<main class="nf"><h1>This page wandered off for a coffee.</h1>'
+        + f'<p>It isn\'t here, but the findings are. <a href="{root}insights/">Read the insights</a> or <a href="{root}">go home</a>.</p></main>\n</body>\n</html>\n')
     return out / "index.html"
 
 
-
-def location_page(site, au, captured, k, mailto, updates, banner):
+def location_page(site, au, captured, k, mailto):
     """The location check: pick a spot, read its five-minute walk. Everything is computed from published aggregates."""
     pre = "../"
-    crumbs = {"@context": "https://schema.org", "@graph": [
-        {"@type": "WebPage", "name": "Café location check for C-Scheme and Malviya Nagar", "url": f"{SEO['base']}/location/", "inLanguage": "en-IN",
-         "isPartOf": {"@id": f"{SEO['base']}/#site"}, "author": {"@id": f"{SEO['base']}/#author"}},
-        {"@type": "BreadcrumbList", "itemListElement": [
-            {"@type": "ListItem", "position": 1, "name": site["title"], "item": f"{SEO['base']}/"},
-            {"@type": "ListItem", "position": 2, "name": "Location check", "item": f"{SEO['base']}/location/"}]}]}
-    return (head(f"Where to open a café in Jaipur · {site['title']}",
-                 "Opening a café in Jaipur? Pick any spot in C-Scheme or Malviya Nagar: see the cafés, the gaps and who is around to buy coffee.",
-                 pre, "location/", crumbs)
-            + '\n<script src="../location.js" defer></script>\n</head>\n<body>\n' + banner
-            + bar(site, pre, home=False, updates=updates, here="Location check") + f"""
-<main class="loc">
+    body = f"""
   <section class="loc-head">
     <div class="loc-head-copy"><h1 class="reveal">Check a location.</h1>
     <p class="loc-lede reveal">Know your grounds before you grind. Pick a spot in C-Scheme or Malviya Nagar, Jaipur, and I'll tell you,
@@ -467,13 +610,10 @@ def location_page(site, au, captured, k, mailto, updates, banner):
   </section>
   <section class="contact"><h2 class="reveal">A second opinion?</h2><div class="c-copy reveal"><p>Tell me where you're looking. I'd like to
     walk the spot with you, over a cup of coffee.</p>
-    <p class="c-links"><a class="btn" href="{mailto}">Say hello</a><a href="../#insights">Read the findings</a></p></div></section>
-</main>
-<footer class="foot"><a class="foot-name" href="../">{E(site['title'])}</a><p>{credits_line()}</p>
-<p>Updated {E(captured)} · groups under {k} cafés withheld</p></footer>
-</body>
-</html>
-""")
+    <p class="c-links"><a class="btn" href="{mailto}">Say hello</a><a href="../insights/">Read the findings</a></p></div></section>"""
+    return shell("location/", f"Where to open a café in Jaipur · {site['title']}",
+                 "Opening a café in Jaipur? Pick any spot in C-Scheme or Malviya Nagar: see the cafés, the gaps and who is around to buy coffee.",
+                 body, here="Location check", scripts='\n<script src="../location.js" defer></script>', main_cls="loc")
 
 
 def profile(p, site, au, captured, core, k, mailto, ent):
@@ -492,19 +632,7 @@ def profile(p, site, au, captured, core, k, mailto, ent):
                    f'<td>{E(", ".join(o["on"]))}</td><td>{"Yes" if o["delivers"] else "Dine-in"}</td></tr>' for o in p["outlets"])
     notes = f'<blockquote class="notes">{E(p["notes"])}</blockquote>' if p.get("notes") else ""
     slug_url = f"{SEO['base']}/cafes/{p['slug']}/"
-    ld = {"@context": "https://schema.org", "@graph": [
-        {"@type": "WebPage", "name": f"{p['name']}: what they did right", "url": slug_url, "inLanguage": "en-IN",
-         "isPartOf": {"@id": f"{SEO['base']}/#site"}, "author": {"@id": f"{SEO['base']}/#author"},
-         "about": {"@type": "CafeOrCoffeeShop", "name": p["name"],
-                   "address": {"@type": "PostalAddress", "addressLocality": "Jaipur", "addressRegion": "Rajasthan", "addressCountry": "IN"}}},
-        {"@type": "BreadcrumbList", "itemListElement": [
-            {"@type": "ListItem", "position": 1, "name": site["title"], "item": f"{SEO['base']}/"},
-            {"@type": "ListItem", "position": 2, "name": "The best, right now", "item": f"{SEO['base']}/#best"},
-            {"@type": "ListItem", "position": 3, "name": p["name"], "item": slug_url}]}]}
-    return (head(f"{p['name']}, Jaipur: what they did right · {site['title']}", f"{p['tagline']} What {p['name']} did right, from public facts and its neighbourhood in Jaipur.",
-                 pre, f"cafes/{p['slug']}/", ld)
-            + "\n</head>\n<body>\n" + bar(site, pre, home=False, updates=False) + f"""
-<main class="pf">
+    body = f"""
   <section class="pf-head"><h1 class="reveal">{E(p['name'])}</h1><p class="pf-tag reveal">{E(p['tagline'])}</p>
     <p class="pf-where reveal">{E(' · '.join(sorted({o['area'] for o in p['outlets']})))} · {len(p['outlets'])} {'café' if len(p['outlets']) == 1 else 'cafés'}</p></section>
   <section class="pf-sec"><h2>What they did right.</h2><ul class="story">{story}</ul>{notes}</section>
@@ -513,13 +641,21 @@ def profile(p, site, au, captured, core, k, mailto, ent):
   <section class="pf-sec"><h2>What they offer.</h2><ul class="rare">{feats or '<li><span>Not listed.</span></li>'}</ul>{also}
     <table class="outlets"><caption>Cafés I read</caption><thead><tr><th>Area</th><th>Locality</th><th>Hours, first listed day</th><th>Listed on</th><th>Delivery</th></tr></thead><tbody>{rows}</tbody></table></section>
   <section class="contact"><h2>Over a cup of coffee?</h2><div class="c-copy"><p>If you run a café in Jaipur or are about to open one, I'd like to meet.</p>
-    <p class="c-links"><a class="btn" href="{mailto}">Say hello</a><a href="{pre}#insights">Read the findings</a></p></div></section>
-</main>
-<footer class="foot"><a class="foot-name" href="{pre}">{E(site['title'])}</a><p>{credits_line()}</p>
-<p>Facts from the sources linked and from public listings read on {E(captured)}. Groups under {k} cafés withheld.</p></footer>
-</body>
-</html>
-""")
+    <p class="c-links"><a class="btn" href="{mailto}">Say hello</a><a href="{pre}insights/">Read the findings</a></p></div></section>
+  <p class="pf-src">Facts from the sources linked and from public listings read on {E(captured)}.</p>"""
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "WebPage", "name": f"{p['name']}: what they did right", "url": slug_url, "inLanguage": "en-IN",
+         "isPartOf": {"@id": f"{SEO['base']}/#site"}, "author": {"@id": f"{SEO['base']}/#author"},
+         "about": {"@type": "CafeOrCoffeeShop", "name": p["name"],
+                   "address": {"@type": "PostalAddress", "addressLocality": "Jaipur", "addressRegion": "Rajasthan", "addressCountry": "IN"}}},
+        {"@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": f"{SEO['base']}/"},
+            {"@type": "ListItem", "position": 2, "name": "The best", "item": f"{SEO['base']}/best/"},
+            {"@type": "ListItem", "position": 3, "name": p["name"], "item": slug_url}]}]}
+    return shell(f"cafes/{p['slug']}/", f"{p['name']}, Jaipur: what they did right · {site['title']}",
+                 f"{p['tagline']} What {p['name']} did right, from public facts and its neighbourhood in Jaipur.",
+                 body, ld=ld, here="The best", main_cls="pf",
+                 crumb=[("The best", "best/", f"{SEO['base']}/best/"), (p["name"], f"cafes/{p['slug']}/", slug_url)])
 
 
 def main():
