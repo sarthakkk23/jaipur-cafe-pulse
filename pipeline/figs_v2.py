@@ -39,19 +39,22 @@ def lorenz(points, value):
 <text x="{P(8, 8)[0]}" y="{P(8, 8)[1] - 10}" class="c-soft" transform="rotate({-math.degrees(math.atan(1 / k)):.1f} {P(8, 8)[0]} {P(8, 8)[1] - 10})">if every café had an equal share</text>""")
 
 
-def hbars(bars, label, hot=(0,), unit="%"):
-    """Horizontal bars, labels left, values right. The `hot` bar is red, the rest pink."""
+def hbars(bars, label, hot=(0,), unit="%", sign=False, note=""):
+    """Horizontal bars, labels left, values right. The `hot` bar is red, the rest pink. An optional note names the measure."""
     row = 40
-    h = row * len(bars) + 10
+    top = 34 if note else 0
+    h = row * len(bars) + 10 + top
     mx = max(v for _, v in bars) or 1
     L = 200 if W >= 600 else 140
     out = []
+    if note:
+        out.append(f'<text x="0" y="18" class="c-soft">{E(note)}</text>')
     for i, (lab, v) in enumerate(bars):
-        y = 6 + i * row
+        y = 6 + top + i * row
         w = (W - L - 60) * v / mx
         out.append(f'<text x="0" y="{y + 21}">{E(lab)}</text>'
                    f'<rect class="grow" x="{L}" y="{y + 6}" width="{max(w, 2):.1f}" height="22" fill="var({"--red" if i in hot else "--pink"})"/>'
-                   f'<text x="{L + w + 8:.1f}" y="{y + 23}" class="c-strong">{v}{unit}</text>')
+                   f'<text x="{L + w + 8:.1f}" y="{y + 23}" class="c-strong">{"+" if sign and v > 0 else ""}{v:,}{unit}</text>')
     return _svg(h, label, "".join(out))
 
 
@@ -175,7 +178,7 @@ def chart(f, width=600):
     if c["kind"] == "forest":
         return forest(c["items"], lab)
     if c["kind"] == "bars":
-        return hbars(c["bars"], lab, hot=(0, 1) if f["id"] == "price" else (0,))
+        return hbars(c["bars"], lab, hot=(0, 1) if f["id"] == "price" else (0,), sign=c.get("sign", False), note=c.get("note", ""))
     if c["kind"] == "mix":
         return mix(c["rows"], lab)
     return ""

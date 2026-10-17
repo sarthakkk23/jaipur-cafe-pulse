@@ -5,7 +5,7 @@
   "failed_sources": [
    "magicpin"
   ],
-  "generated_at": "2026-10-17T11:17:20+00:00",
+  "generated_at": "2026-10-17T11:35:02+00:00",
   "areas": [
    "C-Scheme",
    "Malviya Nagar"
@@ -24372,100 +24372,25 @@
     "id": "attention",
     "value": 69,
     "unit": "%",
-    "headline": "of all Google reviews go to one café in ten.",
-    "body": "The typical café has 82 reviews; 54% have fewer than a hundred. Most cafés compete in a long tail, where every review moves them further.",
+    "headline": "of all Google reviews go to the top 10% of cafés.",
+    "body": "Everyone else shares a thin slice of attention, so each new review counts for more. Asking happy customers for one is the cheapest way up.",
     "grade": "Strong",
     "how": [
+     "The typical café has 82 Google reviews; 54% have fewer than a hundred.",
      "We sorted the 410 cafés with Google reviews from most reviewed to least and added up the top tenth.",
      "Resampling the cafés 2,000 times puts the share between 63% and 74% (95% interval).",
      "The Gini coefficient, a 0-to-1 measure of how unevenly something is shared, is 0.80. Zero would mean every café had the same number of reviews."
     ],
     "chart": {
-     "kind": "lorenz",
-     "points": [
+     "kind": "split",
+     "parts": [
       [
-       0,
-       0
+       "Top 10% of cafés",
+       69
       ],
       [
-       5,
-       0
-      ],
-      [
-       10,
-       0
-      ],
-      [
-       15,
-       0
-      ],
-      [
-       20,
-       0
-      ],
-      [
-       25,
-       0
-      ],
-      [
-       30,
-       1
-      ],
-      [
-       35,
-       1
-      ],
-      [
-       40,
-       1
-      ],
-      [
-       45,
-       2
-      ],
-      [
-       50,
-       2
-      ],
-      [
-       55,
-       3
-      ],
-      [
-       60,
-       5
-      ],
-      [
-       65,
-       6
-      ],
-      [
-       70,
-       9
-      ],
-      [
-       75,
-       11
-      ],
-      [
-       80,
-       15
-      ],
-      [
-       85,
-       21
-      ],
-      [
-       90,
+       "The other 90%",
        31
-      ],
-      [
-       95,
-       49
-      ],
-      [
-       100,
-       100
       ]
      ]
     },
@@ -24475,11 +24400,12 @@
     "id": "cluster",
     "value": 91,
     "unit": "%",
-    "headline": "of cafés have ten or more others within a five-minute walk.",
-    "body": "The typical café has 42 neighbours within 500 metres. Cafés sit closer together than chance would put them: 28% in C-Scheme, 40% in Malviya Nagar.",
+    "headline": "of cafés have 10 or more cafés within a 5-minute walk.",
+    "body": "Customers here always have a choice next door. Location alone won't set a café apart; what it offers has to.",
     "grade": "Strong",
     "how": [
-     "For each of the 464 mapped cafés we counted the others within 500 metres, about a five-minute walk.",
+     "For each of the 464 mapped cafés we counted the others within 500 metres, about a five-minute walk. The typical café has 42.",
+     "Cafés sit closer together than chance would put them: 28% in C-Scheme, 40% in Malviya Nagar.",
      "To test for clustering we compared the average distance to the nearest café with what the same number of cafés, scattered at random over the same ground, would give (the Clark-Evans test).",
      "C-Scheme: 56 m observed against 78 m at random; Malviya Nagar: 90 m observed against 150 m at random. Gaps this large would arise by chance less than one time in a hundred."
     ],
@@ -24510,8 +24436,8 @@
     "id": "ratings",
     "value": 67,
     "unit": "%",
-    "headline": "of cafés with under ten reviews rate 4.8 or more.",
-    "body": "Past a thousand reviews, 4% do. A high score on a handful of reviews is mostly luck; it settles as the reviews arrive. Read a new café's rating with its review count beside it.",
+    "headline": "of cafés with under 10 reviews rate 4.8 or more.",
+    "body": "With 1,000+ reviews, just 4% do. A perfect score on a few reviews is mostly luck: judge any rating, yours or a rival's, by the reviews behind it.",
     "grade": "Strong",
     "how": [
      "We grouped the 398 rated cafés by how many reviews they have and took the share rated 4.8 or above in each group.",
@@ -24559,8 +24485,8 @@
     "id": "platforms_rate",
     "value": 71,
     "unit": "%",
-    "headline": "of cafés score higher on Google than on Zomato.",
-    "body": "The same café averages 0.38 stars more on Google. Compare a café with others on the same platform, never across platforms.",
+    "headline": "of cafés rate higher on Google than on Zomato.",
+    "body": "By about 0.4 stars for the very same café. Compare yourself with cafés on the same app, never across apps.",
     "grade": "Strong",
     "how": [
      "We took the 102 cafés rated on both Google and Zomato dine-in and subtracted one rating from the other, café by café.",
@@ -24590,11 +24516,11 @@
     "id": "delivery",
     "value": 58,
     "unit": "%",
-    "headline": "of Zomato cafés have more delivery reviews than dine-in.",
-    "body": "74% have at least one delivery review. For most cafés the packed order is reviewed more often than the table.",
+    "headline": "of cafés on Zomato get more delivery reviews than dine-in reviews.",
+    "body": "For most cafés, the delivery order shapes the reputation more than the table does. Packaging and delivery time deserve the same care as the room.",
     "grade": "Strong",
     "how": [
-     "For the 211 cafés listed on Zomato we compared each café's count of delivery reviews with its dine-in reviews.",
+     "For the 211 cafés listed on Zomato we compared each café's count of delivery reviews with its dine-in reviews. 74% have at least one delivery review.",
      "The share is between 51% and 64% (95% Wilson interval)."
     ],
     "chart": {
@@ -24614,93 +24540,31 @@
    },
    {
     "id": "amenities",
-    "value": 247,
+    "value": 86,
     "unit": "%",
-    "headline": "more reviews for cafés that list Wi-Fi, at first glance.",
-    "body": "Cafés with Wi-Fi also tend to be bigger, list more of everything (3.9 other features against 2.3) and price higher. Holding area, type and price level, the Wi-Fi gap is +35%, too uncertain to call. The listing that still stands out is kid-friendly.",
+    "headline": "of the Wi-Fi review boost disappears when you compare similar cafés.",
+    "body": "Cafés with Wi-Fi get 3.5× the reviews, mostly because they tend to offer more of everything. Wi-Fi alone won't bring reviews. The one feature that still stands out is kid-friendly.",
     "grade": "Moderate",
     "how": [
-     "Raw gap: the median Google reviews of cafés that list a feature against those that don't, for the 151 cafés on Zomato with a listed price.",
-     "Like for like: a regression on the logarithm of reviews that holds area, café type and price level fixed, so each feature is compared against cafés that are otherwise similar.",
-     "Bars show a 90% interval from 3,000 resamples. An interval crossing zero means the data can't tell the effect from none.",
+     "All cafés: the median Google reviews of cafés that list a feature against those that don't, for the 151 cafés on Zomato with a listed price. Cafés with Wi-Fi list 3.9 other features on average, against 2.3 for the rest.",
+     "Similar cafés: a regression on the logarithm of reviews that holds area, café type and price level fixed, so each feature is compared against cafés that are otherwise alike. Wi-Fi: +35% (90% interval -31% to +175% from 3,000 resamples).",
+     "Kid-friendly: +480% across all cafés, +348% among similar ones; Smoking area: +302% across all cafés, -38% among similar ones; Wi-Fi or work-friendly: +247% across all cafés, +35% among similar ones; Board games or books: +171% across all cafés, +1% among similar ones; Outdoor seating: +89% across all cafés, +25% among similar ones; Breakfast: +63% across all cafés, +21% among similar ones; Home delivery: -4% across all cafés, -6% among similar ones; Vegetarian only: -11% across all cafés, +23% among similar ones.",
      "This is association, not cause: a listing can mark the kind of café that draws reviews without drawing them itself."
     ],
     "chart": {
-     "kind": "forest",
-     "items": [
-      {
-       "label": "Kid-friendly",
-       "share": 25,
-       "raw": 480,
-       "adj": 348,
-       "lo": 73,
-       "hi": 1146,
-       "holds": true
-      },
-      {
-       "label": "Smoking area",
-       "share": 22,
-       "raw": 302,
-       "adj": -38,
-       "lo": -79,
-       "hi": 64,
-       "holds": false
-      },
-      {
-       "label": "Wi-Fi or work-friendly",
-       "share": 28,
-       "raw": 247,
-       "adj": 35,
-       "lo": -31,
-       "hi": 175,
-       "holds": false
-      },
-      {
-       "label": "Board games or books",
-       "share": 14,
-       "raw": 171,
-       "adj": 1,
-       "lo": -50,
-       "hi": 93,
-       "holds": false
-      },
-      {
-       "label": "Outdoor seating",
-       "share": 38,
-       "raw": 89,
-       "adj": 25,
-       "lo": -31,
-       "hi": 126,
-       "holds": false
-      },
-      {
-       "label": "Breakfast",
-       "share": 42,
-       "raw": 63,
-       "adj": 21,
-       "lo": -29,
-       "hi": 107,
-       "holds": false
-      },
-      {
-       "label": "Home delivery",
-       "share": 82,
-       "raw": -4,
-       "adj": -6,
-       "lo": -55,
-       "hi": 97,
-       "holds": false
-      },
-      {
-       "label": "Vegetarian only",
-       "share": 54,
-       "raw": -11,
-       "adj": 23,
-       "lo": -28,
-       "hi": 102,
-       "holds": false
-      }
-     ]
+     "kind": "bars",
+     "sign": true,
+     "bars": [
+      [
+       "All cafés",
+       247
+      ],
+      [
+       "Similar cafés",
+       35
+      ]
+     ],
+     "note": "Extra Google reviews for cafés with Wi-Fi, compared with"
     },
     "n": 151
    },
@@ -24709,10 +24573,10 @@
     "value": 49,
     "unit": "%",
     "headline": "of cafés charge ₹500 or less for two.",
-    "body": "The typical café charges ₹600 for two: ₹700 in C-Scheme and ₹500 in Malviya Nagar. Price tells you nothing about the rating: dearer cafés rate no higher.",
+    "body": "Price has no link to rating: dearer cafés rate no higher, cheaper ones no lower. Price for your customer, not for your score.",
     "grade": "Strong",
     "how": [
-     "Cost for two as listed on Zomato, for 193 cafés.",
+     "Cost for two as listed on Zomato, for 193 cafés. The typical café charges ₹600: ₹700 in C-Scheme and ₹500 in Malviya Nagar.",
      "Price against Google rating, for 150 cafés: rank correlation -0.01, where zero means no link and ±1 a perfect one. A shuffle test finds nothing (chance of a link this size by luck: 0.89).",
      "Price does go with more reviews, weakly; dearer cafés tend to be bigger."
     ],
@@ -24747,11 +24611,11 @@
     "id": "menus",
     "value": 70,
     "unit": "%",
-    "headline": "of cafés list five or more cuisines.",
-    "body": "The typical menu spans 7. Fast food is listed by 63% of cafés, coffee by 49%. Jaipur's cafés are small restaurants first; a short, focused menu is the rarer position.",
+    "headline": "of cafés list 5 or more cuisines.",
+    "body": "More list fast food (63%) than coffee (49%). A short, focused menu stands out simply by being rare.",
     "grade": "Strong",
     "how": [
-     "The cuisine tags each of 211 cafés lists on Zomato. 'Café' and 'Beverages', which nearly all list, are left out of the chart."
+     "The typical menu spans 7 cuisines. The cuisine tags each of 211 cafés lists on Zomato. 'Café' and 'Beverages', which nearly all list, are left out of the chart."
     ],
     "chart": {
      "kind": "bars",
@@ -24796,18 +24660,19 @@
     "id": "visibility",
     "value": 64,
     "unit": "%",
-    "headline": "of cafés turn up on only one platform.",
-    "body": "80% on Google Maps; 41% on Zomato; 20% on Swiggy. A café missing from Zomato or Swiggy is missing from the place many people choose where to go.",
+    "headline": "of cafés show up on only one app.",
+    "body": "Only 41% are on Zomato and 20% on Swiggy. Every app a café is missing from is a crowd that never sees it.",
     "grade": "Moderate",
     "how": [
-     "Each of the 511 cafés matched across the platform searches we run every two weeks.",
+     "80% on Google Maps; 41% on Zomato; 20% on Swiggy.",
+     "Each of the 511 cafés matched across the platform searches we run on every update.",
      "Absent means it did not appear in our searches of that platform, which is how a customer browsing the area would miss it too."
     ],
     "chart": {
      "kind": "split",
      "parts": [
       [
-       "One platform",
+       "One app",
        64
       ],
       [
@@ -24817,66 +24682,6 @@
       [
        "Three or more",
        6
-      ]
-     ]
-    },
-    "n": 511
-   },
-   {
-    "id": "areas",
-    "value": 15,
-    "unit": "%",
-    "headline": "of Malviya Nagar's cafés are chai cafés.",
-    "body": "In C-Scheme it is 8%, where coffee-led cafés are a larger share (33% against 25%). A lean, not yet a firm difference: the gap could still be chance.",
-    "grade": "Weak",
-    "how": [
-     "The type mix of all 511 operating cafés, by area.",
-     "A chi-square test, run by shuffling the area labels 2,000 times, puts the chance of a mix this different by luck at 0.06."
-    ],
-    "chart": {
-     "kind": "mix",
-     "rows": [
-      [
-       "C-Scheme",
-       [
-        [
-         "Coffee-led",
-         33
-        ],
-        [
-         "Tea & chai",
-         8
-        ],
-        [
-         "Bakery",
-         16
-        ],
-        [
-         "All-day café",
-         42
-        ]
-       ]
-      ],
-      [
-       "Malviya Nagar",
-       [
-        [
-         "Coffee-led",
-         25
-        ],
-        [
-         "Tea & chai",
-         15
-        ],
-        [
-         "Bakery",
-         16
-        ],
-        [
-         "All-day café",
-         45
-        ]
-       ]
       ]
      ]
     },

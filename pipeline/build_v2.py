@@ -101,10 +101,14 @@ def build(mode):
                           "all": I["terrain"]["frames"][meta["snapshot"]]["all"]}).replace("</", "<\\/")
     hero = f"""<section class="hero" id="top" aria-labelledby="hero-h">
   <div class="hero-copy">
-    <h1 id="hero-h" class="hero-h">Jaipur's cafés, measured.</h1>
+    <div class="hero-top">
+      <h1 id="hero-h" class="hero-h">Jaipur's cafés, measured.</h1>
+      <p class="hero-sub">What {E(core)} cafés reveal about being found, rated and chosen.</p>
+    </div>
     <p class="hero-fig"><span class="hero-num">{lead_f['value']}<small>{E(lead_f['unit'])}</small></span>
       <span class="hero-cap">{E(lead_f['headline'])}</span></p>
-    <p class="hero-meta">{E(core)} cafés in C-Scheme and Malviya Nagar · reading of {E(captured)} · <a href="#f-{E(lead_f['id'])}">How we know</a></p>
+    <div class="hero-foot"><p class="hero-act"><a class="btn" href="#insights">See what works</a><a class="btn btn-ghost" href="#benchmark">Check your café</a></p>
+    <p class="hero-meta">C-Scheme and Malviya Nagar · updated {E(captured)} · <a href="#f-{E(lead_f['id'])}">How we know</a></p></div>
   </div>
   <div class="hero-obj">
     <canvas class="relief" aria-label="Café density across C-Scheme and Malviya Nagar, sculpted as a relief"></canvas>
@@ -117,18 +121,16 @@ def build(mode):
 
     # ---------- intro ----------
     intro = f"""<section class="intro" aria-label="About this record">
-  <p class="lead reveal">An independent record of {E(core)} cafés, re-read every two weeks. Below, the full record is turned into findings,
-  each a share of cafés, each with how strong the evidence is and how we know it.</p>
+  <p class="lead reveal">Every number below is a share of cafés, with what it means for you and how we know it. The record is updated often,
+  so the trends are the latest ones, not last year's.</p>
   <div class="cols">
-    <p class="reveal"><b>Who.</b> Independent research by {E(au['name'])}, based in Jaipur. No platform pays for it, no café pays to
-    appear in it, and no café is ranked by its ratings.</p>
-    <p class="reveal"><b>What.</b> {E(T.get('scene.venues_tracked', ''))} venues read from Zomato, Google Maps and Swiggy, matched into one
-    record. Figures appear only for groups of {k} cafés or more.</p>
-    <p class="reveal"><b>Where.</b> C-Scheme with Ashok Nagar, and Malviya Nagar from World Trade Park to the sectors: two of the
-    city's densest café districts.</p>
+    <p class="reveal"><b>Use it to</b> price a menu, choose a street, read a rival's rating, or see where your own café stands.</p>
+    <p class="reveal"><b>Who.</b> Independent research by {E(au['name'])}, based in Jaipur. No platform or café pays to appear in it.</p>
+    <p class="reveal"><b>What.</b> {E(T.get('scene.venues_tracked', ''))} venues from Zomato, Google Maps and Swiggy, matched into one record.
+    Nothing is shown for fewer than {k} cafés.</p>
     <p class="reveal"><b>Evidence.</b> <span class="ev" data-g="3"><i></i><i></i><i></i></span> strong,
     <span class="ev" data-g="2"><i></i><i></i><i></i></span> moderate, <span class="ev" data-g="1"><i></i><i></i><i></i></span> weak.
-    Strong means a clear result on a large group; weak means it could still be chance.</p>
+    How sure each finding is.</p>
   </div>
 </section>"""
 
@@ -159,10 +161,10 @@ def build(mode):
   {body}{after}
 </section>"""
 
-    ch1 = chapter("insights", "Where attention goes.", "Reviews and ratings are how a café is found. They are not shared out evenly, and they don't mean the same thing everywhere.",
+    ch1 = chapter("insights", "Where attention goes.", "Reviews and ratings decide who gets found. Here is how they really behave.",
                   ["attention", "ratings", "platforms_rate", "delivery"])
     band = f"""<figure class="band reveal">{pic("morning-cup", "100vw")}</figure>"""
-    ch2 = chapter("offer", "What cafés offer.", "Menus, prices and the features cafés list, and which of them go with being found.",
+    ch2 = chapter("offer", "What cafés offer.", "Menus, prices and features: what is common, what is rare, and what actually goes with being chosen.",
                   ["amenities", "price", "menus", "visibility"])
 
     # ---------- the sundial ----------
@@ -173,9 +175,9 @@ def build(mode):
   <div class="sd-pin">
     <div class="sd-copy">
       <h2 id="day-h" class="reveal">When they open.</h2>
-      <p class="reveal">Each of the twenty-four wedges is an hour; its fill is the share of cafés open then. {E(str(I['hours'].get('open_by_8', '')))}% are serving
-      by 8am and the typical café opens at {E(T.get('hours.median_open', ''))}. Chai cafés rise earliest: {E(T.get('hours.open_by_8.tea', ''))} open by 8am,
-      against {E(T.get('hours.open_by_8.coffee', ''))} of coffee-led cafés.</p>
+      <p class="reveal">Only {E(str(I['hours'].get('open_by_8', '')))}% of cafés are serving by 8am; the typical one opens at {E(T.get('hours.median_open', ''))}.
+      The morning is open ground, especially for coffee: {E(T.get('hours.open_by_8.coffee', ''))} of coffee-led cafés open by 8am, against
+      {E(T.get('hours.open_by_8.tea', ''))} of chai cafés. Scroll to move through the day.</p>
       <p class="sd-read" aria-live="polite"><span class="sd-time">8am</span><span class="sd-share">{E(str(I['hours'].get('open_by_8', '')))}% of cafés open</span>
       <span class="sd-areas"></span></p>
     </div>
@@ -221,7 +223,7 @@ def build(mode):
   </div>
   <script type="application/json" id="map-data">{map_data}</script>
 </section>"""
-    ch3 = chapter("place", "Where they gather.", "Cafés pull towards each other. How tightly, and how the two neighbourhoods differ.",
+    ch3 = chapter("place", "Where they gather.", "Cafés pull towards each other. Then explore every cluster on the map.",
                   ["cluster", "areas"], after="")
 
     # ---------- the best right now ----------
@@ -292,13 +294,13 @@ def build(mode):
     method = f"""<section class="method" id="method" aria-labelledby="method-h">
   <figure class="method-pic reveal">{pic("jantar-field", "(max-width: 760px) 100vw, 60vw")}</figure>
   <div class="method-copy"><h2 id="method-h">The methods, in plain words.</h2>
-    <p>Three platforms describe the same café three ways. We read them on the same searches every run, match them into one record,
+    <p>Three platforms describe the same café three ways. We read them on the same searches at every update, match them into one record,
     and publish only what holds for a group. These are the tools behind every figure above.</p></div>
   <dl class="gloss">{gl}</dl>
   <svg class="many" viewBox="0 0 1200 270" role="img" aria-label="Scattered platform listings compressed into one ordered record"
        data-listings="{listings or 0}" data-venues="{(I.get('method') or {}).get('venues', 0)}"></svg>
   <div class="method-cols">
-    <p><b>Gather.</b> {E(T.get('method.listings', '—'))} platform listings this run, from identical searches of Google Maps, Zomato and
+    <p><b>Gather.</b> {E(T.get('method.listings', '—'))} platform listings in the latest update, from identical searches of Google Maps, Zomato and
     Swiggy, collected slowly and never past a block.</p>
     <p><b>Match.</b> One record of {E(T.get('scene.venues_tracked', ''))} venues with permanent IDs, matched by name and distance.</p>
     <p><b>Publish.</b> Aggregates only. Any group under {k} cafés is withheld; a café is named only to credit it, never next to its
@@ -317,7 +319,7 @@ def build(mode):
     footer = f"""<footer class="foot">
   <a class="foot-name" href="#top">{E(site['title'])}</a>
   <p>{credits_line()}</p>
-  <p>Reading of {E(captured)} · groups under {k} cafés withheld · built {E(date.today().strftime('%-d %B %Y'))}</p>
+  <p>Updated {E(captured)} · groups under {k} cafés withheld · built {E(date.today().strftime('%-d %B %Y'))}</p>
 </footer>"""
 
     banner = '<p class="draft-note">Draft build. Not for publishing.</p>' if mode == "draft" else ""
@@ -325,7 +327,7 @@ def build(mode):
             '"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>')
     page = (head(site["title"], site["tagline"])
             + "\n" + imap + '\n<script type="module" src="relief.js"></script>\n<script type="module" src="map.js"></script>\n<script src="tool.js" defer></script>\n</head>\n<body>\n'
-            + banner + bar(site) + "\n<main>\n" + "\n".join([hero, intro, ch1, band, ch2, sundial, ch3, mp, best, bench, method, contact])
+            + banner + bar(site) + "\n<main>\n" + "\n".join([hero, intro, ch1, band, ch2, bench, sundial, ch3, mp, best, method, contact])
             + "\n</main>\n" + footer + "\n</body>\n</html>\n")
 
     out = ROOT / "dist"
