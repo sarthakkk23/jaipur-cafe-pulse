@@ -15,11 +15,17 @@ site:
     linkedin: "https://www.linkedin.com/in/sarthak-oberoi-analyst/"
     email: "sarthakoberoi12@gmail.com"
     email_subject: "Jaipur Café Index"
-    # The short introduction in "Get in touch". Experience only: no employer or other personal details.
-    # Add a line on your experience (years, the kind of analysis you do) and it appears on every page that carries it.
-    bio:
-      - "I'm Sarthak Oberoi, a data analyst based in Jaipur."
-      - "I built Jaipur Café Index on my own. I collect the listings, match them into one record, run the statistics and write every finding in plain words, so that café owners, and anyone about to open one, can see their market clearly."
+    # Sarthak's own words. {cafes} is replaced at build time with the current count of operating cafés.
+    # bio_short opens "Get in touch" on the home page; bio_long is the full "Who's behind it" on the About page.
+    bio_short:
+      - "I'm Sarthak Oberoi. I grew up in Jaipur, and I study how businesses win and lose in markets like this one."
+      - "I run this on my own, update it twice a month, and keep the research here free."
+    bio_long:
+      - "I'm Sarthak Oberoi. I grew up in Jaipur, and I study how businesses win and lose in markets like this one."
+      - "In any market, someone is ahead of you because they know something you don't. That's the edge. It rarely sits in the big, obvious numbers everyone already watches. It usually hides in the part you'd never think to check: the hour you open, how your listing reads on one app, what a customer mentions in passing. Get a small thing like that right and it compounds. Get it wrong and it quietly costs you, every day, without you ever noticing."
+      - "My work is finding that edge. I collect the right data, which is harder than collecting a lot of it. I run the analysis, from simple medians up to regressions that compare like with like, until a number stops being a coincidence. Then I keep going until every finding answers one question: so what should the person running the business do next?"
+      - "Cafés came first because they're one of the most interesting markets in the city: {cafes} of them in two neighbourhoods, most with ten rivals a short walk away, where small details separate the ones that last. The method works for any business with a decision riding on a guess. If yours has one, I'd like to hear it."
+      - "I run this on my own, update it twice a month, and keep the research here free."
   base_url: "https://sarthakkk23.github.io/jaipur-cafe-pulse"
 
 publish:

@@ -165,10 +165,20 @@ def shell(path, title, desc, body, ld=None, here="", scripts="", main_cls="", cr
             + f'\n<main class="{main_cls}">\n' + body + "\n" + nav_end + "\n</main>\n" + footer(pre) + "\n</body>\n</html>\n")
 
 
+def bio_lines(key):
+    """Sarthak's own words from config.yaml, with the live café count filled in. 'Most with ten rivals' is only
+    kept while the clustering finding still says most cafés have ten or more within a five-minute walk."""
+    lines = [l.replace("{cafes}", CTX.get("core", "")) for l in (CTX["au"].get(key) or [])]
+    if CTX.get("cluster_share") is not None and CTX["cluster_share"] < 50:
+        lines = [l.replace("most with ten rivals a short walk away", "many with ten rivals a short walk away") for l in lines]
+    return lines
+
+
 def contact(pre="", title="Get in touch.", lead=None, bio=True):
     """The way to reach Sarthak, the same everywhere: a short introduction, then email and LinkedIn in plain view."""
     au = CTX["au"]
-    intro = "".join(f"<p>{E(line)}</p>" for line in (au.get("bio") or [])) if bio else ""
+    intro = ("".join(f"<p>{E(line)}</p>" for line in bio_lines("bio_short"))
+             + f'<p><a class="c-more" href="{pre}about/#who">More about me</a></p>') if bio else ""
     lead = lead or ("If something here is useful for your café, or you have a question about the data, you're welcome to get in touch. "
                     "Entirely your call.")
     email = au.get("email", "")
@@ -208,7 +218,7 @@ def build(mode):
     sub = cfg.get("subscribe") or {}
     live = sub.get("provider") in ("google_form", "formspree") and sub.get("action")
     banner = '<p class="draft-note">Draft build. Not for publishing.</p>' if mode == "draft" else ""
-    CTX.update(site=site, au=au, mailto=mailto, ent=ent, captured=captured, k=k, updates=bool(live or mode == "draft"), banner=banner)
+    CTX.update(site=site, au=au, mailto=mailto, ent=ent, core=core, cluster_share=(F.get("cluster") or {}).get("value"), captured=captured, k=k, updates=bool(live or mode == "draft"), banner=banner)
     P = "../"                                   # every page except home sits one folder down
 
     # every finding, for the hero to rotate through (the headline numbers only; the page itself carries the rest)
@@ -471,6 +481,10 @@ def build(mode):
   <p class="page-lede reveal">Jaipur Café Index is independent research by {E(au['name'])}, based in Jaipur. I read every café listing in
   C-Scheme and Malviya Nagar, match them into one record, and publish what the data says in plain words, updated twice a month.</p>
 </section>
+<section class="who" id="who" aria-labelledby="who-h">
+  <h2 id="who-h" class="reveal">Who's behind it.</h2>
+  <div class="who-text">{"".join(f'<p class="reveal">{E(l)}</p>' for l in bio_lines("bio_long"))}</div>
+</section>
 <section class="rules">
   <h2 class="reveal">The house rules.</h2>
   <ul class="best-list rule-list">
@@ -480,12 +494,12 @@ def build(mode):
     <li class="reveal"><div class="rule-row"><span class="best-name">Every number checked.</span><span class="ex-p">Each figure is re-counted from the source data by separate code before it is published.</span></div></li>
   </ul>
 </section>
-{contact(P)}"""
+{contact(P, bio=False)}"""
 
     # ---------- the pages ----------
     imap = ('<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js"'
             '}}</script>')
-    person = {"@type": "Person", "@id": f"{SEO['base']}/#author", "name": au["name"], "jobTitle": "Data analyst", "url": au.get("linkedin", ""),
+    person = {"@type": "Person", "@id": f"{SEO['base']}/#author", "name": au["name"], "description": (bio_lines("bio_short") or [""])[0], "url": au.get("linkedin", ""),
               "email": f"mailto:{au.get('email', '')}",
               "sameAs": [au.get("linkedin", "")], "knowsAbout": ["Café market research", "Data analysis", "Jaipur"]}
     first = (ins.get("insights", {}).get("history") or [{}])[0].get("captured_on") or meta["captured_on"]
@@ -552,7 +566,7 @@ def build(mode):
                                 "Fresh findings on Jaipur's cafés, twice a month, free on WhatsApp. Short, and only when there is something new.",
                                 updates, here="Free updates", main_cls="main-updates"))
     write("about/", shell("about/", f"About · {site['title']}",
-                          f"Independent café research in Jaipur by {au['name']}, data analyst: the house rules, and how to get in touch.",
+                          f"Who is behind Jaipur Café Index: {au['name']}, who grew up in Jaipur and studies how businesses win and lose in its markets. How to get in touch.",
                           about, here="About"))
     if (ROOT / "data/public/location_latest.json").exists():
         shutil.copy(ROOT / "data/public/location_latest.json", out / "data/location.json")
