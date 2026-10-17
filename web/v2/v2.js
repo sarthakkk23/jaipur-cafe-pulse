@@ -168,6 +168,13 @@
     }
   }
 
+  // ---------- get in touch: copy the email address in one tap ----------
+  document.querySelectorAll(".c-copy-btn").forEach((b) => b.addEventListener("click", async () => {
+    const say = b.closest(".c-card")?.querySelector(".c-copied");
+    try { await navigator.clipboard.writeText(b.dataset.copy); if (say) say.textContent = "Copied. Paste it into any email."; }
+    catch { if (say) say.textContent = b.dataset.copy; }
+  }));
+
   // ---------- free updates: sign-up ----------
   const up = document.querySelector(".up-form");
   if (up) {

@@ -15,6 +15,11 @@ site:
     linkedin: "https://www.linkedin.com/in/sarthak-oberoi-analyst/"
     email: "sarthakoberoi12@gmail.com"
     email_subject: "Jaipur Café Index"
+    # The short introduction in "Get in touch". Experience only: no employer or other personal details.
+    # Add a line on your experience (years, the kind of analysis you do) and it appears on every page that carries it.
+    bio:
+      - "I'm Sarthak Oberoi, a data analyst based in Jaipur."
+      - "I built Jaipur Café Index on my own. I collect the listings, match them into one record, run the statistics and write every finding in plain words, so that café owners, and anyone about to open one, can see their market clearly."
   base_url: "https://sarthakkk23.github.io/jaipur-cafe-pulse"
 
 publish:
