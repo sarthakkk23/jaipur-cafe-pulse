@@ -11,7 +11,7 @@
 
   // ---------- entrances: heading, then text, then picture; once; never a gate ----------
   const reveals = [...document.querySelectorAll(".reveal")];
-  const showAll = () => { reveals.forEach((r) => r.classList.add("is-in")); document.querySelector(".board")?.classList.add("is-in"); };
+  const showAll = () => { reveals.forEach((r) => r.classList.add("is-in")); document.querySelector(".hero")?.classList.add("is-in"); };
   if (motion) {
     let alive = false;
     setTimeout(() => { if (!alive) { root.classList.remove("motion", "js"); showAll(); } }, 2000);
@@ -26,7 +26,7 @@
       });
     }, { rootMargin: "0px 0px -8% 0px" });
     reveals.forEach((r) => io.observe(r));
-    requestAnimationFrame(() => requestAnimationFrame(() => document.querySelector(".board")?.classList.add("is-in")));
+    requestAnimationFrame(() => requestAnimationFrame(() => document.querySelector(".hero")?.classList.add("is-in")));
   } else showAll();
 
   // ---------- the sundial ----------
@@ -106,7 +106,7 @@
 
   // ---------- scroll-linked: sundial needle, photo drift ----------
   const sundial = document.querySelector(".sundial");
-  const photo = document.querySelector(".mosaic .m-photo img");
+  const photo = document.querySelector(".band img");
   const bar = parseFloat(getComputedStyle(root).getPropertyValue("--bar-h")) || 64;
   let ticking = false;
   const frame = () => {
@@ -126,12 +126,6 @@
   addEventListener("scroll", request, { passive: true });
   addEventListener("resize", request);
   request();
-
-  // ---------- what moved: tabs ----------
-  const tabs = [...document.querySelectorAll(".tab")];
-  tabs.forEach((t) => t.addEventListener("click", () => {
-    tabs.forEach((x) => { const on = x === t; x.setAttribute("aria-selected", String(on)); document.getElementById(x.getAttribute("aria-controls")).hidden = !on; });
-  }));
 
   // ---------- bar: mark the section in view ----------
   const links = [...document.querySelectorAll(".bar-links a")];

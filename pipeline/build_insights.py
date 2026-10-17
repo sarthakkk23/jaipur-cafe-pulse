@@ -419,6 +419,7 @@ def build(cfg, label=None):
 
     # ---------- time machine, terrain, top-café profiles ----------
     import insights_extra as X
+    import stats_v2 as S
     idx = history()
     labels = [l for l in idx["labels"] if l <= meta["snapshot"]]
     frames = {l: (df if l == meta["snapshot"] else frame(l)) for l in labels}
@@ -469,6 +470,10 @@ def build(cfg, label=None):
     master_rows = json.load(open(PRIV / "master" / f"master_{meta['snapshot']}.json"))
     amen_share = {a["key"]: a["share"] for a in out["insights"]["amenities"]["items"]}
     out["profiles"] = X.profiles(tc, master_rows, df, hours["open_cdf"], amen_share, kud, fmt_hour, dict(AMENITIES))
+
+    # statistical findings and map bins on the full latest run (aggregates only)
+    out["insights"]["findings"] = S.findings(core, k)
+    out["insights"]["hexes"] = S.hexes(core, k, X.BBOX, parse_hours=parse_day_hours)
 
     out["meta"] = {
         **meta,
