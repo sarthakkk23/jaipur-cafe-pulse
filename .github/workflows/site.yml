@@ -43,7 +43,7 @@ jobs:
         run: python pipeline/check_publish.py --mode publish
 
       - name: Build
-        run: python pipeline/build_site.py --mode publish
+        run: python pipeline/build_v2.py --mode publish
 
       - uses: actions/upload-pages-artifact@v3
         with:

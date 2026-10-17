@@ -14,8 +14,8 @@ TYPE_LABEL = {"Coffee-led café": "Coffee-led", "Tea/chai café": "Tea & chai",
               "Bakery / patisserie café": "Bakery", "All-day café / café-restaurant": "All-day café"}
 
 # terrain frame: both areas plus a margin (WGS84)
-BBOX = {"lat": (26.832, 26.922), "lon": (75.786, 75.844)}
-GRID = (96, 62)            # rows (north-south), cols (east-west): ~105 m cells
+BBOX = {"lat": (26.832, 26.932), "lon": (75.786, 75.840)}   # same frame as the street plate (reaches Jantar Mantar)
+GRID = (106, 54)           # rows (north-south), cols (east-west): ~105 m cells
 BANDWIDTH_M = 210
 
 

@@ -303,6 +303,9 @@ def build(cfg, label=None):
     for t in TYPE_LABEL.values():
         g = h[h.type_base == t]
         hours["open_cdf"][t] = [pct((g.open_m <= m).mean()) for m in open_slots] if len(g) >= DIST_MIN else None
+    # both areas together, for the sundial
+    if len(h) >= k:
+        hours["curve"]["Both areas"] = {"n": int(len(h)), "points": [[m, pct(((h.open_m <= m) & (h.close_m > m)).mean())] for m in slots]}
     out["insights"]["hours"] = hours
 
     # --- prices (Zomato cost for two) ---
@@ -475,6 +478,13 @@ def build(cfg, label=None):
         "base_population": "Operating core cafés (coffee-led, tea & chai, bakery, all-day café)",
         "suppressed": pub.suppressed,
     }
+    # how many platform listings fed this run (counts only), for the method diagram
+    man = PRIV / "raw" / meta["snapshot"] / "manifest.json"
+    if man.exists():
+        src = json.load(open(man))["sources"]
+        listings = sum(v.get("unique", 0) for k, v in src.items() if k not in meta["failed_sources"] and isinstance(v.get("unique"), int))
+        out["insights"]["method"] = {"listings": listings, "venues": int(len(df))}
+        T["method.listings"] = f"{listings:,}"
     T["meta.captured_on"] = datetime.strptime(meta["captured_on"], "%Y-%m-%d").strftime("%-d %B %Y")
     T["meta.min_group_size"] = str(k)
     out["tokens"] = T
