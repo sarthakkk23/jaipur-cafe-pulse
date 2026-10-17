@@ -169,6 +169,49 @@ sections:
       planner: >-
         The category is growing state-wide, not only in the two areas we track.
 
+timemachine:
+  eyebrow: "Time machine"
+  headline: "What *moved* since last time."
+  headline_first: "The record *starts* here."
+  lede: >-
+    Between {{changes.from}} and this snapshot we re-measured every café, {{changes.days}} days apart.
+    Here is what moved, as aggregates. No café is singled out.
+  lede_first: >-
+    This is the first snapshot. Every run from here adds a stop on the line below, and this section
+    shows what moved between them.
+  cards:
+    - k: "Newly listed"
+      v: "{{changes.newly_listed}}"
+      t: "cafés appeared in our sweep for the first time. Some are new openings; some were newly listed."
+    - k: "Momentum"
+      v: "{{changes.median_gain}}"
+      t: "new Google reviews for the typical café in {{changes.days}} days. {{changes.share_gaining}} of cafés gained at least one."
+    - k: "Fastest growing"
+      v: "{{changes.fastest_type_growth}}"
+      t: "median growth in Google reviews for {{changes.fastest_type}} cafés, the quickest of any type."
+    - k: "Not found"
+      v: "{{changes.not_found}}"
+      t: "cafés we couldn't find this time. They stay on the record; after four misses in a row we flag them as possibly closed."
+  cards_first: []
+  note: >-
+    Movement is measured on the same searches each run. A café counts as newly listed when it first appears in
+    our sweep, which is not always the day it opened.
+
+terrain:
+  eyebrow: "The map"
+  headline: "Where Jaipur's cafés *cluster*."
+  lede: >-
+    Every rise is a cluster of cafés: C-Scheme to the north, Malviya Nagar to the south. Switch to coffee-led
+    cafés to see where specialty coffee gathers, or step back to an earlier snapshot.
+
+top:
+  eyebrow: "Top cafés"
+  headline: "Top cafés in Jaipur *right now*."
+  lede: >-
+    Our picks, and what each one did right: built from public facts and how they stand out in their
+    neighbourhood. Never their ratings, reviews or prices.
+  note: "Picks by Sarthak Oberoi. More to come."
+
 benchmark:
   eyebrow: "Benchmark"
   headline: "How does *your* café compare?"

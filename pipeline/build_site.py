@@ -17,6 +17,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).parent))
 import check_publish  # noqa: E402
+import site_extra as SX  # noqa: E402
 
 E = html.escape
 AREA_CLASS = {"C-Scheme": "s1", "Malviya Nagar": "s2"}
@@ -51,8 +52,14 @@ def plain(text):
     return text.replace("*", "")
 
 
+def spread_accents(text):
+    """'*right now*.' -> '*right* *now*.' so each word can be accented on its own."""
+    return re.sub(r"\*([^*]+)\*", lambda m: " ".join(f"*{w}*" for w in m.group(1).split()), text)
+
+
 def words(text):
     """Headline split into masked words for the staggered reveal (plain text without JS)."""
+    text = spread_accents(text)
     return " ".join(f'<span class="w"><span style="--d:{i}">{accent(w)}</span></span>' for i, w in enumerate(text.split()))
 
 
@@ -335,7 +342,8 @@ def build(mode):
         "demand_lines": (lambda: chart_demand(ins), "Google Trends, Rajasthan", "index 0–100 within each query set"),
     }
 
-    nav = ([("overview", "Overview")] + [(s["id"], s["nav"]) for s in nar["sections"]]
+    nav = ([("overview", "Overview"), ("timemachine", "What moved"), ("map", "Map")]
+           + ([("top", "Top cafés")] if ins.get("profiles") else []) + [(s["id"], s["nav"]) for s in nar["sections"]]
            + [("benchmark", "Benchmark"), ("makers", "Makers"), ("method", "Method"), ("contact", "Contact")])
     nav_html = "".join(f'<a class="chip" href="#{i}">{E(l)}</a>' for i, l in nav)
 
@@ -352,7 +360,10 @@ def build(mode):
 
     ticker = "".join(f'<span class="tk"><b>{fill(h["value"], T)}</b> {E(h.get("short", ""))}</span><span class="tk-dot">✦</span>'
                      for h in nar["highlights"])
-    secs = "".join(section_html(s, T, charts[s["chart"]][0](), meta, charts[s["chart"]][1], charts[s["chart"]][2], "first" if i == 0 else "", i + 1)
+    n_pre = 2 + (1 if ins.get("profiles") else 0)      # time machine, map, top cafés come first
+    extra_html = (SX.timemachine(ins, nar, fill, words, sec_head, 1, T) + SX.terrain(ins, nar, fill, words, sec_head, 2, T)
+                  + SX.top_cards(ins, nar, fill, words, sec_head, 3, T))
+    secs = "".join(section_html(s, T, charts[s["chart"]][0](), meta, charts[s["chart"]][1], charts[s["chart"]][2], "", n_pre + i + 1)
                    for i, s in enumerate(nar["sections"]))
 
     shown = [x for x in kud if x.get("approved") or mode == "draft"]
@@ -408,7 +419,7 @@ def build(mode):
                        for a in ins["insights"]["amenities"]["items"])
     tool_html = f"""<section id="benchmark" class="tool" aria-labelledby="benchmark-h">
   <div class="wrap">
-    {sec_head(bm['eyebrow'], len(nar['sections']) + 1, 'benchmark')}
+    {sec_head(bm['eyebrow'], n_pre + len(nar['sections']) + 1, 'benchmark')}
     <h2 id="benchmark-h" class="headline split">{words(bm['headline'])}</h2>
     <p class="lede-sm reveal">{fill(bm['lede'], T)}</p>
     <div class="tool-card reveal">
@@ -452,6 +463,7 @@ def build(mode):
 <script type="importmap">{{"imports": {{"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}}}</script>
 <script type="module" src="assets/scene3d.js"></script>
+<script type="module" src="assets/terrain.js"></script>
 <script src="assets/tool.js" defer></script>
 <link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
 </head>
@@ -475,7 +487,7 @@ def build(mode):
   <canvas class="scene3d" data-scene3d="hero" aria-hidden="true"></canvas>
   <div class="wrap">
     <p class="eyebrow reveal">{E(hero['eyebrow'])}</p>
-    <h1 id="hero-h" class="hero-title rise"><span class="glow-text">{" ".join(accent(w) for w in hero['headline'].split())}</span></h1>
+    <h1 id="hero-h" class="hero-title rise"><span class="glow-text">{" ".join(accent(w) for w in spread_accents(hero['headline']).split())}</span></h1>
     <p class="lede reveal">{fill(hero['lede'], T)}</p>
     <div class="hero-ctas reveal">
       <a class="cta" href="#benchmark">Benchmark your café</a>
@@ -503,13 +515,14 @@ def build(mode):
 <div class="curtain" data-scene="through" aria-hidden="true">
   {"".join(f'<span style="--i:{i}"></span>' for i in range(8))}
 </div>
+{extra_html}
 {secs}
 
 {tool_html}
 
 <section id="makers" class="makers" aria-labelledby="makers-h">
   <div class="wrap">
-    {sec_head(nar['makers']['eyebrow'], len(nar['sections']) + 2, 'makers')}
+    {sec_head(nar['makers']['eyebrow'], n_pre + len(nar['sections']) + 2, 'makers')}
     <h2 id="makers-h" class="headline split">{words(nar['makers']['headline'])}</h2>
     <p class="lede-sm reveal">{fill(nar['makers']['lede'], T)}</p>
     <div class="maker-grid">{makers}</div>
@@ -518,7 +531,7 @@ def build(mode):
 
 <section id="method" class="method alt" aria-labelledby="method-h">
   <div class="wrap">
-    {sec_head(nar['method']['eyebrow'], len(nar['sections']) + 3, 'method')}
+    {sec_head(nar['method']['eyebrow'], n_pre + len(nar['sections']) + 3, 'method')}
     <h2 id="method-h" class="headline split">{words(nar['method']['headline'])}</h2>
     <div class="point-grid">{method}</div>
     <p class="download reveal"><a href="data/insights.json" download>Download this snapshot's aggregates (JSON)</a></p>
@@ -528,7 +541,7 @@ def build(mode):
 <section id="contact" class="about" aria-labelledby="about-h">
   <div class="wrap about-grid">
     <div class="about-copy">
-      {sec_head("Made in Jaipur", len(nar['sections']) + 4)}
+      {sec_head("Made in Jaipur", n_pre + len(nar['sections']) + 4)}
       <h2 id="about-h" class="headline split">{words("Let's talk over coffee.")}</h2>
       <p class="lede-sm reveal">I'm {E(au['name'])}. I'm building a dated, honest record of how Jaipur's cafés change.
       If you run a café, or you're about to open one, I'd love to hear what you'd want measured.</p>
@@ -563,6 +576,15 @@ def build(mode):
     (out / "index.html").write_text(page)
     (out / ".nojekyll").write_text("")
     shutil.copy(ROOT / "data/public/insights_latest.json", out / "data/insights.json")
+    head_extra = ('<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",'
+                  ' "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>'
+                  '<script type="module" src="../../assets/scene3d.js"></script>')
+    pmeta = {"core": T.get("scene.core_cafes", ""), "captured": nice_date(meta["captured_on"])}
+    for pr in ins.get("profiles") or []:
+        d = out / "cafes" / pr["slug"]
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "index.html").write_text(SX.profile_page(pr, ins, site, pmeta, head_extra,
+                                                      nav_cta.replace('href="#contact"', 'href="../../#contact"'), mailto, k))
     return out / "index.html"
 
 

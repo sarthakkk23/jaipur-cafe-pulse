@@ -8,6 +8,7 @@ suppressed cell is marked so the narrative cannot quote it.
 Usage: python pipeline/build_insights.py [--config config.yaml]
 """
 import argparse, json, re, statistics, sys
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -40,17 +41,70 @@ AMENITIES = [  # Zomato "More info" highlights, as Y/N columns in Cafe_Master
 
 
 # ---------- loading ----------
-def load_snapshot(cfg):
-    """Return (venues DataFrame, meta). Today: the September baseline workbook.
-    The biweekly pipeline will replace this with the latest master + snapshot rows."""
-    b = cfg["baseline"]
-    xlsx = ROOT / b["dataset_xlsx"]
-    master = pd.read_excel(xlsx, "Cafe_Master")
-    snap = pd.read_excel(xlsx, "Monthly_Snapshot")
-    metric_cols = [c for c in snap.columns if c not in master.columns or c == "fig_id"]
-    df = master.merge(snap[metric_cols], on="fig_id", how="left")
-    meta = {"snapshot": b["snapshot_label"], "captured_on": b["captured_on"]}
-    return df, meta
+PRIV = ROOT / "private"
+
+# Zomato highlight text -> amenity flag (spec §6.8; same mapping as the baseline workbook)
+AM_MAP = {
+    "veg_only": ["Vegetarian only"], "serves_alcohol": ["Full bar available", "Cocktails", "Serves alcohol", "Wine and beer", "Resto bar"],
+    "outdoor_seating": ["Outdoor seating"], "rooftop": ["Rooftop"], "wifi": ["Wifi"], "work_friendly": ["Work friendly"],
+    "breakfast": ["Breakfast"], "all_day_breakfast": ["All day breakfast"], "smoking_area": ["Smoking area"],
+    "board_games_or_books": ["Board games", "Books"], "live_music_or_entertainment": ["Live music", "Live entertainment"],
+    "pet_friendly": ["Pet friendly"], "kid_friendly": ["Kid friendly"], "valet_parking": ["Valet parking"],
+    "free_parking": ["Free parking"], "home_delivery": ["Home delivery"], "vegan_options": ["Vegan options"],
+    "gluten_free_options": ["Gluten free options"],
+}
+METRICS = ["google_rating", "google_reviews", "zomato_dining_rating", "zomato_dining_reviews", "zomato_delivery_rating",
+           "zomato_delivery_reviews", "swiggy_rating", "zomato_cost_for_two_inr", "zomato_cost_for_one_inr"]
+
+
+def history():
+    return json.load(open(PRIV / "master" / "index.json"))
+
+
+def snapshot_rows(label):
+    import csv
+    with open(PRIV / "snapshots" / "snapshots.csv", newline="") as f:
+        return {r["fig_id"]: r for r in csv.DictReader(f) if r["snapshot"] == label}
+
+
+def _yn(v):
+    return None if v is None else ("Y" if v else "N")
+
+
+def frame(label):
+    """One run as a venue-level DataFrame (private master + that run's snapshot rows)."""
+    master = json.load(open(PRIV / "master" / f"master_{label}.json"))
+    rows = snapshot_rows(label)
+    out = []
+    for r in master:
+        s = rows.get(r["fig_id"])
+        if r.get("merged_into") or s is None:
+            continue
+        hl = [h.strip().lower() for h in (r.get("z_highlights") or "").split(";")]
+        d = {"fig_id": r["fig_id"], "name": r.get("name"), "area": r.get("area"), "fig_scope": r.get("fig_scope"),
+             "fig_type": r.get("fig_type"), "status": s["status"], "seen": s["seen_this_run"] == "Y",
+             "first_seen": r.get("first_seen"), "national_chain": "Y" if r.get("national_chain") else "N",
+             "zomato_hours": r.get("z_hours"), "lat": pd.to_numeric(r.get("lat"), errors="coerce"),
+             "lon": pd.to_numeric(r.get("lon"), errors="coerce"), "z_cuisines": r.get("z_cuisines"),
+             "on_zomato": "Y" if r.get("src_zomato") else "N", "on_google": "Y" if r.get("g_cid") else "N",
+             "on_swiggy": "Y" if r.get("sw_id") else "N", "on_magicpin": "Y" if r.get("mp_url") else "N"}
+        for k, keys in AM_MAP.items():
+            d[k] = _yn(any(h in [x.lower() for x in keys] for h in hl)) if r.get("src_zomato") else None
+        if not r.get("src_zomato"):
+            d["rooftop"] = "Y" if "rooftop" in ((r.get("name") or "") + (r.get("g_address") or "")).lower() else None
+        for m in METRICS:
+            d[m] = pd.to_numeric(s.get(m) or None, errors="coerce")
+        out.append(d)
+    return pd.DataFrame(out)
+
+
+def load_snapshot(cfg, label=None):
+    """Return (venues DataFrame, meta) for a run (default: the latest)."""
+    idx = history()
+    label = label or idx["labels"][-1]
+    m = idx["meta"][label]
+    meta = {"snapshot": label, "captured_on": m["captured_on"], "failed_sources": m.get("failed_sources", [])}
+    return frame(label), meta
 
 
 def load_trends(cfg):
@@ -182,10 +236,10 @@ def fmt_hour(mins):
 
 
 # ---------- insights ----------
-def build(cfg):
+def build(cfg, label=None):
     pub = Publisher(cfg["publish"]["min_group_size"], cfg["publish"]["max_single_venue_share"])
     k = pub.k
-    df, meta = load_snapshot(cfg)
+    df, meta = load_snapshot(cfg, label)
     df["type_base"] = df["fig_type"].str.split(" – ").str[-1].map(TYPE_LABEL)
     core = df[(df.fig_scope == "Core café") & df.status.str.startswith("Operating")].copy()
     areas = cfg["site"]["areas"]
@@ -333,8 +387,9 @@ def build(cfg):
 
     # --- platform presence ---
     pp = {"source": "FIG cross-platform match", "shares": {}}
+    src_of = {"on_google": "google_maps_ui", "on_zomato": "zomato", "on_swiggy": "swiggy", "on_magicpin": "magicpin"}
     for col, lab in [("on_google", "Google Maps"), ("on_zomato", "Zomato"), ("on_swiggy", "Swiggy"), ("on_magicpin", "magicpin")]:
-        pp["shares"][lab] = pct((core[col] == "Y").mean())
+        pp["shares"][lab] = None if src_of[col] in meta["failed_sources"] else pct((core[col] == "Y").mean())
         T[f"platforms.{col}"] = fmt_pct(pp["shares"][lab])
     out["insights"]["platforms"] = pp
 
@@ -359,6 +414,59 @@ def build(cfg):
         dem["sets"].append({"query_set": qs, "series": series})
     out["insights"]["demand"] = dem
 
+    # ---------- time machine, terrain, top-café profiles ----------
+    import insights_extra as X
+    idx = history()
+    labels = [l for l in idx["labels"] if l <= meta["snapshot"]]
+    frames = {l: (df if l == meta["snapshot"] else frame(l)) for l in labels}
+    hist = []
+    grids = {}
+    for l in labels:
+        m = idx["meta"][l]
+        hist.append({"label": l, "captured_on": m["captured_on"], **X.summary(frames[l], m.get("failed_sources", []), k)})
+        grids[l] = X.terrain(frames[l])
+    peak = max(float(g.max()) for gs in grids.values() for g in gs.values()) or 1.0
+    out["insights"]["history"] = hist
+    out["insights"]["terrain"] = {"bbox": X.BBOX, "grid": list(X.GRID), "bandwidth_m": X.BANDWIDTH_M,
+                                  "areas": {"C-Scheme": [26.9119, 75.8040], "Malviya Nagar": [26.8540, 75.8130]},
+                                  "frames": {l: X.quantise(g, peak) for l, g in grids.items()}}
+    T["history.runs"] = str(len(labels))
+    if len(labels) >= 2:
+        from datetime import date as _d
+        pl, cl = labels[-2], labels[-1]
+        days = (_d.fromisoformat(idx["meta"][cl]["captured_on"]) - _d.fromisoformat(idx["meta"][pl]["captured_on"])).days
+        ch = X.changes(frames[pl], frames[cl], days, meta["failed_sources"], k, cfg["publish"]["max_single_venue_share"])
+        ch["from"], ch["to"] = idx["meta"][pl]["captured_on"], idx["meta"][cl]["captured_on"]
+        out["insights"]["changes"] = ch
+        T["changes.days"] = str(days)
+        T["changes.from"] = datetime.strptime(ch["from"], "%Y-%m-%d").strftime("%-d %B")
+        T["changes.newly_listed"] = str(ch["newly_listed_total"])
+        T["changes.not_found"] = str(ch["not_found"])
+        T["changes.closed"] = str(ch["closed"])
+        mom = ch.get("momentum") or {}
+        if mom.get("median_gain") is not None:
+            T["changes.median_gain"] = f"{int(round(mom['median_gain'])):,}"
+            T["changes.share_gaining"] = fmt_pct(mom["share_gaining"])
+            if mom.get("dominance_ok"):
+                T["changes.gain_per_week"] = f"{mom['gain_per_week']:,}"
+            for a, v in (mom.get("by_area") or {}).items():
+                if v:
+                    T[f"changes.median_gain.{AREA_SHORT[a]}"] = f"{int(round(v['median_gain'])):,}"
+                    T[f"changes.growth_pct.{AREA_SHORT[a]}"] = f"{v['median_growth_pct']:.0f}%"
+            best = max(((t, v) for t, v in (mom.get("by_type") or {}).items() if v), key=lambda tv: tv[1]["median_growth_pct"], default=None)
+            if best:
+                T["changes.fastest_type"] = best[0].lower()
+                T["changes.fastest_type_growth"] = f"{best[1]['median_growth_pct']:.0f}%"
+        if ch.get("price"):
+            T["changes.price_up"] = str(ch["price"]["up"]); T["changes.price_down"] = str(ch["price"]["down"])
+            T["changes.price_n"] = str(ch["price"]["n"])
+
+    tc = yaml.safe_load(open(ROOT / "content" / "top_cafes.yaml")).get("entries") or []
+    kud = yaml.safe_load(open(ROOT / "content" / "kudos.yaml")).get("entries") or []
+    master_rows = json.load(open(PRIV / "master" / f"master_{meta['snapshot']}.json"))
+    amen_share = {a["key"]: a["share"] for a in out["insights"]["amenities"]["items"]}
+    out["profiles"] = X.profiles(tc, master_rows, df, hours["open_cdf"], amen_share, kud, fmt_hour, dict(AMENITIES))
+
     out["meta"] = {
         **meta,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -376,13 +484,15 @@ def build(cfg):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default=str(ROOT / "config.yaml"))
+    ap.add_argument("--label", help="a past run to rebuild; default the latest")
     args = ap.parse_args()
     cfg = yaml.safe_load(open(args.config))
-    out = build(cfg)
+    out = build(cfg, args.label)
     pub_dir = ROOT / "data" / "public"
     pub_dir.mkdir(parents=True, exist_ok=True)
     label = out["meta"]["snapshot"]
-    for name in (f"insights_{label}.json", "insights_latest.json"):
+    names = [f"insights_{label}.json"] + ([] if args.label and args.label != history()["labels"][-1] else ["insights_latest.json"])
+    for name in names:
         (pub_dir / name).write_text(json.dumps(out, ensure_ascii=False, indent=1))
     print(f"wrote insights for {label}: {len(out['tokens'])} tokens, {len(out['meta']['suppressed'])} suppressed cells")
 

@@ -1,0 +1,51 @@
+# "Top cafés in Jaipur right now": Sarthak's picks (named by him on 17 Oct 2026).
+#
+# Rules (enforced by pipeline/check_publish.py):
+#   - Praise only. Each profile is built from facts about the café plus area-level context.
+#   - Never a platform rating, review count, price or rank for a named café.
+#   - Every story line carries a source (press, a public write-up, or "FIG record" for our own data).
+#   - notes: Sarthak's own visit notes (primary data). Leave blank until he has visited.
+
+entries:
+  - slug: town-coffee
+    name: "Town Coffee"
+    fig_ids: [FIG-MN-0316, FIG-CS-0197]   # FIG-MN-0317 'Town Coffee Ampio' left out until Sarthak confirms it's the same brand
+    tagline: "The coffee house Jaipur works from."
+    story:
+      - text: >-
+          Built for staying: fast Wi-Fi and a room full of laptops made the Malviya Nagar café, near World Trade
+          Park, a go-to for people who work remotely.
+        source: {publication: "Hayden Rue", title: "Town Coffee in Jaipur: Perfect Cafe for Digital Nomads",
+                 url: "https://haydenrue.com/india/rajasthan/town-coffee-in-jaipur/", date: "2023-06-23"}
+      - text: >-
+          A menu that goes beyond the cup, with mezze platters, sandwiches and baked pasta alongside coffee and
+          cold drinks: somewhere you can stay for lunch, not just a latte.
+        source: {publication: "Hayden Rue", title: "Town Coffee in Jaipur: Perfect Cafe for Digital Nomads",
+                 url: "https://haydenrue.com/india/rajasthan/town-coffee-in-jaipur/", date: "2023-06-23"}
+      - text: >-
+          The format has travelled: Town Coffee now appears in both areas we track, Malviya Nagar and C-Scheme.
+        source: {publication: "FIG record", title: "Jaipur Café Pulse venue census", url: "", date: "2026-10-17"}
+    kudos: []
+    notes: ""
+
+  - slug: curious-life
+    name: "Curious Life Coffee Roasters"
+    fig_ids: [FIG-CS-0065, FIG-CS-0066]
+    tagline: "Roasting in Jaipur since 2015."
+    story:
+      - text: >-
+          Roasting its own coffee in Jaipur since 2015, when the first café opened at Deer Park.
+        source: {publication: "Barista Magazine", title: "A Guide to the Jaipur Coffee Scene",
+                 url: "https://www.baristamagazine.com/a-guide-to-the-jaipur-coffee-scene/", date: "2026-08"}
+      - text: >-
+          A second café on Sarojini Marg followed in December 2018, and the roastery supplies other cafés too,
+          so its coffee reaches well beyond its own counters.
+        source: {publication: "Barista Magazine", title: "A Guide to the Jaipur Coffee Scene",
+                 url: "https://www.baristamagazine.com/a-guide-to-the-jaipur-coffee-scene/", date: "2026-08"}
+      - text: >-
+          Profiled nationally as early as 2017 for making specialty coffee in Jaipur with a scientist's care.
+        source: {publication: "Scroll.in", title: "An ex-Army man in Jaipur is making incredible specialty coffee",
+                 url: "https://scroll.in/magazine/831086/an-ex-army-man-in-jaipur-is-making-incredible-specialty-coffee-thats-part-science-part-art",
+                 date: "2017-03-28"}
+    kudos: [curious-life]
+    notes: ""
