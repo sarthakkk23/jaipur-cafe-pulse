@@ -482,7 +482,11 @@ def build(mode):
   C-Scheme and Malviya Nagar, match them into one record, and publish what the data says in plain words, updated twice a month.</p>
 </section>
 <section class="who" id="who" aria-labelledby="who-h">
-  <h2 id="who-h" class="reveal">Who's behind it.</h2>
+  <div class="who-side">
+    <h2 id="who-h" class="reveal">Who's behind it.</h2>
+    <picture class="who-photo reveal"><source type="image/webp" srcset="{P}img/sarthak-320.webp 320w, {P}img/sarthak-460.webp 460w" sizes="(max-width: 900px) 160px, 240px">
+    <img src="{P}img/sarthak-460.jpg" srcset="{P}img/sarthak-320.jpg 320w, {P}img/sarthak-460.jpg 460w" sizes="(max-width: 900px) 160px, 240px" width="460" height="460" alt="{E(au['name'])}" loading="lazy" decoding="async"></picture>
+  </div>
   <div class="who-text">{"".join(f'<p class="reveal">{E(l)}</p>' for l in bio_lines("bio_long"))}</div>
 </section>
 <section class="rules">
@@ -500,7 +504,7 @@ def build(mode):
     imap = ('<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js"'
             '}}</script>')
     person = {"@type": "Person", "@id": f"{SEO['base']}/#author", "name": au["name"], "description": (bio_lines("bio_short") or [""])[0], "url": au.get("linkedin", ""),
-              "email": f"mailto:{au.get('email', '')}",
+              "email": f"mailto:{au.get('email', '')}", "image": f"{SEO['base']}/img/sarthak-460.jpg",
               "sameAs": [au.get("linkedin", "")], "knowsAbout": ["Café market research", "Data analysis", "Jaipur"]}
     first = (ins.get("insights", {}).get("history") or [{}])[0].get("captured_on") or meta["captured_on"]
     dataset = {"@type": "Dataset", "name": f"{site['title']}: cafés in C-Scheme and Malviya Nagar, Jaipur",
