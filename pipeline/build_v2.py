@@ -45,21 +45,6 @@ def pic(name, sizes, cls="", eager=False, prefix=""):
             f'<img src="{prefix}img/{name}-1600.jpg" srcset="{srcset("jpg")}" sizes="{sizes}" width="{w}" height="{h}" alt="{E(alt)}" {load}></picture>')
 
 
-CAPTIONS = {"hawa-mahal-sky": "The Hawa Mahal, old city.", "jantar-dial": "A sundial at Jantar Mantar.", "patrika-gate-sky": "Patrika Gate, by Jawahar Circle.",
-            "jantar-field": "Jantar Mantar's instruments.", "hawa-horses": "Outside the Hawa Mahal.", "pink-haveli": "A haveli through neem leaves.",
-            "kulhad-chai": "Chai in clay kulhads."}
-
-
-def strip(pre, names):
-    return ('<section class="strip3" aria-label="Scenes from Jaipur">' + "".join(
-        f'<figure class="reveal" data-drift>{pic(n, "(max-width: 760px) 100vw, 33vw", prefix=pre)}<figcaption>{E(CAPTIONS[n])}</figcaption></figure>'
-        for n in names) + "</section>")
-
-
-def ph(pre, name):
-    return f'<figure class="ph-pic reveal" data-drift>{pic(name, "(max-width: 900px) 100vw, 40vw", eager=True, prefix=pre)}</figure>'
-
-
 def nice(iso):
     return date.fromisoformat(iso).strftime("%-d %B %Y")
 
@@ -366,8 +351,8 @@ def build(mode):
                       f'autocomplete="name" required maxlength="80"></label>') if fields.get("name") else ""
         updates = f"""<section class="updates" id="updates" aria-labelledby="updates-h">
   <div class="up-copy reveal">
-    <h1 id="updates-h">Fresh findings, twice a month. Free.</h1>
-    <p>Each update brings the newest findings on Jaipur's cafés straight to your WhatsApp: what customers reward, what is changing,
+    <h1 id="updates-h">Fresh findings, twice a month.</h1>
+    <p>Free. Each update brings the newest findings on Jaipur's cafés straight to your WhatsApp: what customers reward, what is changing,
     and where the openings are. Short, and only when there is something new. No stale beans.</p>
   </div>
   <form class="up-form reveal" data-ui data-provider="{E(sub.get('provider', 'none'))}" data-action="{E(sub.get('action', ''))}" novalidate>
@@ -400,7 +385,7 @@ def build(mode):
   <figure class="method-pic reveal">{pic("jantar-field", "(max-width: 760px) 100vw, 60vw", eager=True, prefix=P)}</figure>
   <div class="method-copy"><h1 id="method-h">The methods, in plain words.</h1>
     <p>How the beans get counted. Three platforms describe the same café three ways. I read them on the same searches at every update, match them into one record,
-    and publish only what holds for a group. These are the tools behind every figure above.</p></div>
+    and publish only what holds for a group. These are the tools behind every figure on this site.</p></div>
   <dl class="gloss">{gl}</dl>
   <svg class="many" viewBox="0 0 1200 270" role="img" aria-label="Scattered platform listings compressed into one ordered record"
        data-listings="{listings or 0}" data-venues="{(I.get('method') or {}).get('venues', 0)}"></svg>
@@ -434,20 +419,18 @@ def build(mode):
     if CTX["updates"]:
         cards.append(("updates/", "Free updates", "Fresh findings on WhatsApp, twice a month. No stale beans."))
     explore = f"""<section class="explore" aria-labelledby="explore-h">
-  <h2 id="explore-h" class="reveal">Find what you came for.</h2>
-  <div class="ex-grid">{"".join(f'<a class="ex-card reveal" href="{u}"><span class="ex-h">{E(t)}</span><span class="ex-p">{E(d)}</span><span class="ex-go">Open</span></a>' for u, t, d in cards)}</div>
+  <header class="ch-head reveal"><h2 id="explore-h">Find what you came for.</h2><p>Every part of the record, one click away. Start with the findings, or go straight to your street.</p></header>
+  <ul class="best-list ex-list">{"".join(f'<li class="reveal"><a href="{u}"><span class="best-name">{E(t)}</span><span class="ex-p">{E(d)}</span><span class="best-go">Open</span></a></li>' for u, t, d in cards)}</ul>
 </section>"""
     picks = [F[x] for x in ("attention", "platforms_rate", "delivery") if x in F]
     teasers = f"""<section class="teasers" aria-labelledby="teasers-h">
   <h2 id="teasers-h" class="reveal">Three findings to start with.</h2>
   <div class="tz-grid">{"".join(f'<a class="tz reveal" href="insights/#f-{E(f["id"])}"><span class="tz-num">{f["value"]}<small>{E(f["unit"])}</small></span><span class="tz-head">{E(f["headline"])}</span></a>' for f in picks)}</div>
 </section>"""
-    home_band = f"""<figure class="band reveal" data-drift>{pic("hawa-horses", "100vw")}<figcaption>Outside the Hawa Mahal, in the old city.</figcaption></figure>"""
 
     # ---------- insights: the findings, with a jump bar ----------
     chapters = [("insights-attention", "Where attention goes"), ("offer", "What cafés offer"), ("day", "When they open"), ("place", "Where they gather")]
-    ins_head = f"""<section class="page-head with-pic">
-  {ph(P, "hawa-mahal-sky")}
+    ins_head = f"""<section class="page-head">
   <h1 class="reveal">What the data says.</h1>
   <p class="page-lede reveal">{len(F)} findings on {E(core)} cafés in C-Scheme and Malviya Nagar. Each is one sentence and one number,
   with what it means for you, what it doesn't say, and how I know.</p>
@@ -456,19 +439,18 @@ def build(mode):
     ch1 = ch1.replace('id="insights"', 'id="insights-attention"').replace('aria-labelledby="insights-h"', 'aria-labelledby="insights-attention-h"').replace('id="insights-h"', 'id="insights-attention-h"')
 
     # ---------- about ----------
-    about = f"""<section class="page-head about-head with-pic">
-  {ph(P, "pink-haveli")}
+    about = f"""<section class="page-head about-head">
   <h1 class="reveal">Caffeinated, not biased.</h1>
   <p class="page-lede reveal">Jaipur Café Index is independent research by {E(au['name'])}, based in Jaipur. I read every café listing in
   C-Scheme and Malviya Nagar, match them into one record, and publish what the data says in plain words, updated twice a month.</p>
 </section>
 <section class="rules">
   <h2 class="reveal">The house rules.</h2>
-  <ul class="rule-list">
-    <li class="reveal"><b>Aggregates only.</b> Figures describe groups of cafés, never one café. Any group under {k} is withheld.</li>
-    <li class="reveal"><b>Praise, never criticism.</b> A café is named only to credit it. No café's ratings, reviews or prices appear here.</li>
-    <li class="reveal"><b>Nobody pays.</b> No platform or café pays for this record or to appear in it.</li>
-    <li class="reveal"><b>Every number checked.</b> Each figure is re-counted from the source data by separate code before it is published.</li>
+  <ul class="best-list rule-list">
+    <li class="reveal"><div class="rule-row"><span class="best-name">Aggregates only.</span><span class="ex-p">Figures describe groups of cafés, never one café. Any group under {k} is withheld.</span></div></li>
+    <li class="reveal"><div class="rule-row"><span class="best-name">Praise, never criticism.</span><span class="ex-p">A café is named only to credit it. No café's ratings, reviews or prices appear here.</span></div></li>
+    <li class="reveal"><div class="rule-row"><span class="best-name">Nobody pays.</span><span class="ex-p">No platform or café pays for this record or to appear in it.</span></div></li>
+    <li class="reveal"><div class="rule-row"><span class="best-name">Every number checked.</span><span class="ex-p">Each figure is re-counted from the source data by separate code before it is published.</span></div></li>
   </ul>
 </section>
 {contact(P)}"""
@@ -515,7 +497,7 @@ def build(mode):
         (d / "index.html").write_text(html)
 
     write("", shell("", site.get("seo_title", site["title"]), site["tagline"],
-                    "\n".join([hero, intro, explore, teasers, home_band, strip("", ["kulhad-chai", "pink-haveli", "patrika-gate-sky"]), contact("")]), ld=ld_home,
+                    "\n".join([hero, intro, explore, teasers, contact("")]), ld=ld_home,
                     scripts="\n" + imap + '\n<script type="module" src="relief.js"></script>\n' + legacy))
     ins_ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "WebPage", "@id": f"{SEO['base']}/insights/#page", "name": "What the data says about Jaipur's cafés", "url": f"{SEO['base']}/insights/",
@@ -528,29 +510,22 @@ def build(mode):
                              "\n".join([ins_head, ch1, band, ch2, pair, sundial, ch3]), ld=ins_ld, here="Insights"))
     write("your-cafe/", shell("your-cafe/", f"Compare your café with Jaipur's · {site['title']}",
                               "Set your area, type and numbers and see where your café stands among cafés in C-Scheme and Malviya Nagar, Jaipur. Computed in your browser.",
-                              f'<section class="page-head with-pic">{ph(P, "kulhad-chai")}<h1 class="reveal">Where does your café stand?</h1>'
-                              '<p class="page-lede reveal">Set your area and type, add what you know, and see your café against the others around it, '
-                              'in plain words. Everything is worked out in your browser; nothing you type leaves this page.</p></section>'
-                              + bench.replace('<h1 id="bench-h">Where does your café stand?</h1>', '<h2 id="bench-h">Your numbers.</h2>')
-                              + strip(P, ["hawa-horses", "pink-haveli", "jantar-field"]),
+                              bench,
                               here="Your café", scripts='\n<script src="../tool.js" defer></script>', main_cls="main-bench"))
     if best:
         write("best/", shell("best/", f"The best cafés in Jaipur right now · {site['title']}",
                              "The cafés in C-Scheme and Malviya Nagar doing it best right now, and what each one did right, from public facts.",
-                             best + strip(P, ["hawa-horses", "kulhad-chai", "pink-haveli"]), here="The best"))
+                             best, here="The best"))
     write("method/", shell("method/", f"How the numbers are made · {site['title']}",
                            "The statistics behind Jaipur Café Index in plain words: medians, intervals, shuffle tests, like-for-like models and clustering. Data to download.",
-                           method + strip(P, ["jantar-dial", "hawa-horses", "pink-haveli"]), here="Method"))
+                           method, here="Method"))
     if updates:
         write("updates/", shell("updates/", f"Free café insights on WhatsApp · {site['title']}",
                                 "Fresh findings on Jaipur's cafés, twice a month, free on WhatsApp. Short, and only when there is something new.",
-                                f'<section class="page-head with-pic">{ph(P, "kulhad-chai")}<h1 class="reveal">Fresh findings, twice a month.</h1>'
-                                '<p class="page-lede reveal">Free, on WhatsApp: the newest findings on Jaipur\'s cafés. No stale beans.</p></section>'
-                                + updates.replace('<h1 id="updates-h">Fresh findings, twice a month. Free.</h1>', '<h2 id="updates-h">Sign up in ten seconds.</h2>')
-                                + strip(P, ["hawa-horses", "pink-haveli", "patrika-gate-sky"]), here="Free updates"))
+                                updates, here="Free updates", main_cls="main-updates"))
     write("about/", shell("about/", f"About · {site['title']}",
                           f"Independent café research in Jaipur by {au['name']}: the house rules, and how to meet over a cup of coffee.",
-                          about + strip(P, ["hawa-mahal-sky", "jantar-dial", "kulhad-chai"]), here="About"))
+                          about, here="About"))
     if (ROOT / "data/public/location_latest.json").exists():
         shutil.copy(ROOT / "data/public/location_latest.json", out / "data/location.json")
         write("location/", location_page(site, au, captured, k, mailto))
@@ -580,7 +555,6 @@ def location_page(site, au, captured, k, mailto):
     <div class="loc-head-copy"><h1 class="reveal">Check a location.</h1>
     <p class="loc-lede reveal">Know your grounds before you grind. Pick a spot in C-Scheme or Malviya Nagar, Jaipur, and I'll tell you,
     in plain words, what is within a five-minute walk: how many cafés, what kind, who is around to buy coffee, and where the gaps are.</p></div>
-    <figure class="loc-head-pic reveal" data-drift>{pic("patrika-gate-sky", "(max-width: 900px) 100vw, 40vw", eager=True, prefix=pre)}</figure>
   </section>
   <section class="loc-tool">
     <div class="loc-map">
@@ -593,7 +567,6 @@ def location_page(site, au, captured, k, mailto):
     </div>
     <article class="loc-report" aria-live="polite"><p class="lr-k">Pick a spot to begin.</p></article>
   </section>
-  <figure class="band reveal" data-drift>{pic("hawa-horses", "100vw", prefix=pre)}<figcaption>Outside the Hawa Mahal, in the old city.</figcaption></figure>
   <section class="loc-notes">
     <div class="reveal"><h2>How I read a spot.</h2>
     <p>Every spot on a 150-metre grid gets the cafés within 500 metres, about a five-minute walk. Shares and typical values appear only
@@ -603,10 +576,6 @@ def location_page(site, au, captured, k, mailto):
     <div class="reveal"><h2>What it doesn't say.</h2>
     <p>It doesn't say a café here will do well or badly. Rent, footfall and what you serve matter more than any count. A count of
     places is not a count of people: one large office and one small clinic each count once. Residents are not counted yet.</p></div>
-  </section>
-  <section class="pair" aria-label="Mornings in Jaipur">
-    <figure class="pair-a reveal" data-drift>{pic("kulhad-chai", "(max-width: 760px) 100vw, 40vw", prefix=pre)}<figcaption>Chai in clay kulhads: the city's first order of the day.</figcaption></figure>
-    <figure class="pair-b reveal" data-drift>{pic("pink-haveli", "(max-width: 760px) 100vw, 55vw", prefix=pre)}<figcaption>A haveli in the Pink City, through neem leaves.</figcaption></figure>
   </section>
   <section class="contact"><h2 class="reveal">A second opinion?</h2><div class="c-copy reveal"><p>Tell me where you're looking. I'd like to
     walk the spot with you, over a cup of coffee.</p>
