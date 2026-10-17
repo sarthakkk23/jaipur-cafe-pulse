@@ -18,13 +18,15 @@ Never copy anything from `private/` into the public repo except through
 - Compute today's ISO week number. If it is **odd**, stop and report "off-week, skipped".
 - `git pull` in both repos. Read `config.yaml`; collect only from sources set to `true`.
 
-## 1. Collect (pending build: `private/collect/`, per FIG_Cafe_Data_Pipeline_Spec.md §2–8)
-- Run the collector for this ISO week. It saves raw pulls to `private/raw/<YYYY-Www>/`
-  before any processing, then consolidates, carries FIG IDs forward and runs QA.
-- If the collector doesn't exist yet, stop and report that collection isn't built.
-- If QA fails for a source, its fields are null this run. Never reuse last run's numbers.
-  If QA fails overall, stop and report.
-- Commit and push `private/`: `git -C private add -A && git -C private commit -m "raw <YYYY-Www>" && git -C private push`.
+## 1. Collect and process (private/collect, private/process; spec §2–8)
+- `.venv/bin/python private/collect/run_collect.py --label <YYYY-Www>` opens headed Chrome (headless is
+  refused) and saves raw pulls to `private/raw/<YYYY-Www>/` before any processing. Takes 45–75 minutes.
+  If Zomato rate-limits detail pages (429), the collector pauses and retries once, slowly. Never more.
+- `.venv/bin/python private/process/run_refresh.py --label <YYYY-Www>`: QA, consolidation (regression-
+  tested port), FIG ID carry-over, snapshot rows, master, run report in `private/reports/runs/`.
+- A source that fails QA is null for this run (never reuse last run's numbers); a site that blocks or
+  shows a CAPTCHA is recorded as failed, never worked around. A fatal QA failure stops everything.
+- Commit and push `private/`: `git -C private add -A && git -C private commit -m "run <YYYY-Www>" && git -C private push`.
 
 ## 2. Rebuild the aggregates
 - Run `.venv/bin/python pipeline/build_insights.py`.

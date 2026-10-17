@@ -9,7 +9,7 @@
 #   - Never criticise a café, an area or a type of café. Describe; don't rank people.
 #   - Say what the data can't tell you when it matters (correlation, listed vs real).
 
-written_for_snapshot: "2026-09"
+written_for_snapshot: "2026-W42"
 
 hero:
   eyebrow: "Jaipur Café Pulse"
@@ -77,8 +77,11 @@ sections:
         {{price.coffee.mn}} in Malviya Nagar. All-day cafés follow the same pattern,
         {{price.allday.cs}} against {{price.allday.mn}}.
       - >-
-        Malviya Nagar's band sits lower for every café type we have enough listings to
-        measure.
+        Malviya Nagar's band sits lower for coffee-led and all-day cafés. Bakeries are the
+        exception this time, on a thin sample.
+      - >-
+        Zomato's cost-for-two figures shifted unusually between snapshots, so treat these bands as
+        provisional until the next two runs confirm them.
     chart: price_ranges
     takeaways:
       owner: >-
@@ -139,8 +142,8 @@ sections:
         {{amenities.share.wifi}} list Wi-Fi, and {{amenities.share.work_friendly}} call
         themselves work-friendly.
       - >-
-        Rooftop, pet-friendly and live-music listings are each held by
-        {{amenities.share.pet_friendly}} cafés.
+        Pet-friendly and live-music listings are each held by {{amenities.share.pet_friendly}} cafés,
+        and rooftops by {{amenities.share.rooftop}}.
     chart: amenities_bars
     takeaways:
       owner: >-
@@ -168,6 +171,53 @@ sections:
         special before it earns a permanent place on the menu.
       planner: >-
         The category is growing state-wide, not only in the two areas we track.
+
+timemachine:
+  eyebrow: "Time machine"
+  headline: "What *moved* since last time."
+  headline_first: "The record *starts* here."
+  lede: >-
+    Between {{changes.from}} and this snapshot, {{changes.days}} days apart, we re-measured every café.
+    Here is what moved, as aggregates. No café is singled out.
+  lede_first: >-
+    This is the first snapshot. Every run from here adds a stop on the line below, and this section
+    shows what moved between them.
+  cards:
+    - k: "Newly listed"
+      v: "{{changes.newly_listed}}"
+      t: "cafés joined the record, confirmed on Zomato or on two platforms. Another {{changes.churn_in}} appeared in a single search and wait for confirmation."
+    - k: "Momentum"
+      v: "{{changes.share_gaining}}"
+      t: "of cafés gained at least one Google review in {{changes.days}} days. The typical café added {{changes.median_gain}}."
+    - k: "Where attention grew"
+      v: "{{changes.share_gaining.cs}}"
+      t: "of C-Scheme cafés gained reviews, against {{changes.share_gaining.mn}} in Malviya Nagar."
+    - k: "Broadest momentum"
+      v: "{{changes.busiest_type_share}}"
+      t: "of {{changes.busiest_type}} cafés gained reviews, more than any other type."
+    - k: "Closed or missing"
+      v: "{{changes.closed}}"
+      t: "cafés are now listed as closed, and {{changes.not_found}} confirmed café couldn't be found. They stay on the record; after four misses in a row we flag them."
+  cards_first: []
+  note: >-
+    Movement is measured on the same searches each run. A café counts as new only when Zomato lists it or two
+    platforms agree, so search noise isn't mistaken for openings. Zomato's cost-for-two figures shifted
+    unusually this run, so price movement isn't shown yet.
+
+terrain:
+  eyebrow: "The map"
+  headline: "Where Jaipur's cafés *cluster*."
+  lede: >-
+    Every rise is a cluster of cafés: C-Scheme to the north, Malviya Nagar to the south. Switch to coffee-led
+    cafés to see where specialty coffee gathers, or step back to an earlier snapshot.
+
+top:
+  eyebrow: "Top cafés"
+  headline: "Top cafés in Jaipur *right now*."
+  lede: >-
+    Our picks, and what each one did right: built from public facts and how they stand out in their
+    neighbourhood. Never their ratings, reviews or prices.
+  note: "Picks by Sarthak Oberoi. More to come."
 
 benchmark:
   eyebrow: "Benchmark"

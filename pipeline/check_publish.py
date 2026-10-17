@@ -92,13 +92,21 @@ def check(mode="draft", html_path=None):
         names = set()
     included = [k for k in kud if k.get("approved") or mode == "draft"]
     allowed_names = {norm(k["name"]) for k in included}
+    # Sarthak's named top-café picks may be named; their pages carry facts only
+    tops = (yaml.safe_load(open(ROOT / "content/top_cafes.yaml")) or {}).get("entries") or []
+    allowed_names |= {norm(t["name"]) for t in tops}
 
     if nar.get("written_for_snapshot") != ins["meta"]["snapshot"]:
         errors.append(f"narrative was written for {nar.get('written_for_snapshot')}, "
                       f"data is {ins['meta']['snapshot']}: rewrite the copy for this snapshot")
 
-    # 1-3: narrative
-    for path, text in strings({k: v for k, v in nar.items() if k != "written_for_snapshot"}):
+    # 1-3: narrative (only the copy that will render: the time machine has a first-run variant)
+    scan = {k: v for k, v in nar.items() if k != "written_for_snapshot"}
+    if "timemachine" in scan:
+        has = "changes" in ins.get("insights", {})
+        scan["timemachine"] = {k: v for k, v in scan["timemachine"].items()
+                               if (k.endswith("_first") and not has) or (not k.endswith("_first") and (has or k in ("eyebrow", "note")))}
+    for path, text in strings(scan):
         for t in TOKEN.findall(text):
             if t not in tokens:
                 errors.append(f"{path}: unknown token {{{{{t}}}}}")
@@ -139,20 +147,34 @@ def check(mode="draft", html_path=None):
             + ("shown with a draft badge" if mode == "draft" else "left out of this build"))
 
     # 5: public data and built site
+    for p in ins.get("profiles") or []:
+        texts = [x["text"] for x in p.get("story", [])] + [x["t"] for x in p.get("signals", [])] + [p.get("tagline", ""), p.get("notes", "")]
+        for t in texts:
+            for rx, why in KUDOS_FORBIDDEN:
+                if rx.search(t):
+                    errors.append(f"profile[{p['slug']}]: text {why}: '{t[:60]}…'")
+            for w in NEGATIVE:
+                if re.search(rf"\b{w}", t.lower()):
+                    errors.append(f"profile[{p['slug']}]: contains '{w}…'")
     blob = json.dumps(ins, ensure_ascii=False)
     if FIG_ID.search(blob):
         errors.append("public insights contain a FIG venue ID")
-    leaked = find_names(blob, names)
+    leaked = [n for n in find_names(blob, names) if not any(n in a or a in n for a in allowed_names)]
     if leaked:
         errors.append(f"public insights contain venue names: {leaked[:5]}")
-    if html_path and Path(html_path).exists():
-        html = Path(html_path).read_text()
+    pages = [Path(html_path)] if html_path else []
+    if html_path:
+        pages += sorted(Path(html_path).parent.glob("cafes/*/index.html"))
+    for page in pages:
+        if not page.exists():
+            continue
+        html = page.read_text()
         text = re.sub(r"<[^>]+>", " ", html)
         if FIG_ID.search(html):
-            errors.append("built site contains a FIG venue ID")
+            errors.append(f"{page.name if page == Path(html_path) else page.parent.name}: contains a FIG venue ID")
         leaked = [n for n in find_names(text, names) if not any(n in a or a in n for a in allowed_names)]
         if leaked:
-            errors.append(f"built site names cafés outside kudos: {leaked[:5]}")
+            errors.append(f"{page.parent.name}: names cafés outside kudos/top picks: {leaked[:5]}")
     return errors, warnings
 
 

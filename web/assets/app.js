@@ -51,7 +51,7 @@
       else if (mode === "enter") p = clamp((vh - r.top) / (vh * 0.55));
       else p = clamp((vh - r.top) / (vh + r.height));
       s.style.setProperty("--p", p.toFixed(4));
-      if (mode === "pin" && gallery && pin) {
+      if (mode === "pin" && gallery && pin && s.contains(gallery)) {
         // travel until the last card sits as far from the right edge as the first sat from the left
         const last = cards.length ? cards[cards.length - 1].parentElement : null;
         const pad = parseFloat(getComputedStyle(gallery).paddingLeft) || 0;
@@ -88,6 +88,38 @@
       setTimeout(() => (btn.textContent = "Copy address"), 2200);
     });
   });
+
+  // ---------- time machine ----------
+  const tmData = document.getElementById("tm-data");
+  if (tmData) {
+    const H = JSON.parse(tmData.textContent);
+    const now = document.querySelector(".tm-now");
+    const stopsEl = [...document.querySelectorAll(".tm-stop")];
+    const fmt = (v) => (v == null ? "—" : Math.round(v).toLocaleString("en-IN"));
+    const delta = (a, b, money) => {
+      if (a == null || b == null || a === b) return "";
+      const d = b - a;
+      return `<span class="tm-d ${d > 0 ? "up" : "down"}">${d > 0 ? "▲" : "▼"} ${money ? "₹" : ""}${fmt(Math.abs(d))}</span>`;
+    };
+    const show = (i) => {
+      const h = H[i], p = H[i - 1];
+      stopsEl.forEach((b, j) => b.setAttribute("aria-pressed", String(j === i)));
+      const cell = (k, v, d) => `<div class="tm-stat"><span class="tm-sk">${k}</span><span class="tm-sv">${v}${d || ""}</span></div>`;
+      const conf = h.core_confirmed ?? h.core, pconf = p ? (p.core_confirmed ?? p.core) : null;
+      const rows = [cell("Confirmed cafés", fmt(conf), p && delta(pconf, conf))];
+      for (const a of Object.keys(h.by_area)) rows.push(cell(`Confirmed · ${a}`, fmt(h.by_area[a]), p && delta(p.by_area[a], h.by_area[a])));
+      rows.push(cell("All cafés seen (incl. single searches)", fmt(h.core)));
+      if (h.median_reviews) for (const a of Object.keys(h.median_reviews))
+        rows.push(cell(`Typical Google reviews · ${a}`, fmt(h.median_reviews[a]), p?.median_reviews && delta(p.median_reviews[a], h.median_reviews[a])));
+      if (h.median_price) for (const a of Object.keys(h.median_price))
+        rows.push(cell(`Typical cost for two · ${a}`, h.median_price[a] == null ? "—" : "₹" + fmt(h.median_price[a]), p?.median_price && delta(p.median_price[a], h.median_price[a], true)));
+      now.innerHTML = `<p class="tm-when">Snapshot of ${new Date(h.captured_on).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}${p ? ", against the one before" : ""}</p><div class="tm-grid">${rows.join("")}</div>`;
+      const snap = document.querySelector(`input[name="tr-snap"][value="${h.label}"]`);
+      if (snap && !snap.checked) { snap.checked = true; snap.dispatchEvent(new Event("change", { bubbles: true })); }
+    };
+    stopsEl.forEach((b) => b.addEventListener("click", () => show(+b.dataset.i)));
+    if (H.length) show(H.length - 1);
+  }
 
   // ---------- share a section ----------
   document.querySelectorAll(".share[data-share]").forEach((btn) => {
