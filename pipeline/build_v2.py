@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).parent))
 import check_publish  # noqa: E402
 import figs_v2 as figs  # noqa: E402
+import playbook_v2  # noqa: E402
 
 E = html.escape
 TYPES = ["Coffee-led", "Tea & chai", "Bakery", "All-day café"]
@@ -108,7 +109,7 @@ def head(title, desc, prefix="", path="", ld=None):
 CTX = {}   # site, author, mailto, dates and switches, filled at build time
 
 # every page, in reading order: (path, label in the menu)
-PAGES = [("insights/", "Insights"), ("location/", "Location check"), ("your-cafe/", "Your café"), ("best/", "The best"),
+PAGES = [("insights/", "Insights"), ("playbook/", "Playbook"), ("location/", "Location check"), ("your-cafe/", "Your café"), ("best/", "The best"),
          ("method/", "Method"), ("updates/", "Free updates"), ("about/", "About")]
 
 
@@ -133,7 +134,7 @@ def footer(pre=""):
     site, au = CTX["site"], CTX["au"]
     col = lambda title, items: f'<div><p class="ft-h">{E(title)}</p>' + "".join(f'<a href="{u}">{E(l)}</a>' for l, u in items) + "</div>"
     live = dict((l, u) for u, l in pages_live())
-    explore = [(l, pre + live[l]) for l in ("Insights", "Location check", "Your café", "The best") if l in live]
+    explore = [(l, pre + live[l]) for l in ("Insights", "Playbook", "Location check", "Your café", "The best") if l in live]
     learn = [("Method", pre + "method/"), ("About", pre + "about/"), ("Download the figures", pre + "data/insights.json")]
     touch = ([("Free updates", pre + "updates/")] if "Free updates" in live else []) + [("Contact", pre + "about/#contact"), ("Email", CTX["mailto"]), ("LinkedIn", au.get("linkedin", ""))]
     return f"""<footer class="foot">
@@ -449,6 +450,7 @@ def build(mode):
 
     # ---------- home: what you'll find, and three findings to start with ----------
     cards = [("insights/", "Insights", f"{len(F)} findings on {core} cafés, each in one sentence, with what it means for yours."),
+             ("playbook/", "Playbook", "The most common problems café owners here face, and a practical fix for each, with the maths shown."),
              ("location/", "Location check", "Pick any spot and read its five-minute walk: cafés, gaps, and who is around to buy coffee."),
              ("your-cafe/", "Your café", "Set your area, type and numbers; see where you stand. Nothing you type leaves the page."),
              ("best/", "The best", "The cafés doing it best right now, and what each one did right."),
@@ -572,15 +574,22 @@ def build(mode):
     write("about/", shell("about/", f"About · {site['title']}",
                           f"Who is behind Jaipur Café Index: {au['name']}, who grew up in Jaipur and studies how businesses win and lose in its markets. How to get in touch.",
                           about, here="About"))
+    L = json.load(open(ROOT / "data/public/location_latest.json")) if (ROOT / "data/public/location_latest.json").exists() else None
+    playbook = playbook_v2.page(I, F, L, k, core, P) + "\n" + contact(P, "Stuck on something that isn't here?",
+        "If your café is up against a problem this page doesn't cover, tell me. The most common ones go into the next version.", bio=False)
+    write("playbook/", shell("playbook/", f"Café owner's playbook for Jaipur: fixes for common problems · {site['title']}",
+                             "Practical fixes for the problems café owners in C-Scheme and Malviya Nagar, Jaipur, face most: standing out, empty hours, "
+                             "reviews, delivery margins, pricing, table time and rent. Data, estimates and the maths shown.",
+                             playbook, here="Playbook", scripts=f'\n<script src="../{asset("playbook.js")}" defer></script>', main_cls="main-pb"))
     if (ROOT / "data/public/location_latest.json").exists():
         shutil.copy(ROOT / "data/public/location_latest.json", out / "data/location.json")
         write("location/", location_page(site, au, captured, k, mailto))
     for p in profs:
         write(f"cafes/{p['slug']}/", profile(p, site, au, captured, core, k, mailto, ent))
 
-    urls = ["", "insights/", "location/", "your-cafe/"] + (["best/"] if best else []) + ["method/"] + (["updates/"] if updates else []) + ["about/"]
+    urls = ["", "insights/", "playbook/", "location/", "your-cafe/"] + (["best/"] if best else []) + ["method/"] + (["updates/"] if updates else []) + ["about/"]
     urls += [f"cafes/{p['slug']}/" for p in profs]
-    prio = {"": "1.0", "insights/": "0.9", "location/": "0.9", "your-cafe/": "0.8", "best/": "0.8"}
+    prio = {"": "1.0", "insights/": "0.9", "playbook/": "0.9", "location/": "0.9", "your-cafe/": "0.8", "best/": "0.8"}
     (out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         + "".join(f"  <url><loc>{SEO['base']}/{u}</loc><lastmod>{meta['captured_on']}</lastmod><changefreq>weekly</changefreq>"
                   f"<priority>{prio.get(u, '0.6')}</priority></url>\n" for u in urls) + "</urlset>\n")

@@ -511,3 +511,45 @@ figure { margin: 0; }
   .js figure.reveal, .js .reveal .fd-num { clip-path: none !important; }
   .res { animation: none; }
 }
+
+/* ---------- playbook: one problem per field, each part labelled measured, estimate or judgement ---------- */
+.pb-legend { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 16px; }
+.pb-legend p { background: var(--stone); padding: 16px 18px; font-size: var(--s-small); max-width: none; }
+.pb-legend .tag { display: table; margin-bottom: 8px; }
+.tag { display: inline-block; font-size: 0.75rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 3px 8px; margin-right: 10px; vertical-align: 2px; }
+.tag-m { background: var(--ink); color: var(--paper); }
+.tag-e { background: var(--pink); color: var(--ink); }
+.tag-j { background: var(--paper); color: var(--ink); }
+.pb-legend .tag-j, .pb:nth-child(even) .tag-j { background: var(--stone-2); }
+.pb-list { display: grid; gap: 4px; margin-top: clamp(40px, 5vw, 72px); }
+.pb { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px 48px; padding: clamp(48px, 6vw, 96px) var(--m); background: var(--blush); scroll-margin-top: var(--bar-h); }
+.pb:nth-child(even) { background: var(--stone); }
+.pb-head { align-self: start; position: sticky; top: calc(var(--bar-h) + 24px); }
+.pb-n { font-size: var(--s-small); color: var(--soft); margin-bottom: 14px; font-variant-numeric: lining-nums; }
+.pb-head h2 { font-size: clamp(1.75rem, 1.2rem + 1.8vw, 2.75rem); max-width: 18ch; }
+.pb-body { display: grid; gap: 28px; }
+.pb-k { font-weight: 600; margin-bottom: 10px; }
+.pb-block ul, .pb-block ol { margin: 0; padding-left: 20px; display: grid; gap: 10px; max-width: 62ch; }
+.pb-block li::marker { color: var(--soft); }
+.pb-know { padding-top: 4px; }
+.pb-block ul + p, .pb-block ul + .pb-table { margin-top: 14px; }
+.pb-table { border-collapse: collapse; margin-top: 4px; font-variant-numeric: lining-nums tabular-nums; min-width: min(100%, 420px); }
+.pb-table caption { text-align: left; font-size: var(--s-small); color: var(--soft); padding-bottom: 6px; }
+.pb-table th, .pb-table td { text-align: left; padding: 8px 18px 8px 0; font-weight: 400; }
+.pb-table thead th { font-size: var(--s-small); font-weight: 600; }
+.pb-table tbody tr + tr th, .pb-table tbody tr + tr td { border-top: 1px solid var(--stone-2); }
+.calc { background: var(--paper); padding: 20px; margin-top: 4px; display: grid; gap: 16px; }
+.calc-h { font-size: var(--s-small); font-weight: 600; }
+.calc-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 12px; }
+.calc .field { display: grid; align-content: start; }
+.calc .field > span { margin-bottom: 6px; }
+.calc .field input { background: var(--stone); font-size: var(--s-body); font-variant-numeric: lining-nums tabular-nums; }
+.calc .field small { margin-top: 6px; font-size: 0.8125rem; color: var(--soft); line-height: 1.35; }
+.calc-out { font-size: var(--s-lead); line-height: 1.3; max-width: 40ch; }
+.calc-out b { font-weight: 600; }
+.calc-note { font-size: var(--s-small); color: var(--soft); margin-top: 10px; }
+@media (max-width: 900px) {
+  .pb { grid-template-columns: 1fr; }
+  .pb-head { position: static; }
+  .pb-legend { grid-template-columns: 1fr; }
+}
