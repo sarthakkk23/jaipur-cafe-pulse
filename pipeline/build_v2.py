@@ -646,8 +646,8 @@ def location_page(site, au, captured, k, mailto):
         <div class="seg-group" role="group" aria-label="Area"><button type="button" class="seg" data-area="0" aria-pressed="true">C-Scheme</button><button type="button" class="seg" data-area="1" aria-pressed="false">Malviya Nagar</button></div>
         <div class="seg-group loc-places" role="group" aria-label="Start from"></div>
       </div>
-      <canvas class="loc-canvas" aria-label="Map of the area. Click a spot to read its five-minute walk."></canvas>
-      <p class="loc-key">Darker ground: more cafés within a five-minute walk. Click anywhere on the map.</p>
+      <canvas class="loc-canvas" aria-label="Map of the area. Click a spot, or use the arrow keys, to read its five-minute walk."></canvas>
+      <p class="loc-key">Darker ground: more cafés within a five-minute walk. Point at a spot to preview it; click or tap to read it. Arrow keys move it.</p>
     </div>
     <article class="loc-report" aria-live="polite"><p class="lr-k">Pick a spot to begin.</p></article>
   </section>
