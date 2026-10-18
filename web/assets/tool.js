@@ -59,7 +59,7 @@
         const line = p >= 50 ? `${inr(v.price)} for two is above about <b>${p}%</b> of ${scope} on Zomato.`
                              : `${inr(v.price)} for two sits on the accessible side: about <b>${100 - p}%</b> of ${scope} charge more.`;
         const band = cell?.p25 != null ? ` Most charge ${inr(cell.p25)}–${inr(cell.p75)}.` : "";
-        cards.push(card("Price", `${p}<small>th</small>`, line + band, strip(p, `Price position: ${p}th percentile`, ["lower", "higher"])));
+        cards.push(card("Price", `${p}<small>th percentile</small>`, line + band, strip(p, `Price position: ${p}th percentile`, ["lower", "higher"])));
       }
     }
 
@@ -69,7 +69,7 @@
       if (p != null) {
         const line = p >= 50 ? `${num(v.reviews)} Google reviews puts you ahead of about <b>${p}%</b> of cafés in ${v.area}.`
           : `Like most cafés, you're in the long tail: the typical café in ${v.area} has ${num(a.median_reviews)} reviews. Every new review moves you further here than it would at the top.`;
-        cards.push(card("Attention", `${p}<small>th</small>`, line, strip(p, `Review count position: ${p}th percentile`)));
+        cards.push(card("Reviews", `${p}<small>th percentile</small>`, line, strip(p, `Review count position: ${p}th percentile`)));
       }
     }
 

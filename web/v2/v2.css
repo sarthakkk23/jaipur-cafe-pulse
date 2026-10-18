@@ -592,3 +592,7 @@ figure { margin: 0; }
 /* the survey invitation: one slim line, the same everywhere it appears */
 .sv { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px; margin: 0 var(--m) clamp(48px, 6vw, 88px); padding: 24px 28px; background: var(--blush); }
 .sv-say { max-width: 60ch; }
+
+.method-more { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 48px; }
+.method-more .ev { margin-right: 6px; }
+@media (max-width: 900px) { .method-more { grid-template-columns: 1fr; } }
