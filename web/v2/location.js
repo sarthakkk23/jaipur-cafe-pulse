@@ -26,6 +26,7 @@
       t.perCafe = q(cafeSpots.filter((s) => s[3].n >= 3).map((s) => tot(s) / s[3].n), 0.5);
       return t;
     });
+    frame();
     setArea(0);
     new ResizeObserver(draw).observe(canvas);
   }).catch(() => { report.innerHTML = '<p class="lr-k">The map could not load. Please refresh the page.</p>'; });
@@ -39,29 +40,37 @@
       const p = a.places[+b.dataset.place]; choose(p[1], p[2], p[0]);
       placesEl.querySelectorAll("[data-place]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     }));
+    shown = null; hover = null;
+    if (view) frame();
     const p0 = a.places[0]; choose(p0[1], p0[2], p0[0]);
     placesEl.querySelector("[data-place]")?.setAttribute("aria-pressed", "true");
   }
   document.querySelectorAll("[data-area]").forEach((b) => b.addEventListener("click", () => setArea(+b.dataset.area)));
 
-  // map projection: the area box, padded, fitted to the canvas
+  // map projection: the area box, padded, fitted to the canvas. The streets and the café heat are drawn once into a base
+  // layer; every pointer move only repaints the light overlay on top, so hovering stays smooth.
+  let base = null, hover = null, shown = null, anim = 0, queued = false;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const KX = Math.cos(26.88 * Math.PI / 180);
   function frame() {
     const w = canvas.clientWidth, h = canvas.clientHeight, dpr = Math.min(devicePixelRatio || 1, 2);
+    if (!w || !h) return false;
     canvas.width = w * dpr; canvas.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const [la0, la1, lo0, lo1] = D.areas[D.names[area]].box, pad = 0.004;
-    const kx = Math.cos(26.88 * Math.PI / 180);
-    const spanX = (lo1 - lo0 + 2 * pad) * kx, spanY = la1 - la0 + 2 * pad;
+    const spanX = (lo1 - lo0 + 2 * pad) * KX, spanY = la1 - la0 + 2 * pad;
     const s = Math.min(w / spanX, h / spanY);
     const cx = (lo0 + lo1) / 2, cy = (la0 + la1) / 2;
-    view = { w, h, X: (lon) => w / 2 + (lon - cx) * kx * s, Y: (lat) => h / 2 - (lat - cy) * s, s, kx, cx, cy };
+    view = { w, h, dpr, X: (lon) => w / 2 + (lon - cx) * KX * s, Y: (lat) => h / 2 - (lat - cy) * s, s, cx, cy };
+    base = paintBase();
+    return true;
   }
   const roadLL = (x, z) => [R.bbox.lat[1] - (z / R.size_m[1]) * (R.bbox.lat[1] - R.bbox.lat[0]), R.bbox.lon[0] + (x / R.size_m[0]) * (R.bbox.lon[1] - R.bbox.lon[0])];
 
-  function draw() {
-    if (!D) return;
-    frame();
-    const { w, h, X, Y } = view;
-    ctx.fillStyle = "#e9e8e4"; ctx.fillRect(0, 0, w, h);
+  function paintBase() {
+    const { w, h, dpr, X, Y } = view;
+    const b = document.createElement("canvas"); b.width = w * dpr; b.height = h * dpr;
+    const c = b.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.fillStyle = "#e9e8e4"; c.fillRect(0, 0, w, h);
     // café heat: the grid painted one pixel per spot, then scaled up smoothly, darker where more cafés stand within the walk
     const list = D.byArea[area], max = Math.max(1, ...list.map((s) => s[3].n));
     const lats = [...new Set(list.map((s) => s[0]))].sort((a, b) => b - a), lons = [...new Set(list.map((s) => s[1]))].sort((a, b) => a - b);
@@ -74,50 +83,136 @@
     }
     oc.putImageData(img, 0, 0);
     const half = (D.spacing_m / 111320) * view.s / 2;
-    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(off, X(lons[0]) - half, Y(lats[0]) - half, X(lons[lons.length - 1]) - X(lons[0]) + 2 * half, Y(lats[lats.length - 1]) - Y(lats[0]) + 2 * half);
+    c.imageSmoothingEnabled = true; c.imageSmoothingQuality = "high";
+    c.drawImage(off, X(lons[0]) - half, Y(lats[0]) - half, X(lons[lons.length - 1]) - X(lons[0]) + 2 * half, Y(lats[lats.length - 1]) - Y(lats[0]) + 2 * half);
     // streets on top, in three weights
     [0.7, 0.45, 0.22].forEach((alpha, cls) => {
-      ctx.strokeStyle = `rgba(22, 22, 22, ${alpha})`; ctx.lineWidth = cls === 0 ? 1.6 : cls === 1 ? 1.1 : 0.7;
-      ctx.beginPath();
+      c.strokeStyle = `rgba(22, 22, 22, ${alpha})`; c.lineWidth = cls === 0 ? 1.6 : cls === 1 ? 1.1 : 0.7;
+      c.beginPath();
       for (const wy of R.ways[cls] || []) {
         for (let i = 0; i + 1 < wy.length; i += 2) {
           const [la, lo] = roadLL(wy[i], wy[i + 1]);
-          i === 0 ? ctx.moveTo(X(lo), Y(la)) : ctx.lineTo(X(lo), Y(la));
+          i === 0 ? c.moveTo(X(lo), Y(la)) : c.lineTo(X(lo), Y(la));
         }
       }
-      ctx.stroke();
+      c.stroke();
     });
-    if (pick) {
-      const r = (D.radius_m / 111320) * view.s;
-      ctx.fillStyle = "rgba(245, 228, 221, .35)"; ctx.strokeStyle = "#161616"; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(X(pick.lon), Y(pick.lat), r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = "#161616"; ctx.beginPath(); ctx.arc(X(pick.lon), Y(pick.lat), 6, 0, Math.PI * 2); ctx.fill();
+    // the named places, so the map can be read at a glance
+    c.font = '600 12px "Literata", Georgia, serif'; c.textBaseline = "middle";
+    // labels step out of each other's way: right of the dot, then left, then above or below; a label that can't fit is left off
+    const boxes = [], hit = (bx) => boxes.some((o) => bx[0] < o[0] + o[2] && o[0] < bx[0] + bx[2] && bx[1] < o[1] + o[3] && o[1] < bx[1] + bx[3]);
+    for (const [nm, la, lo] of D.areas[D.names[area]].places) {
+      const x = X(lo), y = Y(la), tw = c.measureText(nm).width + 8;
+      c.fillStyle = "#161616"; c.beginPath(); c.arc(x, y, 3.5, 0, Math.PI * 2); c.fill();
+      const tries = [[x + 8, y - 10], [x - 8 - tw, y - 10], [x - tw / 2, y - 32], [x - tw / 2, y + 12]]
+        .map(([bx, by]) => [Math.min(Math.max(bx, 4), w - tw - 4), Math.min(Math.max(by, 4), h - 24), tw, 20]);
+      const box = tries.find((bx) => !hit(bx));
+      if (!box) continue;
+      boxes.push(box);
+      c.fillStyle = "rgba(245, 245, 242, .92)"; c.fillRect(box[0], box[1], box[2], box[3]);
+      c.fillStyle = "#161616"; c.fillText(nm, box[0] + 4, box[1] + 10.5);
     }
+    return b;
   }
 
+  const ring = () => (D.radius_m / 111320) * view.s;
+  function label(x, y, text, dark) {
+    ctx.font = '600 13px "Literata", Georgia, serif'; ctx.textBaseline = "middle";
+    const tw = ctx.measureText(text).width, bx = Math.min(Math.max(x - tw / 2 - 8, 4), view.w - tw - 20), by = Math.max(y - ring() - 30, 4);
+    ctx.fillStyle = dark ? "#161616" : "rgba(245, 245, 242, .95)"; ctx.fillRect(bx, by, tw + 16, 24);
+    ctx.fillStyle = dark ? "#f5f5f2" : "#161616"; ctx.fillText(text, bx + 8, by + 12.5);
+  }
+  const count = (n) => `${n} ${n === 1 ? "café" : "cafés"}`;
+
+  function render() {
+    queued = false;
+    if (!D || !view || !base) return;
+    const { w, h, X, Y } = view;
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(base, 0, 0, w, h);
+    if (hover && !(pick && hover.lat === pick.lat && hover.lon === pick.lon)) {
+      ctx.setLineDash([5, 5]); ctx.strokeStyle = "rgba(22, 22, 22, .55)"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(X(hover.lon), Y(hover.lat), ring(), 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      label(X(hover.lon), Y(hover.lat), count(hover.n), false);
+    }
+    if (shown) {
+      const x = X(shown.lon), y = Y(shown.lat);
+      ctx.fillStyle = "rgba(245, 228, 221, .38)"; ctx.strokeStyle = "#161616"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y, ring(), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#161616"; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+      if (!hover && pick) label(x, y, count(pick.n), true);
+    }
+  }
+  const queue = () => { if (!queued) { queued = true; requestAnimationFrame(render); } };
+  function draw() { if (D && frame()) render(); }
+
+  // the chosen spot glides to its new place instead of jumping
+  function glide(to) {
+    cancelAnimationFrame(anim);
+    const from = shown;
+    if (!from || reduce) { shown = to; queue(); return; }
+    const t0 = performance.now(), dur = 280;
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      shown = { lat: from.lat + (to.lat - from.lat) * e, lon: from.lon + (to.lon - from.lon) * e };
+      render();
+      if (k < 1) anim = requestAnimationFrame(step);
+    };
+    anim = requestAnimationFrame(step);
+  }
+
+  function nearest(lat, lon) {
+    let best = null, bd = Infinity;
+    for (const s of D.byArea[area]) { const d = (s[0] - lat) ** 2 + ((s[1] - lon) * 0.89) ** 2; if (d < bd) { bd = d; best = s; } }
+    return best && Math.sqrt(bd) * 111320 <= 400 ? best : null;
+  }
+  function at(e) {
+    const r = canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    return [view.cy - (y - view.h / 2) / view.s, view.cx + (x - view.w / 2) / (KX * view.s)];
+  }
+  canvas.addEventListener("pointermove", (e) => {
+    if (!view || e.pointerType !== "mouse") return;
+    const s = nearest(...at(e));
+    const next = s ? { lat: s[0], lon: s[1], n: s[3].n } : null;
+    if ((next && hover && next.lat === hover.lat && next.lon === hover.lon) || (!next && !hover)) return;
+    hover = next; queue();
+  });
+  canvas.addEventListener("pointerleave", () => { hover = null; queue(); });
   canvas.addEventListener("click", (e) => {
     if (!view) return;
-    const r = canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-    const lon = view.cx + (x - view.w / 2) / (view.kx * view.s), lat = view.cy - (y - view.h / 2) / view.s;
+    hover = null;
     placesEl.querySelectorAll("[data-place]").forEach((b) => b.setAttribute("aria-pressed", "false"));
-    choose(lat, lon, null);
+    choose(...at(e), null);
+  });
+  // arrow keys walk the chosen spot one grid step at a time
+  canvas.tabIndex = 0;
+  canvas.addEventListener("keydown", (e) => {
+    const dir = { ArrowUp: [1, 0], ArrowDown: [-1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
+    if (!dir || !pick) return;
+    e.preventDefault();
+    const step = D.spacing_m / 111320;
+    placesEl.querySelectorAll("[data-place]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+    choose(pick.lat + dir[0] * step, pick.lon + dir[1] * step / KX, null);
   });
 
   function choose(lat, lon, name) {
     // the nearest grid spot in this area
-    let best = null, bd = Infinity;
-    for (const s of D.byArea[area]) { const d = (s[0] - lat) ** 2 + ((s[1] - lon) * 0.89) ** 2; if (d < bd) { bd = d; best = s; } }
-    if (!best || Math.sqrt(bd) * 111320 > 400) { report.innerHTML = '<p class="lr-k">That spot is outside the area I read. Pick a spot inside the map.</p>'; return; }
-    pick = { lat: best[0], lon: best[1] };
-    draw();
+    const best = nearest(lat, lon);
+    if (!best) { report.innerHTML = '<p class="lr-k">That spot is outside the area I read. Pick a spot inside the map.</p>'; return; }
+    pick = { lat: best[0], lon: best[1], n: best[3].n };
+    if (!name) {
+      // name the spot after the nearest landmark when one is close, so the report reads "near Ashok Marg"
+      const lm = D.areas[D.names[area]].places.map((p) => [p[0], Math.hypot(p[1] - best[0], (p[2] - best[1]) * 0.89) * 111320]).sort((a, b) => a[1] - b[1])[0];
+      if (lm && lm[1] <= 400) name = { near: lm[0] };
+    }
+    glide({ lat: best[0], lon: best[1] });
     read(best[3], name);
   }
 
   // the report, in plain words
   function read(s, name) {
     const an = D.names[area], A = D.areas[an].cafes, k = D.k;
-    const where = name ? `around ${esc(name)}` : "around this spot";
+    const where = name && name.near ? `near ${esc(name.near)}` : name ? `around ${esc(name)}` : "around this spot";
     const busy = D.busy[area], rank = busy.length ? Math.round(100 * busy.filter((n) => n < s.n).length / busy.length) : 0;
     let html = `<p class="lr-big">${s.n} <span>${s.n === 1 ? "café" : "cafés"}</span></p>`;
     html += `<p class="lr-k">within a five-minute walk ${where}.</p>`;
