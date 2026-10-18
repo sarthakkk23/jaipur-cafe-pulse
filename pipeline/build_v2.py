@@ -196,6 +196,15 @@ def contact(pre="", title="Get in touch.", lead=None, bio=True):
 </section>"""
 
 
+def survey_band():
+    """One slim line inviting café-goers to the survey; empty when no survey is running."""
+    url = CTX.get("survey")
+    if not url:
+        return ""
+    return (f'<section class="sv" aria-label="Survey"><p class="sv-say reveal"><b>Help map Jaipur&rsquo;s cafés.</b> Twelve taps about the last café you went to: '
+            f'two minutes, anonymous.</p><a class="btn sv-go reveal" href="{E(url)}" rel="noopener" target="_blank">Take the survey</a></section>')
+
+
 def more_problems(pages, here):
     """The other six problems, at the foot of each problem page."""
     rows = "".join(f'<li class="reveal"><a href="../{p["slug"]}/"><span class="best-name">{E(p["short"])}</span>'
@@ -229,7 +238,7 @@ def build(mode):
     sub = cfg.get("subscribe") or {}
     live = sub.get("provider") in ("google_form", "formspree") and sub.get("action")
     banner = '<p class="draft-note">Draft build. Not for publishing.</p>' if mode == "draft" else ""
-    CTX.update(site=site, au=au, mailto=mailto, ent=ent, core=core, cluster_share=(F.get("cluster") or {}).get("value"), captured=captured, k=k, updates=bool(live or mode == "draft"), banner=banner)
+    CTX.update(site=site, au=au, mailto=mailto, ent=ent, core=core, cluster_share=(F.get("cluster") or {}).get("value"), captured=captured, k=k, updates=bool(live or mode == "draft"), banner=banner, survey=((cfg.get("survey") or {}).get("url") or "").strip())
     P = "../"                                   # every page except home sits one folder down
 
     # every finding, for the hero to rotate through (the headline numbers only; the page itself carries the rest)
@@ -555,7 +564,7 @@ def build(mode):
         (d / "index.html").write_text(html)
 
     write("", shell("", site.get("seo_title", site["title"]), site["tagline"],
-                    "\n".join([hero, intro, explore, teasers, contact("")]), ld=ld_home,
+                    "\n".join([hero, intro, explore, teasers, survey_band(), contact("")]), ld=ld_home,
                     scripts="\n" + imap + '\n<script type="module" src="' + asset("relief.js") + '"></script>\n' + legacy))
     ins_ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "WebPage", "@id": f"{SEO['base']}/insights/#page", "name": "What the data says about Jaipur's cafés", "url": f"{SEO['base']}/insights/",
@@ -590,14 +599,14 @@ def build(mode):
     write("playbook/", shell("playbook/", f"Café owner's playbook for Jaipur: seven problems, solved with the maths shown · {site['title']}",
                              "Seven problems café owners in C-Scheme and Malviya Nagar, Jaipur, face most, each worked through as a case study: standing out, "
                              "empty mornings, reviews, delivery margins, pricing, table time, and rent.",
-                             pb_index + "\n" + contact(P, "Stuck on something that isn't here?",
+                             pb_index + survey_band() + "\n" + contact(P, "Stuck on something that isn't here?",
                                  "If your café is up against a problem these pages don't cover, tell me. The most common ones become the next case study.", bio=False),
                              here="Playbook", main_cls="main-pb"))
     for i, pg in enumerate(pb_pages):
         nx = pb_pages[i + 1] if i + 1 < len(pb_pages) else None
         path = f"playbook/{pg['slug']}/"
         write(path, shell(path, f"{pg['seo']} · {site['title']}", pg["desc"],
-                          pg["body"] + more_problems(pb_pages, i),
+                          pg["body"] + more_problems(pb_pages, i) + survey_band(),
                           here="Playbook", scripts=pb_js, main_cls="main-pb",
                           crumb=[("Playbook", "playbook/", f"{SEO['base']}/playbook/"), (pg["short"], path, f"{SEO['base']}/{path}")],
                           nxt=(f"playbook/{nx['slug']}/", f"Next problem: {nx['short']}") if nx else ("playbook/", "All seven problems")))
