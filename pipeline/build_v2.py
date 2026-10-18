@@ -180,8 +180,8 @@ def contact(pre="", title="Get in touch.", lead=None, bio=True):
     au = CTX["au"]
     intro = ("".join(f"<p>{E(line)}</p>" for line in bio_lines("bio_short"))
              + f'<p><a class="c-more" href="{pre}about/#who">More about me</a></p>') if bio else ""
-    lead = lead or ("If something here is useful for your café, or you have a question about the data, you're welcome to get in touch. "
-                    "Entirely your call.")
+    lead = lead or ("Have a question about your café or your street that the data could answer? Ask me. "
+                    "The best questions become the next findings.")
     email = au.get("email", "")
     return f"""<section class="contact" id="contact" aria-labelledby="contact-h">
   <div class="c-intro reveal"><h2 id="contact-h">{E(title)}</h2>{intro}<p>{E(lead)}</p></div>
@@ -531,7 +531,8 @@ def build(mode):
     <li class="reveal"><div class="rule-row"><span class="best-name">Every number checked.</span><span class="ex-p">Each figure is re-counted from the source data by separate code before it is published.</span></div></li>
   </ul>
 </section>
-{contact(P, bio=False)}"""
+{contact(P, "Write to me.", "Questions, corrections, or something you've noticed on your street. I read every message, "
+             "and the questions people send shape what I measure next.", bio=False)}"""
 
     # ---------- the pages ----------
     imap = ('<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js"'
@@ -674,7 +675,7 @@ def location_page(site, au, captured, k, mailto):
     places is not a count of people: one large office and one small clinic each count once. Residents are not counted yet. Near the edge of
     each area, cafés just outside it aren't in the record, so counts there run low.</p></div>
   </section>
-""" + contact(pre, "Questions about a spot?", "If you're weighing a location and want to talk it through, you're welcome to get in touch.", bio=False)
+""" + contact(pre, "Curious about a street?", "Tell me which one, and what you'd want to know about it. Questions like that decide what I map next.", bio=False)
     return shell("location/", f"Where to open a café in Jaipur · {site['title']}",
                  "Opening a café in Jaipur? Pick any spot in C-Scheme or Malviya Nagar: see the cafés, the gaps and who is around to buy coffee.",
                  body, here="Location check", scripts=f'\n<script src="../{asset("location.js")}" defer></script>', main_cls="loc")
@@ -704,7 +705,7 @@ def profile(p, site, au, captured, core, k, mailto, ent):
     <p class="pf-note">Area figures are aggregates. I never show a café's own ratings, review counts or prices.</p></section>
   <section class="pf-sec"><h2>What they offer.</h2><ul class="rare">{feats or '<li><span>Not listed.</span></li>'}</ul>{also}
     <table class="outlets"><caption>Cafés I read</caption><thead><tr><th>Area</th><th>Locality</th><th>Hours, first listed day</th><th>Listed on</th><th>Delivery</th></tr></thead><tbody>{rows}</tbody></table></section>
-""" + contact(pre, bio=False) + f"""
+""" + contact(pre, "Know a café worth learning from?", "Tell me what it did, and where I can see it. Every credit here comes from public facts, so a link helps.", bio=False) + f"""
   <p class="pf-src">Facts from the sources linked and from public listings read on {E(captured)}.</p>"""
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "WebPage", "name": f"{p['name']}: what they did right", "url": slug_url, "inLanguage": "en-IN",

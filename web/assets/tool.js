@@ -150,9 +150,9 @@
     const body = `Hi Sarthak,\n\nI used the benchmark on Jaipur Café Index.\n${lines.join("\n")}\n\n`;
     const href = `mailto:${D.email}?subject=${encodeURIComponent(D.subject)}&body=${encodeURIComponent(body)}`;
     const head = mode === "owner" ? "Questions about your numbers?" : "Planning a café?";
-    const text = mode === "owner" ? "If these figures raise a question about your café, you're welcome to get in touch. Your numbers come pre-filled in the email."
-                                  : "If you'd like to talk through what you're planning, you're welcome to get in touch.";
-    return `<article class="res res-cta"><p class="res-k">If you'd like</p><p class="res-head">${head}</p><p class="res-body">${text}</p>
+    const text = mode === "owner" ? "If these figures raise a question about your café, ask me. Your numbers come pre-filled in the email, and the best questions become the next findings."
+                                  : "Tell me what you're weighing. Questions from people planning a café decide what I measure next.";
+    return `<article class="res res-cta"><p class="res-k">Ask me</p><p class="res-head">${head}</p><p class="res-body">${text}</p>
       <a class="cta" href="${esc(href)}">Email Sarthak</a></article>`;
   }
 
