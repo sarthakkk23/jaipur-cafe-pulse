@@ -124,7 +124,7 @@ def findings(core, k, parse_hours=None):
         decisive = all(x["z"] < -2.6 for x in areas)
         out.append({
             "id": "cluster", "value": _pct(share10), "unit": "%",
-            "headline": "of cafés have 10 or more cafés within a 5-minute walk.",
+            "headline": "of cafés have 10 or more other cafés within a 5-minute walk.",
             "body": "Customers here always have a choice next door. Location alone won't set a café apart; what it offers has to.",
             "limit": "It doesn't say whether a crowded street helps or hurts a café's trade.",
             "grade": _grade(len(geo), decisive, k),
@@ -163,7 +163,7 @@ def findings(core, k, parse_hours=None):
                     f"Ratings also spread less as reviews grow: the typical gap from the group average falls from "
                     f"{bands[0]['spread']} stars to {bands[-1]['spread']}.",
                     f"Across all cafés, more reviews go with a lower rating (rank correlation {rho:.2f}; a shuffle test puts the chance "
-                    f"of this by luck below {max(p, 0.001):.3f}). This is regression to the mean, not a sign that popular cafés are worse."],
+                    f"of this by luck below {max(p, 0.001):.3f}). Mostly that is small numbers swinging more, not a sign that popular cafés are worse."],
             "chart": {"kind": "bands", "bands": bands},
             "n": int(len(r)),
         })
@@ -184,7 +184,8 @@ def findings(core, k, parse_hours=None):
             "how": [f"I took the {len(d):,} cafés rated on both Google and Zomato dine-in and subtracted one rating from the other, café by café.",
                     f"Resampling those cafés 4,000 times puts the average gap between {lo:.2f} and {hi:.2f} stars (95% interval), "
                     "clear of zero.",
-                    f"{_pct(equal)}% score the same on both; {_pct(1 - higher - equal)}% score higher on Zomato."],
+                    f"{_pct(equal)}% score the same on both; {_pct(1 - higher - equal)}% score higher on Zomato. "
+                    "Shares are rounded, so they may not add to exactly 100."],
             "chart": {"kind": "split", "parts": [["Higher on Google", _pct(higher)], ["Same", _pct(equal)], ["Higher on Zomato", _pct(1 - higher - equal)]]},
             "n": int(len(d)),
         })
@@ -224,7 +225,7 @@ def findings(core, k, parse_hours=None):
             yes, no = z.google_reviews[flags[a] == 1].values, z.google_reviews[flags[a] == 0].values
             if len(yes) < k or len(no) < k:
                 continue
-            lo, hi = np.percentile(bs[:, j], [5, 95])
+            lo, hi = np.percentile(bs[:, j], [2.5, 97.5])
             items.append({"label": lab, "share": _pct(flags[a].mean()), "raw": _pct(np.median(yes) / np.median(no) - 1),
                           "adj": _pct(np.expm1(beta[j])), "lo": _pct(np.expm1(lo)), "hi": _pct(np.expm1(hi)),
                           "holds": bool(lo > 0 or hi < 0)})
@@ -247,7 +248,8 @@ def findings(core, k, parse_hours=None):
                     f"{float(np.mean(nfeat[~wf])):.1f} for the rest.",
                     "Similar cafés: a regression on the logarithm of reviews that holds area, café type and price level fixed, "
                     f"so each feature is compared against cafés that are otherwise alike. Wi-Fi: {lead['adj']:+d}% "
-                    f"(90% interval {lead['lo']:+d}% to {lead['hi']:+d}% from 3,000 resamples).",
+                    f"(95% interval {lead['lo']:+d}% to {lead['hi']:+d}% from 3,000 resamples). The range includes zero, which is the point: "
+                    "once similar cafés are compared, Wi-Fi's own effect can't be told apart from none.",
                     "; ".join(f"{x['label']}: {x['raw']:+d}% across all cafés, {x['adj']:+d}% among similar ones" for x in items) + ".",
                     "This is association, not cause: a listing can mark the kind of café that draws reviews without drawing them itself."],
             "chart": {"kind": "bars", "sign": True, "bars": [["All cafés", lead["raw"]], ["Similar cafés", lead["adj"]]],
@@ -269,7 +271,7 @@ def findings(core, k, parse_hours=None):
         out.append({
             "id": "price", "value": _pct((p.zomato_cost_for_two_inr <= 500).mean()), "unit": "%",
             "headline": "of cafés charge ₹500 or less for two.",
-            "body": "Price has no link to rating: dearer cafés rate no higher, cheaper ones no lower. Price for your customer, not for your score.",
+            "body": "Price shows no link to rating: dearer cafés rate no higher, cheaper ones no lower. Price for your customer, not for your score.",
             "limit": "It doesn't say price doesn't matter to customers, only that it doesn't predict the rating.",
             "grade": _grade(len(pr2), True, k),
             "how": [f"Cost for two as listed on Zomato, for {len(p):,} cafés. The typical café charges ₹{int(p.zomato_cost_for_two_inr.median()):,}: "
@@ -306,11 +308,12 @@ def findings(core, k, parse_hours=None):
         "id": "visibility", "value": _pct((npl == 1).mean()), "unit": "%",
         "headline": "of cafés show up on only one app.",
         "body": f"Only {_pct((c.on_zomato == 'Y').mean())}% are on Zomato and {_pct((c.on_swiggy == 'Y').mean())}% on Swiggy. Every app a café is missing from is a crowd that never sees it.",
-        "limit": "It doesn't count apps outside Google Maps, Zomato, Swiggy and magicpin.",
+        "limit": ("It doesn't count apps outside Google Maps, Zomato, Swiggy and magicpin." if (c.on_magicpin == "Y").any() else
+                  "It doesn't count apps outside Google Maps, Zomato and Swiggy. magicpin couldn't be read in this update, so it isn't counted."),
             "grade": "Moderate",
         "how": ["; ".join(f"{_pct((v == 'Y').mean())}% on {name}" for name, v in on.items()) + ".",
                 f"Each of the {len(c):,} cafés matched across the platform searches I run on every update.",
-                "Absent means it did not appear in our searches of that platform, which is how a customer browsing the area would miss it too."],
+                "Absent means it did not appear in my searches of that platform, which is how a customer browsing the area would miss it too."],
         "chart": {"kind": "split", "parts": [["One app", _pct((npl == 1).mean())], ["Two", _pct((npl == 2).mean())], ["Three or more", _pct((npl >= 3).mean())]]},
         "n": int(len(c)),
     })

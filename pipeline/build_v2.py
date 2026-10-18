@@ -270,7 +270,7 @@ def build(mode):
     <div class="relief-labels" aria-hidden="true"></div>
     <figure class="relief-still">{pic("jantar-dial", "(max-width: 900px) 100vw, 55vw", eager=True)}</figure>
     <p class="relief-hint" aria-hidden="true">Drag to turn. The taller the ground, the more cafés stand close together.</p>
-    <p class="relief-note">At the top: Jantar Mantar, the stone observatory Jaipur's founder built to measure the sky. This page measures its cafés.</p>
+    <p class="relief-note">The marker labelled Jantar Mantar is the stone observatory Jaipur's founder built to measure the sky. It sits just outside the two areas, as a landmark. This page measures the cafés.</p>
   </div>
   <script type="application/json" id="relief-data">{terrain}</script>
 </section>"""
@@ -279,13 +279,12 @@ def build(mode):
     intro = f"""<section class="intro" aria-label="About this record">
   <p class="lead reveal">I read every café listing in Jaipur's C-Scheme and Malviya Nagar, {E(core)} cafés in all, so you don't have to.
   Then I tell you, in plain words, what the data says and what it doesn't: what customers reward, where the gaps are, and what a
-  rating really means. It is updated often, so the trends are the latest ones.</p>
+  rating really means. I refresh it twice a month, so the numbers stay current.</p>
   <div class="cols">
     <p class="reveal"><b>Plain words.</b> Each finding is one sentence and one number: a share of cafés, and what it means for yours.</p>
     <p class="reveal"><b>What it doesn't say.</b> Every finding also says where it stops, so you never read more into it than is there.</p>
-    <p class="reveal"><b>Strong coffee. Stronger evidence.</b> Resampling, like-for-like models and clustering tests run behind every
-    figure, and each is graded <span class="ev" data-g="3"><i></i><i></i><i></i></span> strong, <span class="ev" data-g="2"><i></i><i></i><i></i></span> moderate
-    or <span class="ev" data-g="1"><i></i><i></i><i></i></span> weak. You get the answer, not the jargon.</p>
+    <p class="reveal"><b>Strong coffee. Stronger evidence.</b> Every figure is stress-tested before it goes up, and each is graded <span class="ev" data-g="3"><i></i><i></i><i></i></span> strong, <span class="ev" data-g="2"><i></i><i></i><i></i></span> moderate
+    or <span class="ev" data-g="1"><i></i><i></i><i></i></span> weak, so you know how far to lean on it.</p>
     <p class="reveal"><b>Caffeinated, not biased.</b> Independent research by {E(au['name'])}. No platform or café pays to appear,
     and no café is ever criticised.</p>
   </div>
@@ -326,7 +325,7 @@ def build(mode):
   <figure class="pair-a reveal" data-drift>{pic("kulhad-chai", "(max-width: 760px) 100vw, 40vw", prefix=P)}<figcaption>Chai in clay kulhads: the city's first order of the day.</figcaption></figure>
   <figure class="pair-b reveal" data-drift>{pic("pink-haveli", "(max-width: 760px) 100vw, 55vw", prefix=P)}<figcaption>A haveli in the Pink City, through neem leaves.</figcaption></figure>
 </section>"""
-    ch2 = chapter("offer", "What cafés offer.", "Good coffee. Bad assumptions. Let's fix that: what is common, what is rare, and what actually goes with being chosen.",
+    ch2 = chapter("offer", "What cafés offer.", "What is common, what is rare, and what actually goes with being chosen.",
                   ["amenities", "price", "menus", "visibility"])
 
     # ---------- the sundial ----------
@@ -391,7 +390,7 @@ def build(mode):
     bench = f"""<section class="bench" id="benchmark" aria-labelledby="bench-h">
   <div class="bench-copy reveal"><h1 id="bench-h">Where does your café stand?</h1>
     <p>Set your area and type and add what you know. Everything is computed in your browser from the published figures;
-    nothing you type leaves this page.</p>
+    nothing you type leaves this page unless you choose to email it to me.</p>
     <div class="seg-row" role="group" aria-label="Mode" data-ui><button type="button" class="seg-btn" data-mode="owner" aria-pressed="true">I run a café</button>
     <button type="button" class="seg-btn" data-mode="planner" aria-pressed="false">I'm opening one</button></div>
   </div>
@@ -419,11 +418,11 @@ def build(mode):
   <div class="up-copy reveal">
     <h1 id="updates-h">Fresh findings, twice a month.</h1>
     <p>Free. Each update brings the newest findings on Jaipur's cafés straight to your WhatsApp: what customers reward, what is changing,
-    and where the openings are. Short, and only when there is something new. No stale beans.</p>
+    and where the openings are. Short: the newest findings and what they mean for your café. No stale beans.</p>
   </div>
   <form class="up-form reveal" data-ui data-provider="{E(sub.get('provider', 'none'))}" data-action="{E(sub.get('action', ''))}" novalidate>
     {name_field}
-    <label class="field"><span>Your WhatsApp number</span><input type="tel" name="{E(fields.get('contact', 'contact'))}" autocomplete="tel" inputmode="tel" required maxlength="16" placeholder="98290 12345"></label>
+    <label class="field"><span>Your WhatsApp number</span><input type="tel" name="{E(fields.get('contact', 'contact'))}" autocomplete="tel" inputmode="tel" required maxlength="16" placeholder="10-digit mobile number"></label>
     <button class="btn" type="submit">Send me the updates</button>
     <p class="up-note">Used only to send these updates on WhatsApp. Never shared, never sold. Reply "stop" any time and you are off the list.</p>
     <p class="up-status" role="status" aria-live="polite"></p>
@@ -438,8 +437,8 @@ def build(mode):
     listings = (I.get("method") or {}).get("listings")
     gloss = [
         ("Median", "The middle café when all are lined up. Unlike an average, one very busy café can't drag it."),
-        ("Share", "Every headline figure is a share of cafés: out of every hundred, how many. It reads the same whether the group is fifty cafés or five hundred."),
-        ("Interval", "I resample the cafés thousands of times (the bootstrap) and report the range most results fall in. A narrow range means a firm figure."),
+        ("Share", "Most headline figures are shares: out of every hundred, how many. A share of fifty cafés is less certain than a share of five hundred, which is why every finding shows its count and grade."),
+        ("Interval", "I resample the cafés thousands of times (the bootstrap) and report the range 95% of results fall in. A narrow range means a firm figure."),
         ("Shuffle test", "To ask whether a pattern could be luck, I shuffle the labels many times and count how often chance alone produces something as strong."),
         ("Rank correlation", "From −1 to +1: do cafés that are higher on one measure tend to be higher on another? Zero means no link."),
         ("Like for like", "A regression compares cafés that differ in one listed feature but share area, type and price level, so a feature doesn't get credit for what comes with it."),
@@ -447,6 +446,10 @@ def build(mode):
         ("Gini", "From 0 to 1: how unevenly something is shared. Zero, every café has the same; one, a single café has everything."),
     ]
     gl = "".join(f"<div><dt>{E(a)}</dt><dd>{E(b)}</dd></div>" for a, b in gloss)
+    src_names = {"google_maps_ui": "Google Maps", "zomato": "Zomato", "swiggy": "Swiggy", "magicpin": "magicpin"}
+    failed = [src_names.get(x, x) for x in meta.get("failed_sources") or []]
+    missing_line = (f"Read on {captured}. " + (f"{' and '.join(failed)} couldn't be read this time, so {'it is' if len(failed) == 1 else 'they are'} "
+                    "left out of every figure until it can be read again." if failed else "Every source was read in full."))
     method = f"""<section class="method" id="method" aria-labelledby="method-h">
   <figure class="method-pic reveal">{pic("jantar-field", "(max-width: 760px) 100vw, 60vw", eager=True, prefix=P)}</figure>
   <div class="method-copy"><h1 id="method-h">The methods, in plain words.</h1>
@@ -457,12 +460,21 @@ def build(mode):
        data-listings="{listings or 0}" data-venues="{(I.get('method') or {}).get('venues', 0)}"></svg>
   <div class="method-cols method-cols-4">
     <p><b>Gather.</b> {E(T.get('method.listings', '—'))} platform listings in the latest update, from identical searches of Google Maps, Zomato and
-    Swiggy, collected slowly and never past a block.</p>
+    Swiggy, run at a person's pace, and stopped whenever a site turns visitors away.</p>
     <p><b>Match.</b> One record of {E(T.get('scene.venues_tracked', ''))} venues with permanent IDs, matched by name and distance.</p>
     <p><b>Publish.</b> Aggregates only. Any group under {k} cafés is withheld; a café is named only to credit it, never next to its
     ratings, reviews or prices. <a href="../data/insights.json" download>Download the figures</a>.</p>
     <p><b>Check.</b> Before anything is published, every figure is re-counted from the source data by separate code. Each
     finding names its evidence grade and the number of cafés behind it.</p>
+  </div>
+  <div class="method-cols method-more">
+    <p class="reveal"><b>What counts as a café.</b> Of the {E(T.get('scene.venues_tracked', ''))} venues in the record, {E(core)} are operating cafés of four kinds:
+    coffee-led, tea and chai, bakery and all-day cafés. Other venues the searches turn up, and cafés that have closed, stay in the record but out of the findings.
+    Each finding uses the cafés that list the detail it needs, so its count is shown with it. The two areas are drawn on the <a href="../location/">Location check</a>.</p>
+    <p class="reveal"><b>How a finding is graded.</b> <span class="ev" data-g="3"><i></i><i></i><i></i></span>Strong: the result clears its uncertainty range and rests on
+    {10 * k} or more cafés. <span class="ev" data-g="2"><i></i><i></i><i></i></span>Moderate: clear, but on fewer cafés, or it needs a judgement call that the finding
+    explains. <span class="ev" data-g="1"><i></i><i></i><i></i></span>Weak: the range doesn't settle it.</p>
+    <p class="reveal"><b>In this update.</b> {E(missing_line)}</p>
   </div>
 </section>"""
 
@@ -471,13 +483,13 @@ def build(mode):
     cards = [("insights/", "Insights", f"{len(F)} findings on {core} cafés, each in one sentence, with what it means for yours."),
              ("playbook/", "Playbook", "The most common problems café owners here face, and a practical fix for each, with the maths shown."),
              ("location/", "Location check", "Pick any spot and read its five-minute walk: cafés, gaps, and who is around to buy coffee."),
-             ("your-cafe/", "Your café", "Set your area, type and numbers; see where you stand. Nothing you type leaves the page."),
+             ("your-cafe/", "Your café", "Set your area, type and numbers; see where you stand. Computed in your browser."),
              ("best/", "The best", "The cafés doing it best right now, and what each one did right."),
-             ("method/", "Method", "How the beans get counted: the statistics in plain words, and the data to download.")]
+             ("method/", "Method", "The statistics in plain words, what counts as a café, and the data to download.")]
     if CTX["updates"]:
-        cards.append(("updates/", "Free updates", "Fresh findings on WhatsApp, twice a month. No stale beans."))
+        cards.append(("updates/", "Free updates", "Fresh findings on WhatsApp, twice a month, free."))
     explore = f"""<section class="explore" aria-labelledby="explore-h">
-  <header class="ch-head reveal"><h2 id="explore-h">Find what you came for.</h2><p>Every part of the record, one click away. Start with the findings, or go straight to your street.</p></header>
+  <header class="ch-head reveal"><h2 id="explore-h">Find what you came for.</h2><p>Everything here, one click away. Start with the findings, or go straight to your street.</p></header>
   <ul class="best-list ex-list">{"".join(f'<li class="reveal"><a href="{u}"><span class="best-name">{E(t)}</span><span class="ex-p">{E(d)}</span><span class="best-go">Open</span></a></li>' for u, t, d in cards)}</ul>
 </section>"""
     picks = [F[x] for x in ("attention", "platforms_rate", "delivery") if x in F]
@@ -491,7 +503,7 @@ def build(mode):
     ins_head = f"""<section class="page-head">
   <h1 class="reveal">What the data says.</h1>
   <p class="page-lede reveal">{len(F)} findings on {E(core)} cafés in C-Scheme and Malviya Nagar. Each is one sentence and one number,
-  with what it means for you, what it doesn't say, and how I know.</p>
+  with what it means for you, what it doesn't say, and how I know. Each uses the cafés that list the detail it needs, so its count is shown with it.</p>
   <nav class="jump reveal" aria-label="On this page">{"".join(f'<a href="#{a}">{E(t)}</a>' for a, t in chapters)}</nav>
 </section>"""
     ch1 = ch1.replace('id="insights"', 'id="insights-attention"').replace('aria-labelledby="insights-h"', 'aria-labelledby="insights-attention-h"').replace('id="insights-h"', 'id="insights-attention-h"')
@@ -647,19 +659,20 @@ def location_page(site, au, captured, k, mailto):
         <div class="seg-group loc-places" role="group" aria-label="Start from"></div>
       </div>
       <canvas class="loc-canvas" aria-label="Map of the area. Click a spot, or use the arrow keys, to read its five-minute walk."></canvas>
-      <p class="loc-key">Darker ground: more cafés within a five-minute walk. Point at a spot to preview it; click or tap to read it. Arrow keys move it.</p>
+      <p class="loc-key">Darker ground: more cafés within a five-minute walk. Click or tap a spot to read it. On a computer, point first to preview it, and use the arrow keys to move it.</p>
     </div>
     <article class="loc-report" aria-live="polite"><p class="lr-k">Pick a spot to begin.</p></article>
   </section>
   <section class="loc-notes">
     <div class="reveal"><h2>How I read a spot.</h2>
     <p>Every spot on a 150-metre grid gets the cafés within 500 metres, about a five-minute walk. Shares and typical values appear only
-    where {k} or more cafés are counted, rounded so no single café can be picked out. Offices, colleges, coaching centres, schools,
+    where {k} or more cafés are counted, rounded to the nearest 5%. Offices, colleges, coaching centres, schools,
     gyms, hospitals, hotels, malls and big stores come from the same Google Maps searches I run for cafés, sorted by each place's own category
     and counted, never named. Bus stops and metro stations come from OpenStreetMap.</p></div>
     <div class="reveal"><h2>What it doesn't say.</h2>
     <p>It doesn't say a café here will do well or badly. Rent, footfall and what you serve matter more than any count. A count of
-    places is not a count of people: one large office and one small clinic each count once. Residents are not counted yet.</p></div>
+    places is not a count of people: one large office and one small clinic each count once. Residents are not counted yet. Near the edge of
+    each area, cafés just outside it aren't in the record, so counts there run low.</p></div>
   </section>
 """ + contact(pre, "Questions about a spot?", "If you're weighing a location and want to talk it through, you're welcome to get in touch.", bio=False)
     return shell("location/", f"Where to open a café in Jaipur · {site['title']}",

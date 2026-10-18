@@ -216,7 +216,7 @@
     const busy = D.busy[area], rank = busy.length ? Math.round(100 * busy.filter((n) => n < s.n).length / busy.length) : 0;
     let html = `<p class="lr-big">${s.n} <span>${s.n === 1 ? "café" : "cafés"}</span></p>`;
     html += `<p class="lr-k">within a five-minute walk ${where}.</p>`;
-    html += s.n ? `<p class="lr-sub">${rank >= 50 ? `Busier than ${rank}% of café spots in ${esc(an)}.` : `Quieter than ${100 - rank}% of café spots in ${esc(an)}.`}</p>` : `<p class="lr-sub">No café within a five-minute walk.</p>`;
+    html += s.n ? `<p class="lr-sub">${rank >= 50 ? `More cafés than ${rank}% of café spots in ${esc(an)}.` : `Fewer cafés than ${100 - rank}% of café spots in ${esc(an)}.`}</p>` : `<p class="lr-sub">No café within a five-minute walk.</p>`;
     const notes = [];
     if (s.mix) {
       html += `<div class="lr-mix" role="img" aria-label="Type mix">${D.types.map((t) => `<i style="flex:${Math.max(s.mix[t], 0.5)};background:${COL[t]}"></i>`).join("")}</div>`;
@@ -271,8 +271,8 @@
     const ctx2 = [];
     if (!D.groups.length) ctx2.push(`${s.hotels} ${s.hotels === 1 ? "hotel" : "hotels"}`);
     ctx2.push(`${s.stops} bus ${s.stops === 1 ? "stop" : "stops"}`);
-    ctx2.push(s.metro_m != null && s.metro_m <= 1500 ? `${esc(s.metro)} metro ${s.metro_m >= 1000 ? (s.metro_m / 1000).toFixed(1) + " km" : s.metro_m + " m"} away` : "no metro within a 20-minute walk");
-    html += `<p class="lr-ctx"><b>Also within the walk</b>, as mapped in OpenStreetMap: ${ctx2.join(", ")}.</p>`;
+    const metro = s.metro_m != null && s.metro_m <= 1500 ? ` Nearest metro: ${esc(s.metro)}, ${s.metro_m >= 1000 ? (s.metro_m / 1000).toFixed(1) + " km" : s.metro_m + " m"} away.` : " No metro within a 20-minute walk.";
+    html += `<p class="lr-ctx"><b>Also within the walk</b>, as mapped in OpenStreetMap: ${ctx2.join(", ")}.${metro}</p>`;
     report.innerHTML = html;
   }
 })();

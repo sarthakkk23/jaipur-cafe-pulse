@@ -179,7 +179,7 @@ def profiles(entries, master_rows, df, open_cdf, amen_share, kudos, fmt_clock, a
         rare = [x for x in flist if x["share"] is not None and x["share"] < 25]
         if rare:
             signals.append({"k": "Stands apart", "v": str(len(rare)),
-                            "t": "Offers what few cafés list: " + ", ".join(f"{x['f']} ({x['share']}% of cafés)" for x in rare[:4]) + "."})
+                            "t": "Offers what few cafés list: " + ", ".join(f"{x['f']} ({x['share']}% of cafés)" for x in rare) + "."})
         if len(outlets) > 1:
             areas = sorted({x["area"] for x in o})
             signals.append({"k": "Reach", "v": str(len(outlets)),

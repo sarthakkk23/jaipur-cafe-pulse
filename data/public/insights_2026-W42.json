@@ -5,7 +5,7 @@
   "failed_sources": [
    "magicpin"
   ],
-  "generated_at": "2026-10-17T19:29:49+00:00",
+  "generated_at": "2026-10-18T15:07:16+00:00",
   "areas": [
    "C-Scheme",
    "Malviya Nagar"
@@ -24401,7 +24401,7 @@
     "id": "cluster",
     "value": 91,
     "unit": "%",
-    "headline": "of cafés have 10 or more cafés within a 5-minute walk.",
+    "headline": "of cafés have 10 or more other cafés within a 5-minute walk.",
     "body": "Customers here always have a choice next door. Location alone won't set a café apart; what it offers has to.",
     "limit": "It doesn't say whether a crowded street helps or hurts a café's trade.",
     "grade": "Strong",
@@ -24445,7 +24445,7 @@
     "how": [
      "I grouped the 398 rated cafés by how many reviews they have and took the share rated 4.8 or above in each group.",
      "Ratings also spread less as reviews grow: the typical gap from the group average falls from 0.55 stars to 0.24.",
-     "Across all cafés, more reviews go with a lower rating (rank correlation -0.37; a shuffle test puts the chance of this by luck below 0.001). This is regression to the mean, not a sign that popular cafés are worse."
+     "Across all cafés, more reviews go with a lower rating (rank correlation -0.37; a shuffle test puts the chance of this by luck below 0.001). Mostly that is small numbers swinging more, not a sign that popular cafés are worse."
     ],
     "chart": {
      "kind": "bands",
@@ -24495,7 +24495,7 @@
     "how": [
      "I took the 102 cafés rated on both Google and Zomato dine-in and subtracted one rating from the other, café by café.",
      "Resampling those cafés 4,000 times puts the average gap between 0.28 and 0.47 stars (95% interval), clear of zero.",
-     "11% score the same on both; 19% score higher on Zomato."
+     "11% score the same on both; 19% score higher on Zomato. Shares are rounded, so they may not add to exactly 100."
     ],
     "chart": {
      "kind": "split",
@@ -24553,7 +24553,7 @@
     "grade": "Moderate",
     "how": [
      "All cafés: the median Google reviews of cafés that list a feature against those that don't, for the 151 cafés on Zomato with a listed price. Cafés with Wi-Fi list 3.9 other features on average, against 2.3 for the rest.",
-     "Similar cafés: a regression on the logarithm of reviews that holds area, café type and price level fixed, so each feature is compared against cafés that are otherwise alike. Wi-Fi: +35% (90% interval -31% to +175% from 3,000 resamples).",
+     "Similar cafés: a regression on the logarithm of reviews that holds area, café type and price level fixed, so each feature is compared against cafés that are otherwise alike. Wi-Fi: +35% (95% interval -40% to +208% from 3,000 resamples). The range includes zero, which is the point: once similar cafés are compared, Wi-Fi's own effect can't be told apart from none.",
      "Kid-friendly: +480% across all cafés, +348% among similar ones; Smoking area: +302% across all cafés, -38% among similar ones; Wi-Fi or work-friendly: +247% across all cafés, +35% among similar ones; Board games or books: +171% across all cafés, +1% among similar ones; Outdoor seating: +89% across all cafés, +25% among similar ones; Breakfast: +63% across all cafés, +21% among similar ones; Home delivery: -4% across all cafés, -6% among similar ones; Vegetarian only: -11% across all cafés, +23% among similar ones.",
      "This is association, not cause: a listing can mark the kind of café that draws reviews without drawing them itself."
     ],
@@ -24579,7 +24579,7 @@
     "value": 49,
     "unit": "%",
     "headline": "of cafés charge ₹500 or less for two.",
-    "body": "Price has no link to rating: dearer cafés rate no higher, cheaper ones no lower. Price for your customer, not for your score.",
+    "body": "Price shows no link to rating: dearer cafés rate no higher, cheaper ones no lower. Price for your customer, not for your score.",
     "limit": "It doesn't say price doesn't matter to customers, only that it doesn't predict the rating.",
     "grade": "Strong",
     "how": [
@@ -24670,12 +24670,12 @@
     "unit": "%",
     "headline": "of cafés show up on only one app.",
     "body": "Only 41% are on Zomato and 20% on Swiggy. Every app a café is missing from is a crowd that never sees it.",
-    "limit": "It doesn't count apps outside Google Maps, Zomato, Swiggy and magicpin.",
+    "limit": "It doesn't count apps outside Google Maps, Zomato and Swiggy. magicpin couldn't be read in this update, so it isn't counted.",
     "grade": "Moderate",
     "how": [
      "80% on Google Maps; 41% on Zomato; 20% on Swiggy.",
      "Each of the 511 cafés matched across the platform searches I run on every update.",
-     "Absent means it did not appear in our searches of that platform, which is how a customer browsing the area would miss it too."
+     "Absent means it did not appear in my searches of that platform, which is how a customer browsing the area would miss it too."
     ],
     "chart": {
      "kind": "split",
@@ -24727,7 +24727,7 @@
      }
     },
     {
-     "text": "The format has travelled: Town Coffee now appears in both areas we track, Malviya Nagar and C-Scheme.",
+     "text": "The format has travelled: Town Coffee now appears in both areas I track, Malviya Nagar and C-Scheme.",
      "source": {
       "publication": "Jaipur Café Index record",
       "title": "Jaipur Café Index venue census",
@@ -24868,7 +24868,7 @@
     {
      "k": "Stands apart",
      "v": "6",
-     "t": "Offers what few cafés list: Gluten-free options (9% of cafés), Kid-friendly (19% of cafés), Valet parking (7% of cafés), Vegan options (8% of cafés)."
+     "t": "Offers what few cafés list: Gluten-free options (9% of cafés), Kid-friendly (19% of cafés), Valet parking (7% of cafés), Vegan options (8% of cafés), Wi-Fi (17% of cafés), Work-friendly (12% of cafés)."
     },
     {
      "k": "Reach",

@@ -32,7 +32,7 @@ S = {
              "https://www.restaurantindia.in/article/are-high-rentals-draining-out-restaurant-business.13854"),
     "google": ("Google Maps contribution policy: no incentives such as payment, discounts or free goods for reviews",
                "https://support.google.com/contributionpolicy/answer/7400114?hl=en"),
-    "menu": ("Kasavana and Smith's menu engineering, as applied in the Journal of Hospitality Application and Research",
+    "menu": ("Kasavana and Smith, Menu Engineering (1982); a worked application in the Journal of Hospitality Application and Research",
              "https://publishingindia.com/archive/johar/application-of-kasavana-smith-menu-engineering-model-to-menu-of-a-resort-restaurant-a-case-study-approach"),
 }
 
@@ -53,7 +53,9 @@ POWER_HOUR = 100       # about 10 units an hour at ₹10 a unit: far above what 
 coffee = DOSE_G * BEANS_KG / 1000          # ≈ ₹42.84
 milk = MILK_ML * MILK_L / 1000             # ₹10.50
 CAPPA_TABLE = coffee + milk + EXTRAS       # ≈ ₹55
-CAPPA_AWAY = CAPPA_TABLE + CUP_SET         # ≈ ₹65
+CAPPA_AWAY = CAPPA_TABLE + CUP_SET         # ≈ ₹65.34
+COLD_MILK_ML = 200                          # a cold coffee takes more milk
+COLD = coffee + COLD_MILK_ML * MILK_L / 1000 + 3   # coffee, milk, sugar and ice ≈ ₹59.84
 
 
 def inr(n):
@@ -230,7 +232,8 @@ def pages(I, F, L, k, core, pre):
     menu_bars = dict(((F.get("menus") or {}).get("chart") or {}).get("bars") or [])
     cells = [c for c in (I.get("price") or {}).get("cells") or [] if c.get("median") and c.get("n", 0) >= k]
     hours_n = (I.get("hours") or {}).get("n", "")
-    ing = round(CAPPA_TABLE)
+    ing = math.ceil(CAPPA_TABLE)                 # costs are always rounded up
+    cold = math.ceil(COLD)
     P = []
 
     def finding_note(fid):
@@ -240,7 +243,7 @@ def pages(I, F, L, k, core, pre):
     # ===== 1. standing out =====
     f = F.get("cluster")
     gt = nearest_spot(L, "Malviya Nagar", "Gaurav Tower")
-    items = [("Cold coffee", 620, 180, 45), ("Cappuccino", 540, 160, ing), ("Veg sandwich", 410, 180, 60),
+    items = [("Cold coffee", 620, 180, cold), ("Cappuccino", 540, 160, ing), ("Veg sandwich", 410, 180, 60),
              ("Brownie", 380, 120, 35), ("Masala chai", 300, 60, 12), ("Pizza", 140, 320, 130), ("Pasta", 90, 280, 95), ("Momos", 60, 150, 55)]
     sold = sum(i[1] for i in items)
     pop_line = 0.7 * sold / len(items)                       # Kasavana and Smith: 70% of an equal share
@@ -248,7 +251,7 @@ def pages(I, F, L, k, core, pre):
 
     def box(n, p, c):
         return {(True, True): "Star", (True, False): "Plowhorse", (False, True): "Puzzle", (False, False): "Dog"}[(n >= pop_line, (p - c) >= avg_m)]
-    rows = [[E(nm), f"{n}", f"{100 * n / sold:.0f}%", f"₹{p}", f"₹{c}", f"₹{p - c}", f"<b>{box(n, p, c)}</b>"] for nm, n, p, c in items]
+    rows = [[E(nm), f"<b>{box(n, p, c)}</b>", f"{n}", f"{100 * n / sold:.0f}%", f"₹{p}", f"₹{c}", f"₹{p - c}"] for nm, n, p, c in items]
     stars = [i for i in items if box(*i[1:]) == "Star"]
     star = max(stars, key=lambda i: i[1] * (i[2] - i[3]))
     named = lambda b: ", ".join(i[0].lower() for i in items if box(*i[1:]) == b)
@@ -267,10 +270,11 @@ def pages(I, F, L, k, core, pre):
     steps = ([("m", "Read the street", f"<p>{street}</p>")] if street else []) + [
         ("x", "List last month's sales by item", "<p>From the billing system: how many of each item sold, its price, and what its ingredients cost. "
               "The figures below are invented to show the method. Run it on your own sales.</p>"
-              + table(["Item", "Sold", "Share", "Price", "Ingredients", "Kept per item", "Box"], rows)),
+              + table(["Item", "Box", "Sold", "Share", "Price", "Ingredients", "Kept per item"], rows)
+              + "<p class=\"calc-note\">The Box column is explained in the next step.</p>"),
         ("a", "Sort every item into one of four boxes", f"<p>This is menu engineering, a method restaurants have used since the 1980s. Ask two questions of each item:</p>"
-              f"<ul><li><b>Is it popular?</b> Yes if it sells at least 70% of an equal share. With {len(items)} items, an equal share is "
-              f"{100 / len(items):.1f}% of sales, so the line is {100 * 0.7 / len(items):.2f}%: {pop_line:.0f} a month here.</li>"
+              f"<ul><li><b>Is it popular?</b> Yes if it sells at least 70% of what it would if every item sold equally. With {len(items)} items, "
+              f"an equal share is {100 / len(items):.1f}% of sales, so the line is {100 * 0.7 / len(items):.2f}%: {pop_line:.0f} a month here.</li>"
               f"<li><b>Does it keep more than average?</b> Yes if it keeps more than ₹{avg_m:.0f}, the average across everything sold.</li></ul>"
               "<p><b>Star:</b> popular, and keeps more. <b>Plowhorse:</b> popular, keeps less. <b>Puzzle:</b> keeps more, but rarely ordered. "
               "<b>Dog:</b> neither.</p>"),
@@ -298,7 +302,7 @@ def pages(I, F, L, k, core, pre):
                     ("Cut one Dog.", "Start with the item that sells least and keeps least. See whether anyone asks for it.")])
             + sources([f"Cafés near Gaurav Tower: the <a href=\"{pre}location/\">Location check</a>, latest update. Menus: the Zomato cuisine tags of {F['menus']['n'] if F.get('menus') else ''} cafés.",
                        f"The four-box method: {src('menu')}.",
-                       f"The cappuccino's ₹{ing} of ingredients is worked out in the <a href=\"{pre}playbook/pricing/\">pricing case</a>. The other sales figures are invented for the example."])
+                       f"Ingredient costs for the cappuccino (₹{ing}) and cold coffee (₹{cold}) are worked out in the <a href=\"{pre}playbook/pricing/\">pricing</a> and <a href=\"{pre}playbook/delivery/\">delivery</a> cases. The other figures are invented for the example."])
             + takeaway("You don't need a new idea to stand out. Your sales already know your best item. The job is to make the street know it too."))
     P.append(dict(slug="stand-out", short="Standing out", title="Ten cafés within a five-minute walk. Why pick mine?",
                   answer=f"Find the one item your customers already choose, and make the whole street know it.",
@@ -308,7 +312,7 @@ def pages(I, F, L, k, core, pre):
     # ===== 2. empty mornings =====
     o_all, o_cs, o_mn = at8("Both areas"), at8("C-Scheme"), at8("Malviya Nagar")
     am = nearest_spot(L, "C-Scheme", "Ashok Marg")
-    away = round(CAPPA_AWAY)
+    away = math.ceil(CAPPA_AWAY)
     cost = 2 * 2 * STAFF_HOUR + 2 * POWER_HOUR
     keep = early_keep(150, away)
     need = math.ceil(cost / keep)
@@ -326,20 +330,20 @@ def pages(I, F, L, k, core, pre):
             ["Power and water", f"₹{POWER_HOUR} an hour: about 10 units at ₹10, far more than a small café draws", f"₹{inr(2 * POWER_HOUR)}"],
             ["<b>Total</b>", "", f"<b>₹{inr(cost)}</b>"]])),
         ("e", "What one takeaway cappuccino keeps", table(["Line", "Working", "₹"], [
-            ["Price", "Deliberately low for a cappuccino, GST included", "150.00"],
+            ["Price", "₹10 below the ₹160 used in the other cases, to stay cautious; GST included", "150.00"],
             ["Less GST", "₹150 ÷ 1.05", f"−{150 - 150 / 1.05:.2f}"],
             ["Coffee", f"{DOSE_G} g at ₹{inr(BEANS_KG)} a kilo, the retail price", f"−{coffee:.2f}"],
             ["Milk", f"{MILK_ML} ml at ₹{MILK_L} a litre", f"−{milk:.2f}"],
             ["Cup, lid, sleeve, sugar", f"₹{CUP_SET} + ₹{EXTRAS}", f"−{CUP_SET + EXTRAS:.2f}"],
             ["<b>Kept</b>", "Ingredients rounded up to ₹" + str(away), f"<b>{keep:.2f}</b>"]])),
         ("a", "How many coffees pay for the hours", f"<p>₹{inr(cost)} ÷ ₹{keep:.2f} = {cost / keep:.1f}. So <b>{need} coffees in two hours</b> covers everything. "
-              "If your costs or prices differ, the answer moves less than you'd expect:</p>"
+              "Here's how the answer moves with your costs and price:</p>"
               + table(["Coffee price", f"Costs ₹{inr(cost)}", f"₹{inr(cost * 1.5)}", f"₹{inr(cost * 2)}"], grid_rows)),
         ("j", "Is that many realistic?", "<p>"
               + (f"With {d['office']} offices and banks and {d.get('gym', 0)} gyms within five minutes, {need} coffees is fewer than one for every office. " if d.get("office", 0) > need else "")
               + "The people are there. What's missing is a reason to stop: a coffee that's ready before they reach the counter.</p>"),
         ("a", "The worst case", f"<p>If not one extra coffee sells, a month's trial (26 working days) costs ₹{inr(26 * cost)}. "
-              "That is the most the experiment can lose, and four weeks is enough to know.</p>"),
+              "Add any unsold bakes and a few printed cards, and that is about the most the experiment can lose. Four weeks is enough to know.</p>"),
     ]
     tiles = []
     if o_cs is not None and o_mn is not None:
@@ -389,20 +393,20 @@ def pages(I, F, L, k, core, pre):
     if lo_b and hi_b and hi_b is not lo_b and hi_b.get("share_48_plus") is not None:
         tiles.append(("m", lo_b["share_48_plus"], "%", f"of cafés with under 10 reviews rate 4.8 or more. With {E(hi_b['label'])} reviews, just {hi_b['share_48_plus']}% do."))
     steps = [
-        ("m", "Where the café stands", f"<p>{start} reviews, rated {avg}. The typical café in Malviya Nagar has {target}. The gap is <b>{gap} reviews</b>.</p>"),
+        ("x", "Where the café stands", f"<p>Say the café has {start} reviews, rated {avg}. The typical café in Malviya Nagar has {target}: that part is measured. The gap is <b>{gap} reviews</b>.</p>"),
         ("a", "Why a few reviews are fragile", "<p>Here is what one unhappy one-star review does to a 4.9, depending on how many reviews stand behind it:</p>"
               + table(["Reviews before", "Average after one 1-star", "As Google shows it"], [[f"{n}", f"{x:.2f}", f"<b>{r1(x)}</b>"] for n, x in hits])
-              + (lambda a, b: f"<p>At {start} reviews, one bad day costs {a} {'tenth' if a == 1 else 'tenths'} of a star. At {target}, just {b} {'tenth' if b == 1 else 'tenths'}. "
+              + (lambda a, b: f"<p>At {start} reviews, one bad day costs you {a / 10:.1f} stars. At {target}, only {b / 10:.1f}. "
                  "Volume is what makes a rating hard to knock over.</p>")(round(10 * (avg - float(r1(hits[0][1])))), round(10 * (avg - float(r1((avg * target + 1) / (target + 1))))))),
-        ("a", "How often you'd have to ask", f"<p>Closing a gap of {gap} in {weeks} weeks takes about {per_week:.1f} new reviews a week. At different levels of trade, that is:</p>"
+        ("a", "How many reviews you need", f"<p>Closing a gap of {gap} in {weeks} weeks takes about {per_week:.1f} new reviews a week. At different levels of trade, that is:</p>"
               + table(["Bills a day", "Bills a week", "Reviews needed"], ask_rows)
-              + f"<p>Even the quietest row needs only one review in every {math.floor(40 * 7 / per_week)} bills. Most happy customers never think to write one. They need asking, not pleading.</p>"),
+              + f"<p>Even the quietest row needs a review from just one bill in {math.floor(40 * 7 / per_week)}. Not everyone you ask will write one, so ask more often than that. Most happy customers never think to write one unasked. They need asking, not pleading.</p>"),
         ("j", "Ask at the right moment", "<p>Ask in person when someone compliments the food or thanks you on the way out, and hand them a small card with a QR code that opens your Google review page. "
               "Never offer a discount, a free item or money for a review: Google's rules forbid it, and those reviews can be removed.</p>"),
         ("j", "Answer every review", "<p>Reply within two days, in a line or two. Thank the good ones by naming what they liked. Answer the hard ones calmly, and take the details offline. New customers read the replies as closely as the reviews.</p>"),
     ]
     body = (hero(3, "Being found", "We're new, nobody finds us, and we have too few reviews.",
-                 "Reviews are how new customers find you, and you need far fewer asks than you'd think.",
+                 "Reviews are how new customers find you, and closing the gap takes fewer than you'd think.",
                  f["value"] if f else "", f["unit"] if f else "", E(f["headline"]) if f else "", finding_note("attention"))
             + lead("Attention piles onto the cafés that already have it. A new café with a handful of reviews is easy to miss and easy to knock over: "
                    "one bad review moves its rating a long way. The fix is steady, honest volume.", tiles)
@@ -414,7 +418,7 @@ def pages(I, F, L, k, core, pre):
                        f"Review rules: {src('google')}.", "The worked example's rating and bill counts are round numbers for the arithmetic, not data about any café."])
             + takeaway(f"You don't need a campaign. About {math.ceil(per_week)} honest reviews a week takes a new café to the street's typical count in two months, and every review after that makes the rating harder to knock over."))
     P.append(dict(slug="being-found", short="Being found", title="We're new, nobody finds us, and we have too few reviews.",
-                  answer=f"About {math.ceil(per_week)} honest reviews a week closes the gap in two months. Even a quiet café needs just one in every {math.floor(40 * 7 / per_week)} bills.",
+                  answer=f"About {math.ceil(per_week)} honest reviews a week closes the gap in two months. Even a quiet café needs a review from just one bill in {math.floor(40 * 7 / per_week)}.",
                   seo="How a new café in Jaipur gets more Google reviews", body=body,
                   desc="A worked case for new cafés in Malviya Nagar and C-Scheme, Jaipur: why a few reviews make a rating fragile, and how many asks it takes to catch up."))
 
@@ -423,30 +427,30 @@ def pages(I, F, L, k, core, pre):
     price, com = 180, 25
     fee = price * com / 100
     tax = fee * GST_COMMISSION / 100
-    keep_app = delivery_keep(price, com, 0, DELIVERY_PACK, ing)
-    keep_tab = price - ing
-    keep_disc = delivery_keep(price, com, 20, DELIVERY_PACK, ing)
-    sens = [[f"{c}%"] + [f"₹{inr(delivery_keep(price, c, dd, DELIVERY_PACK, ing))}" for dd in (0, 10, 20)] for c in (20, 25, 30)]
+    keep_app = delivery_keep(price, com, 0, DELIVERY_PACK, cold)
+    keep_tab = price - cold
+    keep_disc = delivery_keep(price, com, 20, DELIVERY_PACK, cold)
+    sens = [[f"{c}%"] + [f"₹{inr(delivery_keep(price, c, dd, DELIVERY_PACK, cold))}" for dd in (0, 10, 20)] for c in (20, 25, 30)]
     steps = [
-        ("e", "What the cup costs to make", f"<p>{DOSE_G} g of coffee at ₹{inr(BEANS_KG)} a kilo (₹{coffee:.2f}), {MILK_ML} ml of milk at ₹{MILK_L} a litre (₹{milk:.2f}), and ₹{EXTRAS} of sugar and napkin: "
-              f"<b>₹{ing}</b>. That's at the retail coffee price, so it's on the high side.</p>"),
+        ("e", "What the cold coffee costs to make", f"<p>{DOSE_G} g of coffee at ₹{inr(BEANS_KG)} a kilo (₹{coffee:.2f}), {COLD_MILK_ML} ml of milk at ₹{MILK_L} a litre (₹{COLD_MILK_ML * MILK_L / 1000:.2f}), and ₹3 of sugar and ice: "
+              f"<b>₹{cold}</b>, rounded up. That's at the retail coffee price, so it's on the high side. A cold coffee travels well, which makes it a fair test of delivery.</p>"),
         ("a", "Side by side", table(["", "At a table", "On the app"], [
             ["Menu price", f"₹{price}", f"₹{price}"],
             [f"Commission, {com}%", "–", f"−₹{fee:.2f}"],
             [f"GST on the commission, {GST_COMMISSION}%", "–", f"−₹{tax:.2f}"],
-            ["Cup, lid and carrier bag", "–", f"−₹{DELIVERY_PACK}"],
-            ["Ingredients", f"−₹{ing}", f"−₹{ing}"],
+            ["Cup, lid, straw and bag", "–", f"−₹{DELIVERY_PACK}"],
+            ["Ingredients", f"−₹{cold}", f"−₹{cold}"],
             ["<b>Kept</b>", f"<b>₹{inr(keep_tab)}</b> ({round(100 * keep_tab / price)}%)", f"<b>₹{inr(keep_app)}</b> ({round(100 * keep_app / price)}%)"]])
-              + f"<p>The customer pays the 5% GST on the food either way, so it doesn't change what you keep. The app's cut, with its own tax, is "
+              + f"<p>Menu prices here are before GST. The customer pays the 5% GST on top either way, so it doesn't change what you keep. The app's cut, with its own tax, is "
                 f"{com * (1 + GST_COMMISSION / 100):.1f}% of the price before you've paid for a single ingredient.</p>"),
         ("a", "Add a discount", f"<p>Apps push cafés to fund discounts. A 20% discount you pay for, with commission charged on the discounted price, leaves <b>₹{inr(keep_disc)}</b> "
-              f"of a ₹{price} cappuccino. Whatever your exact terms, the picture stays the same:</p>"
+              f"of a ₹{price} cold coffee. Whatever your exact terms, the picture stays the same:</p>"
               + table(["Commission", "No discount", "10% discount", "20% discount"], sens)),
         ("j", "Why not just drop delivery?", "<p>"
-              + (f"Because for {f['value']}% of cafés here, delivery is where most of the reviews come from. " if f else "")
+              + (f"Because for {f['value']}% of cafés here, most of their Zomato reviews come from delivery. " if f else "")
               + "Delivery is where many customers first meet you. The aim isn't to leave the apps. It's to sell, on the apps, the items that keep money and travel well.</p>"),
         ("j", "Build the delivery menu", "<p>Go item by item with the calculator below. Keep the items that leave a fair share after the app's cut and arrive "
-              "as good as they left. Drop the ones that don't. Foamy hot drinks that collapse and crisp things that go soft travel badly anyway.</p>"),
+              "as good as they left. Drop the ones that don't: a foamy cappuccino collapses on the way, and crisp things go soft.</p>"),
     ]
     body = (hero(4, "Delivery margins", "Delivery brings orders. After the commission, what's left?",
                  "Less than half of what the same item keeps at a table. So choose what you deliver on purpose.",
@@ -455,22 +459,22 @@ def pages(I, F, L, k, core, pre):
                    "and tax on that commission, before you've paid for anything. The answer isn't to quit. It's to know what each item keeps.",
                    [("e", "20–30", "%", "commission: the range restaurants put to India's competition regulator."),
                     ("e", GST_COMMISSION, "%", "GST on that commission, which restaurants can't claim back.")])
-            + case("A worked example: one cappuccino, two ways.", f"The same ₹{price} cappuccino, sold at a table and through an app at {com}% commission. Every cost is sourced or set high on purpose.", steps)
+            + case("A worked example: one cold coffee, two ways.", f"The same ₹{price} cold coffee, sold at a table and through an app at {com}% commission. Every cost is sourced or set high on purpose.", steps)
             + calc("delivery", "Check any item.", "Put in an item's menu price, your commission and discount terms, and what its packaging and ingredients cost.", [
                 field("price", "Menu price (₹)", price),
                 field("commission", "Commission (%)", com, "It's in your contract.", mx=100),
                 field("discount", "Discount you fund (%)", 0, mx=100),
                 field("packaging", "Packaging (₹)", DELIVERY_PACK),
-                field("ingredients", "Ingredients (₹)", ing)],
-                delivery_out(price, com, 0, DELIVERY_PACK, ing))
+                field("ingredients", "Ingredients (₹)", cold)],
+                delivery_out(price, com, 0, DELIVERY_PACK, cold))
             + todo([("Run every delivery item through the calculator.", "Write down what each keeps. A few will keep almost nothing."),
                     ("Spend on packaging before discounts.", "An item that arrives right earns the next order. A discount only lowers what's left."),
                     ("Put a card in every bag.", "Give a reason to visit in person, like an item you only serve at the table.")])
-            + sources([f"Delivery reviews: the Zomato listings of {f['n'] if f else ''} cafés, latest update.", f"Commission: {src('nrai')}.", f"GST on commission: {src('gst')}.",
-                       f"Coffee: {src('beans')}.", f"Milk: {src('milk')}.", f"Cups: {src('cups')}. The ₹{DELIVERY_PACK} allows for a lid and a bag too."])
+            + sources([f"Delivery reviews: the Zomato listings of {f['n'] if f else ''} cafés, latest update.", f"Commission: {src('nrai')}. GST on commission: {src('gst')}. These are the latest public figures I could find; your contract has yours.",
+                       f"Coffee: {src('beans')}.", f"Milk: {src('milk')}.", f"Cups: {src('cups')}. The ₹{DELIVERY_PACK} allows for a lid, straw and bag too."])
             + takeaway("Treat every delivery item as its own small business. If it keeps nothing after the app's cut, it's advertising. Decide how much advertising you want to buy, and sell the rest at the table."))
     P.append(dict(slug="delivery", short="Delivery margins", title="Delivery brings orders. After the commission, what's left?",
-                  answer=f"A ₹{price} cappuccino keeps ₹{inr(keep_app)} on the app and ₹{inr(keep_tab)} at a table. Choose what you deliver on purpose.",
+                  answer=f"A ₹{price} cold coffee keeps ₹{inr(keep_app)} on the app and ₹{inr(keep_tab)} at a table. Choose what you deliver on purpose.",
                   seo="What Zomato and Swiggy orders really leave a café in Jaipur", body=body,
                   desc="A worked case for cafés in C-Scheme and Malviya Nagar, Jaipur: commission, GST on commission and packaging, line by line, with a calculator for any item."))
 
@@ -497,15 +501,15 @@ def pages(I, F, L, k, core, pre):
         ("a", "The same sum at other prices", "<p>The cheaper the item, the more sales a ₹20 rise can afford to lose:</p>"
               + table(["Price", "Kept per cup", "Sales you can lose, of 100"], rise_rows)),
         ("m", "Will it cost you stars?", "<p>"
-              + (f"Not on the evidence here. Across {rated or f['n']} cafés, price has no link to rating" + (f" (rank correlation {rho}; zero means no link)" if rho else "") + ". "
-                 "Dearer cafés don't rate lower, and cheaper ones don't rate higher." if f else "")
+              + (f"Probably not. Across {rated or f['n']} cafés, price shows no link to rating" + (f" (rank correlation {rho}; zero means no link)" if rho else "") + ": "
+                 "dearer cafés don't rate lower. That compares different cafés, though, which isn't the same as watching one café raise its prices, so count after you do." if f else "")
               + "</p>" + (f"<p>What matters more is where you sit against cafés like yours. The typical cost for two:</p>{ptable}<p class=\"calc-note\">–: fewer than {k} cafés, so withheld.</p>" if ptable else "")),
         ("j", "Raise it the right way", "<p>Raise a few items at a time, starting with the popular ones that keep least: the Plowhorses from "
               f"<a href=\"{pre}playbook/stand-out/\">the four boxes</a>. Pair the rise with something people can see, like a better cup or a bigger bake. Then count cups for four weeks.</p>"),
     ]
     body = (hero(5, "Pricing", "Am I charging too much, or too little?",
                  "A coffee costs far less to make than it sells for. The real question is how many sales a rise can afford to lose.",
-                 f["value"] if f else "", f["unit"] if f else "", (E(f["headline"]) + " And price has no link to rating.") if f else "", finding_note("price"))
+                 f["value"] if f else "", f["unit"] if f else "", (E(f["headline"]) + " And price shows no link to rating.") if f else "", finding_note("price"))
             + lead("Owners worry that a higher price will cost them customers and stars. Stars don't move with price here. Customers might, "
                    "so the useful question is how many you can lose before a rise stops paying. That question has an exact answer.")
             + case(f"A worked example: a cappuccino at ₹{old}, going to ₹{new}.", "Ingredient costs are sourced. Everything else is arithmetic.", steps)
@@ -519,12 +523,14 @@ def pages(I, F, L, k, core, pre):
                        f"Coffee: {src('beans')}.", f"Milk: {src('milk')}."])
             + takeaway(f"A ₹{new - old} rise on a ₹{old} cappuccino pays for itself unless you lose more than {100 - need_cups} sales in every hundred. Raise, count, and let the count decide, not the fear."))
     P.append(dict(slug="pricing", short="Pricing", title="Am I charging too much, or too little?",
-                  answer=f"A ₹{new - old} rise on a ₹{old} cappuccino survives losing {100 - need_cups} of every 100 sales, and price doesn't move ratings here.",
+                  answer=f"A ₹{new - old} rise on a ₹{old} cappuccino survives losing {100 - need_cups} of every 100 sales, and dearer cafés here don't rate lower.",
                   seo="How to price coffee in a Jaipur café: the maths of a price rise", body=body,
                   desc="A worked case for cafés in C-Scheme and Malviya Nagar, Jaipur: what a cappuccino costs to make, and how many sales a price rise can afford to lose."))
 
     # ===== 6. table time =====
     f = F.get("amenities")
+    wf_share = next((i.get("share") for i in (I.get("amenities") or {}).get("items") or [] if i.get("key") == "work_friendly"), None)
+    wf_n = (I.get("amenities") or {}).get("n")
     sp = nearest_spot(L, "C-Scheme", "Sardar Patel Marg")
     two = (sp or {}).get("price")
     per = two / 2 if two else None
@@ -534,21 +540,23 @@ def pages(I, F, L, k, core, pre):
     if per:
         steps.append(("m", "What a lunch guest spends here", f"<p>Around Sardar Patel Marg the typical café charges <b>₹{inr(two)} for two</b>: about ₹{inr(per)} a person.</p>"))
     steps += [
-        ("a", "What a seat earns in an hour", table(["Who is in the seat", "Spends", "Stays", "Per hour"],
+        ("a", "What a seat brings in an hour", table(["Who is in the seat", "Spends", "Stays", "Brings in per hour"],
             [["Laptop guest, one coffee", "₹180", "3 hours", f"<b>₹{camp:.0f}</b>"]]
             + ([["Lunch guest", f"₹{inr(per)}", "1 hour", f"<b>₹{inr(per)}</b>"], ["Lunch guest, slow", f"₹{inr(per)}", "1½ hours", f"<b>₹{inr(per / 1.5)}</b>"]] if per else [])
             + [["Nobody", "–", "–", "<b>₹0</b>"]])),
-        ("j", "When it matters, and when it doesn't", "<p>A laptop guest only costs you money when someone else is turned away for want of a seat. "
-              + (f"At a full lunch, each camped seat gives up ₹{inr(per / 1.5 - camp)} to ₹{inr(per - camp)} an hour. " if per else "")
+        ("j", "When it matters, and when it doesn't", "<p>These are sales, not profit, but the gap is wide enough that the point holds either way. A laptop guest only costs you money when someone else is turned away for want of a seat. "
+              + (f"At a full lunch, each camped seat gives up ₹{inr(per / 1.5 - camp)} to ₹{inr(per - camp)} of sales an hour. " if per else "")
               + "At 4pm, with half the room empty, the alternative is ₹0, and the same guest is pure gain.</p>"),
         ("a", "Sell the time instead", f"<p>A work pass for the quiet hours: ₹{pass_price} for three hours, with a coffee, one refill and a cookie. That's ₹{pass_price // 3} an hour from the seat, "
-              f"{pass_price / 3 / camp:.1f} times the one-coffee guest, and the guest knows exactly what they've bought.</p>"),
-        ("m", "Will limits cost you reviews?", "<p>" + (f"Unlikely. Cafés with Wi-Fi get more reviews, but {f['value']}% of that gap disappears when you compare cafés that are otherwise alike. "
-              "Wi-Fi isn't what brings the reviews. " if f else "") + "A polite limit at the busiest hour, with a welcome the rest of the day, keeps both crowds.</p>"),
+              f"{pass_price / 3 / camp:.1f} times the one-coffee guest, and the guest knows exactly what they've bought.</p>"
+              + (f"<p>Few cafés make this explicit: only {wf_share}% of cafés on Zomato list themselves as work-friendly. A clear offer stands out.</p>" if wf_share is not None else "")),
+        ("j", "Will limits cost you reviews?", "<p>" + (f"Probably not much. Cafés with Wi-Fi get more reviews, but {f['value']}% of that gap disappears when you compare cafés that are otherwise alike, "
+              "so Wi-Fi doesn't look like what brings the reviews. That's about Wi-Fi, not about limits, so treat it as a hint. " if f else "") + "A polite limit at the busiest hour, with a welcome the rest of the day, keeps both crowds.</p>"),
     ]
     body = (hero(6, "Table time", "People sit for hours over one coffee.",
                  "It's only a problem when you're full. Protect the busy hour and sell the quiet ones.",
-                 f["value"] if f else "", f["unit"] if f else "", E(f["headline"]) if f else "", finding_note("amenities"))
+                 wf_share if wf_share is not None else "", "%", "of cafés on Zomato list themselves as work-friendly.",
+                 f"Zomato's listed highlights for {wf_n} cafés. <a href=\"{pre}your-cafe/\">Compare yours</a>")
             + lead("Some guests stay three hours on one coffee. Whether that costs you anything depends entirely on the hour. When the café is full, the seat is worth a lot. "
                    "When it's half empty, a guest who stays is better than an empty chair.")
             + case("A worked example: a café on Sardar Patel Marg.", "A C-Scheme café that's full at lunch and quiet in the afternoon. Not a real café: the street figure is real, the rest is arithmetic.", steps)
@@ -556,7 +564,7 @@ def pages(I, F, L, k, core, pre):
                     ("Offer a work pass in the quiet hours.", f"₹{pass_price} for three hours with a drink, a refill and a snack. Put it on the board."),
                     ("Set a polite rule for the busiest hour.", "A table card: \"Laptop-free from 1 to 3, so everyone gets a seat.\"")])
             + sources([f"Typical cost for two near Sardar Patel Marg: the <a href=\"{pre}location/\">Location check</a>, from Zomato listings.",
-                       f"Wi-Fi and reviews: {f['n'] if f else ''} cafés, compared like for like. <a href=\"{pre}insights/#f-amenities\">How I know</a>.",
+                       f"Work-friendly listings: Zomato highlights. Wi-Fi and reviews: {f['n'] if f else ''} cafés, compared like for like. <a href=\"{pre}insights/#f-amenities\">How I know</a>.",
                        "Time in the seat and the work-pass price are round example figures."])
             + takeaway("A laptop guest is a gift at 4pm and a cost at 1pm. Make the rule about the hour, not the guest, and sell the quiet hours as time."))
     P.append(dict(slug="table-time", short="Table time", title="People sit for hours over one coffee.",
@@ -585,7 +593,8 @@ def pages(I, F, L, k, core, pre):
         steps += [
             ("a", "Turn it into tables", table(["Spot", "A table of two spends", "Tables a day to pay the rent"],
                   [[E(n1), f"₹{inr(b1)}", f"<b>{k1}</b>"], [E(n2), f"₹{inr(b2)}", f"<b>{k2}</b>"]])
-                  + f"<p>The same rent needs <b>{k2 / k1:.1f} times as many tables</b> at {E(n2)} as at {E(n1)}, because a table there typically spends less.</p>"),
+                  + f"<p>The same rent needs <b>{k2 / k1:.1f} times as many tables</b> at {E(n2)} as at {E(n1)}, because a table there typically spends less. "
+                    "This counts every table as spending the street's typical cost for two; tables of one, or ones that order less, mean more tables.</p>"),
             ("j", "Which street can do it?", f"<p>{E(n2)} has more people around: {o2} offices and banks and {c2} colleges and coaching centres within five minutes, "
                   f"against {o1} and {c1}. So it may well fill {k2} tables, but only a footfall count can tell. The rent is the same. What it asks of each street is not.</p>"),
         ]
@@ -594,7 +603,7 @@ def pages(I, F, L, k, core, pre):
     first_bill = comp[0][3] if comp else 700
     body = (hero(7, "Location and rent", "Is this the right spot, and what rent can it carry?",
                  "Judge the rent against what a table on that street spends, then count whether the people are there.",
-                 share, "%", "of sales is the most a restaurant's rent should take, by a common trade rule.", src("rent"))
+                 share, "%", "of sales is the most a restaurant's rent should take, by a common trade rule.", "A rule of thumb, not my data: " + src("rent"))
             + lead("Rent is the one cost you can't cut once you've signed. The same rent can be easy on one street and impossible on the next, "
                    "because what a table spends changes from street to street. Turn the rent into tables a day, and the decision gets clear.")
             + case("A worked example: one rent, two streets.", f"Two real spots, one in each area, both asking ₹{inr(rent)} a month. The street figures are real; the rent is an example.", steps)
@@ -602,7 +611,7 @@ def pages(I, F, L, k, core, pre):
                 field("rent", "Monthly rent (₹)", rent, step=1000), field("share", "Rent as a share of sales (%)", share, "10–15% is the usual target.", mx=100),
                 field("bill", "A table spends (₹)", first_bill, f"The typical cost for two, on the <a href=\"{pre}location/\">Location check</a>."), field("days", "Days open a month", days, mx=31)],
                 rent_out(rent, share, first_bill, days))
-            + todo([("Read the street on the Location check.", f"Cafés within five minutes, the typical cost for two, and who is around. <a href=\"{pre}location/\">Open it</a>."),
+            + todo([("Read the street on the Location check.", f"Cafés within five minutes, the typical cost for two, and who is around: <a href=\"{pre}location/\">open the Location check</a>"),
                     ("Turn the rent into tables a day.", "Use the calculator with that street's cost for two."),
                     ("Count footfall at three times of day.", "On a weekday and a weekend day. Compare it with the tables you need before you sign anything.")])
             + sources([f"Street figures: the <a href=\"{pre}location/\">Location check</a>, latest update: cafés within 500 metres, Zomato cost for two, and places from Google Maps searches.",
@@ -627,7 +636,7 @@ def pages(I, F, L, k, core, pre):
     <ul class="ph-tags">
       <li>{tag("m")} counted in the latest update of {E(core)} cafés</li>
       <li>{tag("a")} sums anyone can redo</li>
-      <li>{tag("e")} sourced, or set against the conclusion</li>
+      <li>{tag("e")} sourced, or set high on purpose so the answer stays cautious</li>
       <li>{tag("j")} what I'd do, reasoned from the above</li>
       <li>{tag("x")} invented figures, only to show a method</li>
     </ul>
