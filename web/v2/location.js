@@ -56,7 +56,7 @@
     const w = canvas.clientWidth, h = canvas.clientHeight, dpr = Math.min(devicePixelRatio || 1, 2);
     if (!w || !h) return false;
     canvas.width = w * dpr; canvas.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const [la0, la1, lo0, lo1] = D.areas[D.names[area]].box, pad = 0.004;
+    const [la0, la1, lo0, lo1] = D.areas[D.names[area]].box, pad = 0.0012;   // a tight frame: about 130 m around the area
     const spanX = (lo1 - lo0 + 2 * pad) * KX, spanY = la1 - la0 + 2 * pad;
     const s = Math.min(w / spanX, h / spanY);
     const cx = (lo0 + lo1) / 2, cy = (la0 + la1) / 2;
