@@ -145,7 +145,7 @@ def footer(pre=""):
 </footer>"""
 
 
-def shell(path, title, desc, body, ld=None, here="", scripts="", main_cls="", crumb=None):
+def shell(path, title, desc, body, ld=None, here="", scripts="", main_cls="", crumb=None, nxt=None):
     """One page: head, menu, the page's own content, a breadcrumb with the next page, and the footer."""
     pre = "../" * path.count("/")
     site = CTX["site"]
@@ -158,7 +158,7 @@ def shell(path, title, desc, body, ld=None, here="", scripts="", main_cls="", cr
     ld = ld or {"@context": "https://schema.org", "@graph": graph}
     order = [("", "Home")] + pages_live()
     paths = [u for u, _ in order]
-    nxt = order[(paths.index(path) + 1) % len(order)] if path in paths else ("", "Home")
+    nxt = nxt or (order[(paths.index(path) + 1) % len(order)] if path in paths else ("", "Home"))
     where = " › ".join(f'<a href="{pre}{u}">{E(n)}</a>' for n, u, _ in trail[:-1]) + (f" › <span>{E(trail[-1][0])}</span>" if len(trail) > 1 else "")
     nav_end = (f'<nav class="trail" aria-label="Breadcrumb and next page"><p class="tr-where">{where}</p>'
                f'<a class="tr-next" href="{pre}{nxt[0]}"><span>Next</span>{E(nxt[1] if nxt[0] else "Back to the start")}</a></nav>') if path else ""
@@ -193,6 +193,16 @@ def contact(pre="", title="Get in touch.", lead=None, bio=True):
     <p class="c-acts"><a class="btn btn-ln" href="{E(au.get('linkedin', ''))}" rel="noopener" target="_blank">{E(au['name'])} on LinkedIn</a></p>
     <p class="c-copied" role="status" aria-live="polite"></p>
   </div>
+</section>"""
+
+
+def more_problems(pages, here):
+    """The other six problems, at the foot of each problem page."""
+    rows = "".join(f'<li class="reveal"><a href="../{p["slug"]}/"><span class="best-name">{E(p["short"])}</span>'
+                   f'<span class="ex-p">{E(p["answer"])}</span><span class="best-go">Read</span></a></li>' for i, p in enumerate(pages) if i != here)
+    return f"""<section class="explore pm" aria-labelledby="pm-h">
+  <header class="ch-head reveal"><h2 id="pm-h">The other problems.</h2><p>Each worked through the same way: the figure that frames it, a case study, and the maths shown.</p></header>
+  <ul class="best-list ex-list">{rows}</ul>
 </section>"""
 
 
@@ -575,19 +585,29 @@ def build(mode):
                           f"Who is behind Jaipur Café Index: {au['name']}, who grew up in Jaipur and studies how businesses win and lose in its markets. How to get in touch.",
                           about, here="About"))
     L = json.load(open(ROOT / "data/public/location_latest.json")) if (ROOT / "data/public/location_latest.json").exists() else None
-    playbook = playbook_v2.page(I, F, L, k, core, P) + "\n" + contact(P, "Stuck on something that isn't here?",
-        "If your café is up against a problem this page doesn't cover, tell me. The most common ones go into the next version.", bio=False)
-    write("playbook/", shell("playbook/", f"Café owner's playbook for Jaipur: fixes for common problems · {site['title']}",
-                             "Practical fixes for the problems café owners in C-Scheme and Malviya Nagar, Jaipur, face most: standing out, empty hours, "
-                             "reviews, delivery margins, pricing, table time and rent. Data, estimates and the maths shown.",
-                             playbook, here="Playbook", scripts=f'\n<script src="../{asset("playbook.js")}" defer></script>', main_cls="main-pb"))
+    pb_index, pb_pages = playbook_v2.pages(I, F, L, k, core, "../../")   # links are written from a problem page, two folders down
+    pb_js = f'\n<script src="../../{asset("playbook.js")}" defer></script>'
+    write("playbook/", shell("playbook/", f"Café owner's playbook for Jaipur: seven problems, solved with the maths shown · {site['title']}",
+                             "Seven problems café owners in C-Scheme and Malviya Nagar, Jaipur, face most, each worked through as a case study: standing out, "
+                             "empty mornings, reviews, delivery margins, pricing, table time, and rent.",
+                             pb_index + "\n" + contact(P, "Stuck on something that isn't here?",
+                                 "If your café is up against a problem these pages don't cover, tell me. The most common ones become the next case study.", bio=False),
+                             here="Playbook", main_cls="main-pb"))
+    for i, pg in enumerate(pb_pages):
+        nx = pb_pages[i + 1] if i + 1 < len(pb_pages) else None
+        path = f"playbook/{pg['slug']}/"
+        write(path, shell(path, f"{pg['seo']} · {site['title']}", pg["desc"],
+                          pg["body"] + more_problems(pb_pages, i),
+                          here="Playbook", scripts=pb_js, main_cls="main-pb",
+                          crumb=[("Playbook", "playbook/", f"{SEO['base']}/playbook/"), (pg["short"], path, f"{SEO['base']}/{path}")],
+                          nxt=(f"playbook/{nx['slug']}/", f"Next problem: {nx['short']}") if nx else ("playbook/", "All seven problems")))
     if (ROOT / "data/public/location_latest.json").exists():
         shutil.copy(ROOT / "data/public/location_latest.json", out / "data/location.json")
         write("location/", location_page(site, au, captured, k, mailto))
     for p in profs:
         write(f"cafes/{p['slug']}/", profile(p, site, au, captured, core, k, mailto, ent))
 
-    urls = ["", "insights/", "playbook/", "location/", "your-cafe/"] + (["best/"] if best else []) + ["method/"] + (["updates/"] if updates else []) + ["about/"]
+    urls = ["", "insights/", "playbook/"] + [f"playbook/{pg['slug']}/" for pg in pb_pages] + ["location/", "your-cafe/"] + (["best/"] if best else []) + ["method/"] + (["updates/"] if updates else []) + ["about/"]
     urls += [f"cafes/{p['slug']}/" for p in profs]
     prio = {"": "1.0", "insights/": "0.9", "playbook/": "0.9", "location/": "0.9", "your-cafe/": "0.8", "best/": "0.8"}
     (out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'

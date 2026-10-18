@@ -1,30 +1,34 @@
-/* The playbook's three calculators. Same formulas as pipeline/playbook_v2.py, which writes the default answer into the page,
+/* The playbook's calculators. Same formulas as pipeline/playbook_v2.py, which writes the default answer into each page,
    so the page reads correctly before (or without) this script. Nothing typed here leaves the browser. */
 (() => {
   const inr = (n) => Math.round(n).toLocaleString("en-IN");
-  const GST = 18;
+  const GST_FOOD = 5, GST_COMMISSION = 18;
   const calcs = {
-    early: ({ cost, bill, keep }) => {
-      const per = bill * keep / 100;
-      const n = per > 0 ? Math.ceil(cost / per) : 0;
-      return `You'd need about <b>${n} extra ${n === 1 ? "bill" : "bills"} a day</b> in those hours to cover the cost. Every bill after that is profit.`;
+    early: ({ cost, price, ingredients }) => {
+      const keep = price / (1 + GST_FOOD / 100) - ingredients;
+      if (keep <= 0) return "At this price each coffee loses money before staff and power. Check the price and the ingredient cost.";
+      const n = Math.ceil(cost / keep);
+      return `Each coffee keeps ₹${inr(keep)} after GST and ingredients, so you need <b>${n} ${n === 1 ? "coffee" : "coffees"} ` +
+        `in the extra hours</b> to cover ₹${inr(cost)}. Every one after that is profit.`;
     },
-    delivery: ({ order, commission, discount, packaging, food }) => {
-      const base = order - discount;
-      const fee = base * commission / 100 * (1 + GST / 100);
-      const foodCost = order * food / 100;
-      const left = base - fee - packaging - foodCost;
-      const dine = order - foodCost;
-      const pct = (x) => (order ? Math.round(100 * x / order) : 0);
-      return `A ₹${inr(order)} order leaves you <b>₹${inr(left)} (${pct(left)}%)</b> after commission, its GST, your discount, packaging ` +
-        `and ingredients. The same order eaten in leaves ₹${inr(dine)} (${pct(dine)}%), before rent and staff in both cases.`;
+    delivery: ({ price, commission, discount, packaging, ingredients }) => {
+      const sale = price * (1 - discount / 100);
+      const keep = sale - sale * commission / 100 * (1 + GST_COMMISSION / 100) - packaging - ingredients;
+      const table = price - ingredients;
+      const pct = (x) => (price ? Math.round(100 * x / price) : 0);
+      return `On the app this item keeps <b>₹${inr(keep)} (${pct(keep)}% of its price)</b>. At a table it keeps ₹${inr(table)} (${pct(table)}%).`;
+    },
+    price: ({ old, new: next, ingredients }) => {
+      const a = old - ingredients, b = next - ingredients;
+      if (a <= 0 || b <= 0 || next <= old) return "Enter a new price above the current one, and both above the ingredient cost.";
+      return `Each sale keeps ₹${inr(a)} now and ₹${inr(b)} after the rise. You can lose <b>${100 - Math.ceil(100 * a / b)} of every 100 sales</b> ` +
+        `and still earn as much as before.`;
     },
     rent: ({ rent, share, bill, days }) => {
       const month = share ? rent / (share / 100) : 0;
       const day = days ? month / days : 0;
-      const bills = bill ? Math.ceil(day / bill) : 0;
-      return `To keep rent at ${share}% of sales, the spot has to sell <b>₹${inr(month)} a month</b>: about ₹${inr(day)} a day, ` +
-        `or ${bills} bills a day at ₹${inr(bill)}.`;
+      const n = bill ? Math.ceil(day / bill) : 0;
+      return `At ${share}% of sales, this rent needs <b>₹${inr(month)} a month</b>: ₹${inr(day)} a day, or <b>${n} tables a day</b> at ₹${inr(bill)}.`;
     },
   };
   document.querySelectorAll("form.calc[data-calc]").forEach((form) => {

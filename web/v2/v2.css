@@ -10,6 +10,7 @@
   --ink: #161616;    --soft: #5c5b58;
   --pink: #e3ad9f;   --red: #b0533d;    --sky: #3f74ad;
   --blush: #f5e4dd;  /* lime-wash pink of the old city's walls, for fields */
+  --clay: #6c3024;   /* the home hero's tinted sandstone, as one flat colour */
   --s-small: 0.875rem;
   --s-body: clamp(1.0625rem, 1rem + 0.25vw, 1.25rem);
   --s-lead: clamp(1.3125rem, 1.15rem + 0.7vw, 1.75rem);
@@ -512,34 +513,52 @@ figure { margin: 0; }
   .res { animation: none; }
 }
 
-/* ---------- playbook: one problem per field, each part labelled measured, estimate or judgement ---------- */
-.pb-legend { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 16px; }
-.pb-legend p { background: var(--stone); padding: 16px 18px; font-size: var(--s-small); max-width: none; }
-.pb-legend .tag { display: table; margin-bottom: 8px; }
-.tag { display: inline-block; font-size: 0.75rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 3px 8px; margin-right: 10px; vertical-align: 2px; }
+/* ---------- playbook: the home page's grammar, one problem per page ----------
+   A deep sandstone field for the question (the home hero's tinted facade, as flat colour), a blush field for its one figure,
+   then the worked case as numbered rows, and a pink field to end on. */
+.ph { display: grid; grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); min-height: min(78svh, 760px); }
+.ph-copy { background: var(--clay); color: var(--paper); display: flex; flex-direction: column; justify-content: space-between; gap: 32px; padding: clamp(28px, 5vh, 64px) var(--m) clamp(28px, 4.5vh, 52px); }
+.ph-eyebrow { font-size: var(--s-small); color: var(--blush); }
+.ph-h { font-size: var(--s-head); letter-spacing: -0.04em; line-height: .98; max-width: 17ch; }
+.ph-sub { font-size: var(--s-lead); line-height: 1.3; max-width: 34ch; }
+.ph-fig { background: var(--blush); display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; padding: clamp(28px, 5vh, 64px) var(--m) clamp(28px, 4.5vh, 52px); }
+.ph-fig .hero-num { font-size: clamp(4.5rem, 10vw, 11rem); }
+.ph-cap { font-size: var(--s-lead); line-height: 1.25; max-width: 26ch; }
+.ph-note { font-size: var(--s-small); color: var(--soft); max-width: 46ch; }
+.ph-index .ph-fig { justify-content: center; }
+.ph-tags { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; font-size: var(--s-small); }
+.pl { padding: clamp(72px, 9vw, 120px) var(--m) 0; }
+.pl-tiles { margin-top: 56px; }
+.pl-tiles .tz { gap: 10px; }
+.pl-tiles .tag { justify-self: start; }
+.tag { display: inline-block; font-size: 0.6875rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; margin-right: 10px; vertical-align: 2px; white-space: nowrap; }
 .tag-m { background: var(--ink); color: var(--paper); }
+.tag-a { background: var(--sky); color: var(--paper); }
 .tag-e { background: var(--pink); color: var(--ink); }
-.tag-j { background: var(--paper); color: var(--ink); }
-.pb-legend .tag-j, .pb:nth-child(even) .tag-j { background: var(--stone-2); }
-.pb-list { display: grid; gap: 4px; margin-top: clamp(40px, 5vw, 72px); }
-.pb { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px 48px; padding: clamp(48px, 6vw, 96px) var(--m); background: var(--blush); scroll-margin-top: var(--bar-h); }
-.pb:nth-child(even) { background: var(--stone); }
-.pb-head { align-self: start; position: sticky; top: calc(var(--bar-h) + 24px); }
-.pb-n { font-size: var(--s-small); color: var(--soft); margin-bottom: 14px; font-variant-numeric: lining-nums; }
-.pb-head h2 { font-size: clamp(1.75rem, 1.2rem + 1.8vw, 2.75rem); max-width: 18ch; }
-.pb-body { display: grid; gap: 28px; }
-.pb-k { font-weight: 600; margin-bottom: 10px; }
-.pb-block ul, .pb-block ol { margin: 0; padding-left: 20px; display: grid; gap: 10px; max-width: 62ch; }
-.pb-block li::marker { color: var(--soft); }
-.pb-know { padding-top: 4px; }
-.pb-block ul + p, .pb-block ul + .pb-table { margin-top: 14px; }
-.pb-table { border-collapse: collapse; margin-top: 4px; font-variant-numeric: lining-nums tabular-nums; min-width: min(100%, 420px); }
-.pb-table caption { text-align: left; font-size: var(--s-small); color: var(--soft); padding-bottom: 6px; }
-.pb-table th, .pb-table td { text-align: left; padding: 8px 18px 8px 0; font-weight: 400; }
-.pb-table thead th { font-size: var(--s-small); font-weight: 600; }
-.pb-table tbody tr + tr th, .pb-table tbody tr + tr td { border-top: 1px solid var(--stone-2); }
-.calc { background: var(--paper); padding: 20px; margin-top: 4px; display: grid; gap: 16px; }
-.calc-h { font-size: var(--s-small); font-weight: 600; }
+.tag-j { background: var(--stone-2); color: var(--ink); }
+.tag-x { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--soft); }
+.ph-copy .tag-j, .ph-fig .tag-j { background: var(--paper); }
+.cs { padding: clamp(96px, 12vw, 176px) var(--m) 0; }
+.cs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.cs-step { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); gap: 16px 48px; padding: clamp(28px, 3.5vw, 48px) 24px; background: var(--stone); }
+.cs-step:nth-child(odd) { background: var(--blush); }
+.cs-n { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.cs-num { font-size: var(--s-display-s); line-height: .85; letter-spacing: -0.05em; font-variant-numeric: lining-nums; }
+.cs-body { display: grid; gap: 14px; max-width: 72ch; }
+.cs-body h3 { font-size: var(--s-lead); letter-spacing: -0.01em; }
+.cs-body ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.cs-body li::marker { color: var(--soft); }
+.tw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.pt { border-collapse: collapse; width: 100%; font-variant-numeric: lining-nums tabular-nums; font-size: var(--s-small); background: var(--paper); }
+.pt th, .pt td { text-align: left; padding: 10px 14px; font-weight: 400; vertical-align: top; }
+.pt thead th { font-weight: 600; background: var(--stone-2); white-space: nowrap; }
+.pt tbody tr + tr > * { border-top: 1px solid var(--stone); }
+.pt td:last-child { white-space: nowrap; }
+.pt b { font-weight: 600; }
+.pc { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px 48px; margin-top: clamp(96px, 12vw, 176px); padding: clamp(56px, 7vw, 104px) var(--m); background: var(--blush); }
+.pc-copy h2 { margin-bottom: 20px; }
+.pc-copy p { max-width: 36ch; }
+.calc { background: var(--paper); padding: clamp(20px, 2.5vw, 32px); display: grid; gap: 20px; align-content: start; }
 .calc-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 12px; }
 .calc .field { display: grid; align-content: start; }
 .calc .field > span { margin-bottom: 6px; }
@@ -547,9 +566,23 @@ figure { margin: 0; }
 .calc .field small { margin-top: 6px; font-size: 0.8125rem; color: var(--soft); line-height: 1.35; }
 .calc-out { font-size: var(--s-lead); line-height: 1.3; max-width: 40ch; }
 .calc-out b { font-weight: 600; }
-.calc-note { font-size: var(--s-small); color: var(--soft); margin-top: 10px; }
+.calc-note { font-size: var(--s-small); color: var(--soft); }
+.pd { padding-bottom: 0; }
+.psrc { padding: clamp(56px, 7vw, 96px) var(--m) 0; font-size: var(--s-small); color: var(--soft); }
+.psrc h2 { font-size: var(--s-body); font-weight: 600; color: var(--ink); margin-bottom: 12px; letter-spacing: 0; }
+.psrc ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; max-width: 90ch; }
+.pt-end { margin-top: clamp(72px, 9vw, 128px); padding: clamp(72px, 9vw, 136px) var(--m); background: var(--pink); }
+.pt-k { font-size: var(--s-small); font-weight: 600; margin-bottom: 18px; }
+.pt-say { font-size: var(--s-head); line-height: 1.08; letter-spacing: -0.03em; max-width: 26ch; }
+.pi { padding-top: clamp(56px, 7vw, 96px); padding-bottom: clamp(72px, 9vw, 128px); }
+.pi-list .best-name { display: flex; gap: 18px; align-items: baseline; }
+.pi-n { font-size: var(--s-small); color: var(--soft); font-variant-numeric: lining-nums tabular-nums; }
+.pm { padding-bottom: clamp(48px, 6vw, 96px); }
 @media (max-width: 900px) {
-  .pb { grid-template-columns: 1fr; }
-  .pb-head { position: static; }
-  .pb-legend { grid-template-columns: 1fr; }
+  .ph, .pc { grid-template-columns: 1fr; }
+  .ph { min-height: 0; }
+  .ph-fig .hero-num { font-size: clamp(4.5rem, 26vw, 8rem); }
+  .cs-step { grid-template-columns: 1fr; padding: 28px 16px; }
+  .cs-n { flex-direction: row; align-items: center; }
+  .cs-num { font-size: 2.5rem; }
 }
