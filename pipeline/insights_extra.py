@@ -70,8 +70,9 @@ def changes(prev, cur, days, failed, k, max_share):
     out["source_unavailable"] = int((st.str.startswith("Source unavailable")).sum())
 
     if "google_maps_ui" not in failed:
-        both = pc[["fig_id", "google_reviews"]].merge(cc[["fig_id", "area", "type_base", "google_reviews"]], on="fig_id", suffixes=("_a", "_b"))
+        both = pc[["fig_id", "google_reviews", "g_cid"]].merge(cc[["fig_id", "area", "type_base", "google_reviews", "g_cid"]], on="fig_id", suffixes=("_a", "_b"))
         both = both.dropna(subset=["google_reviews_a", "google_reviews_b"])
+        both = both[both.g_cid_a == both.g_cid_b]   # a changed Google listing is a different place's reviews, not growth
         both["gain"] = both.google_reviews_b - both.google_reviews_a
         both = both[both.gain >= 0]        # falls are platform resets; QA flags them for a human
         mom = {"n": int(len(both))}
@@ -80,6 +81,9 @@ def changes(prev, cur, days, failed, k, max_share):
             mom["share_gaining"] = round(100 * (both.gain > 0).mean())
             mom["gain_per_week"] = round(both.gain.sum() / max(days, 1) * 7)
             mom["dominance_ok"] = bool(both.gain.max() <= max_share * max(both.gain.sum(), 1))
+            pace = both.gain / max(days, 1) * 7           # new reviews a week
+            mom["median_per_week"] = round(float(pace.median()), 2)
+            mom["share_1_per_week"] = round(100 * (pace >= 1).mean())
             mom["by_area"], mom["by_type"] = {}, {}
             for a in ("C-Scheme", "Malviya Nagar"):
                 g = both[both.area == a]

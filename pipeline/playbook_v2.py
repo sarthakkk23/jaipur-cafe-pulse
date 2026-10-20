@@ -379,48 +379,62 @@ def pages(I, F, L, k, core, pre):
     # ===== 3. being found =====
     f = F.get("attention")
     mn, cs = med("Malviya Nagar"), med("C-Scheme")
-    start, avg, weeks = 12, 4.9, 8
+    start, avg = 12, 4.9
     target = mn or 50
     hits = [(n, (avg * n + 1) / (n + 1)) for n in sorted({start, target, cs or 145})]
     gap = target - start
-    per_week = gap / weeks
-    ask_rows = [[f"{b}", f"{b * 7}", f"1 in {math.floor(b * 7 / per_week)}"] for b in (40, 80, 120)]
+    chg = I.get("changes") or {}
+    mom = chg.get("momentum") or {}
+    share1, med_pw, days_ = mom.get("share_1_per_week"), mom.get("median_per_week"), chg.get("days")
+    pace = 1                                            # one review a week: a strong, reachable pace here (measured below)
+    months = round(gap / pace / 4.33)
+    ask_rows = [[f"{b}", f"{b * 7}", f"1 in {b * 7 // pace}"] for b in (40, 80, 120)]
+    time_rows = [[f"{p_} a week", f"{math.ceil(gap / p_)} weeks", f"about {round(gap / p_ / 4.33)} months"] for p_ in (1, 2)]
     lo_b = next((b for b in buckets if b.get("lo") == 0), None)
     hi_b = buckets[-1] if buckets else None
     tiles = []
     if mn and cs:
         tiles += [("m", mn, "", "Google reviews for the typical Malviya Nagar café."), ("m", cs, "", "for the typical C-Scheme café.")]
-    if lo_b and hi_b and hi_b is not lo_b and hi_b.get("share_48_plus") is not None:
-        tiles.append(("m", lo_b["share_48_plus"], "%", f"of cafés with under 10 reviews rate 4.8 or more. With {E(hi_b['label'])} reviews, just {hi_b['share_48_plus']}% do."))
+    if share1 is not None:
+        tiles.append(("m", share1, "%", f"of cafés gained one new Google review a week or more over {days_} days."))
     steps = [
         ("x", "Where the café stands", f"<p>Say the café has {start} reviews, rated {avg}. The typical café in Malviya Nagar has {target}: that part is measured. The gap is <b>{gap} reviews</b>.</p>"),
         ("a", "Why a few reviews are fragile", "<p>Here is what one unhappy one-star review does to a 4.9, depending on how many reviews stand behind it:</p>"
               + table(["Reviews before", "Average after one 1-star", "As Google shows it"], [[f"{n}", f"{x:.2f}", f"<b>{r1(x)}</b>"] for n, x in hits])
               + (lambda a, b: f"<p>At {start} reviews, one bad day costs you {a / 10:.1f} stars. At {target}, only {b / 10:.1f}. "
                  "Volume is what makes a rating hard to knock over.</p>")(round(10 * (avg - float(r1(hits[0][1])))), round(10 * (avg - float(r1((avg * target + 1) / (target + 1))))))),
-        ("a", "How many reviews you need", f"<p>Closing a gap of {gap} in {weeks} weeks takes about {per_week:.1f} new reviews a week. At different levels of trade, that is:</p>"
+    ]
+    if share1 is not None and med_pw is not None:
+        steps.append(("m", "What pace is realistic here",
+                      f"<p>Between my last two updates, {days_} days apart, the typical café gained {med_pw:.1f} new Google reviews a week, and only "
+                      f"<b>{share1}%</b> gained one a week or more. So one review a week is a strong pace here: it beats about {100 - share1}% of cafés. "
+                      "It's one stretch of a few weeks, so treat it as a guide.</p>"))
+    steps += [
+        ("a", "How long it takes", f"<p>At a steady pace, closing a gap of {gap} takes:</p>" + table(["Pace", "Time", "Roughly"], time_rows)
+              + f"<p>At one a week, that's one review from every few hundred bills, even for a quiet café:</p>"
               + table(["Bills a day", "Bills a week", "Reviews needed"], ask_rows)
-              + f"<p>Even the quietest row needs a review from just one bill in {math.floor(40 * 7 / per_week)}. Not everyone you ask will write one, so ask more often than that. Most happy customers never think to write one unasked. They need asking, not pleading.</p>"),
+              + "<p>Not everyone you ask will write one, so ask more often than that. Most happy customers never think to write one unasked. They need asking, not pleading.</p>"),
         ("j", "Ask at the right moment", "<p>Ask in person when someone compliments the food or thanks you on the way out, and hand them a small card with a QR code that opens your Google review page. "
               "Never offer a discount, a free item or money for a review: Google's rules forbid it, and those reviews can be removed.</p>"),
         ("j", "Answer every review", "<p>Reply within two days, in a line or two. Thank the good ones by naming what they liked. Answer the hard ones calmly, and take the details offline. New customers read the replies as closely as the reviews.</p>"),
     ]
+    beats = f"beats the pace of {100 - share1}% of cafés here" if share1 is not None else "is a strong pace"
     body = (hero(3, "Being found", "We're new, nobody finds us, and we have too few reviews.",
-                 "Reviews are how new customers find you, and closing the gap takes fewer than you'd think.",
+                 f"A steady pace beats a burst. One honest review a week already {beats}.",
                  f["value"] if f else "", f["unit"] if f else "", E(f["headline"]) if f else "", finding_note("attention"))
             + lead("Attention piles onto the cafés that already have it. A new café with a handful of reviews is easy to miss and easy to knock over: "
-                   "one bad review moves its rating a long way. The fix is steady, honest volume.", tiles)
+                   "one bad review moves its rating a long way. The fix is steady, honest volume, not a burst.", tiles)
             + case("A worked example: a new café in Malviya Nagar.", f"Open three months, with {start} Google reviews and a {avg}. Not a real café: the area figures are real, the rest is arithmetic.", steps)
             + todo([("Complete your Google Business Profile.", "Exact hours, a menu photo, at least ten real photos of the food and the room, and the right category."),
                     ("Put a QR card on every table and bill.", "One line: \"Enjoyed it? A review helps us more than you'd think.\" And ask in person at the happy moment."),
-                    ("Reply to every review within two days.", "Short, warm and specific. A hard review gets a calm answer and an offer to talk offline.")])
-            + sources([f"Review counts and ratings: Google Maps, latest update. <a href=\"{pre}insights/#f-ratings\">How ratings behave</a>.",
+                    ("Aim for one review a week, and count them.", "A steady week-by-week tally keeps it going; reply to every review within two days.")])
+            + sources([f"Review counts, ratings and review growth: Google Maps, my last two updates, leaving out cafés whose Google listing changed. <a href=\"{pre}insights/#f-ratings\">How ratings behave</a>.",
                        f"Review rules: {src('google')}.", "The worked example's rating and bill counts are round numbers for the arithmetic, not data about any café."])
-            + takeaway(f"You don't need a campaign. About {math.ceil(per_week)} honest reviews a week takes a new café to the street's typical count in two months, and every review after that makes the rating harder to knock over."))
+            + takeaway(f"You don't need a campaign. One honest review a week {beats}. Keep it up, and in about {months} months a new café reaches the street's typical count, with a rating that's far harder to knock over."))
     P.append(dict(slug="being-found", short="Being found", title="We're new, nobody finds us, and we have too few reviews.",
-                  answer=f"About {math.ceil(per_week)} honest reviews a week closes the gap in two months. Even a quiet café needs a review from just one bill in {math.floor(40 * 7 / per_week)}.",
+                  answer=f"One honest review a week {beats}. At that pace a new café reaches the typical count in about {months} months.",
                   seo="How a new café in Jaipur gets more Google reviews", body=body,
-                  desc="A worked case for new cafés in Malviya Nagar and C-Scheme, Jaipur: why a few reviews make a rating fragile, and how many asks it takes to catch up."))
+                  desc="A worked case for new cafés in Malviya Nagar and C-Scheme, Jaipur: why a few reviews make a rating fragile, what review pace is realistic, and how long catching up takes."))
 
     # ===== 4. delivery =====
     f = F.get("delivery")
@@ -447,7 +461,7 @@ def pages(I, F, L, k, core, pre):
               f"of a ₹{price} cold coffee. Whatever your exact terms, the picture stays the same:</p>"
               + table(["Commission", "No discount", "10% discount", "20% discount"], sens)),
         ("j", "Why not just drop delivery?", "<p>"
-              + (f"Because for {f['value']}% of cafés here, most of their Zomato reviews come from delivery. " if f else "")
+              + (f"Because for {f['value']}% of cafés here that deliver, most of their Zomato reviews come from delivery. " if f else "")
               + "Delivery is where many customers first meet you. The aim isn't to leave the apps. It's to sell, on the apps, the items that keep money and travel well.</p>"),
         ("j", "Build the delivery menu", "<p>Go item by item with the calculator below. Keep the items that leave a fair share after the app's cut and arrive "
               "as good as they left. Drop the ones that don't: a foamy cappuccino collapses on the way, and crisp things go soft.</p>"),
@@ -501,7 +515,7 @@ def pages(I, F, L, k, core, pre):
         ("a", "The same sum at other prices", "<p>The cheaper the item, the more sales a ₹20 rise can afford to lose:</p>"
               + table(["Price", "Kept per cup", "Sales you can lose, of 100"], rise_rows)),
         ("m", "Will it cost you stars?", "<p>"
-              + (f"Probably not. Across {rated or f['n']} cafés, price shows no link to rating" + (f" (rank correlation {rho}; zero means no link)" if rho else "") + ": "
+              + (f"Probably not. Across {rated or f['n']} cafés, price shows no link to Google rating" + (f" (rank correlation {rho}; zero means no link)" if rho else "") + ": "
                  "dearer cafés don't rate lower. That compares different cafés, though, which isn't the same as watching one café raise its prices, so count after you do." if f else "")
               + "</p>" + (f"<p>What matters more is where you sit against cafés like yours. The typical cost for two:</p>{ptable}<p class=\"calc-note\">–: fewer than {k} cafés, so withheld.</p>" if ptable else "")),
         ("j", "Raise it the right way", "<p>Raise a few items at a time, starting with the popular ones that keep least: the Plowhorses from "
@@ -509,7 +523,7 @@ def pages(I, F, L, k, core, pre):
     ]
     body = (hero(5, "Pricing", "Am I charging too much, or too little?",
                  "A coffee costs far less to make than it sells for. The real question is how many sales a rise can afford to lose.",
-                 f["value"] if f else "", f["unit"] if f else "", (E(f["headline"]) + " And price shows no link to rating.") if f else "", finding_note("price"))
+                 f["value"] if f else "", f["unit"] if f else "", (E(f["headline"]) + " And price shows no link to Google rating.") if f else "", finding_note("price"))
             + lead("Owners worry that a higher price will cost them customers and stars. Stars don't move with price here. Customers might, "
                    "so the useful question is how many you can lose before a rise stops paying. That question has an exact answer.")
             + case(f"A worked example: a cappuccino at ₹{old}, going to ₹{new}.", "Ingredient costs are sourced. Everything else is arithmetic.", steps)
@@ -550,7 +564,7 @@ def pages(I, F, L, k, core, pre):
         ("a", "Sell the time instead", f"<p>A work pass for the quiet hours: ₹{pass_price} for three hours, with a coffee, one refill and a cookie. That's ₹{pass_price // 3} an hour from the seat, "
               f"{pass_price / 3 / camp:.1f} times the one-coffee guest, and the guest knows exactly what they've bought.</p>"
               + (f"<p>Few cafés make this explicit: only {wf_share}% of cafés on Zomato list themselves as work-friendly. A clear offer stands out.</p>" if wf_share is not None else "")),
-        ("j", "Will limits cost you reviews?", "<p>" + (f"Probably not much. Cafés with Wi-Fi get more reviews, but {f['value']}% of that gap disappears when you compare cafés that are otherwise alike, "
+        ("j", "Will limits cost you reviews?", "<p>" + (f"Probably not much. Cafés with Wi-Fi get {f['value']}{f['unit']} the reviews, but against cafés that are otherwise alike that gap can't be told from none, "
               "so Wi-Fi doesn't look like what brings the reviews. That's about Wi-Fi, not about limits, so treat it as a hint. " if f else "") + "A polite limit at the busiest hour, with a welcome the rest of the day, keeps both crowds.</p>"),
     ]
     body = (hero(6, "Table time", "People sit for hours over one coffee.",

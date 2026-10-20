@@ -178,7 +178,7 @@ def chart(f, width=600):
     if c["kind"] == "forest":
         return forest(c["items"], lab)
     if c["kind"] == "bars":
-        return hbars(c["bars"], lab, hot=(0, 1) if f["id"] == "price" else (0,), sign=c.get("sign", False), note=c.get("note", ""))
+        return hbars(c["bars"], lab, hot=(0, 1) if f["id"] == "price" else (0,), unit=c.get("unit", "%"), sign=c.get("sign", False), note=c.get("note", ""))
     if c["kind"] == "mix":
         return mix(c["rows"], lab)
     return ""

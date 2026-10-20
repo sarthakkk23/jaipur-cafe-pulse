@@ -326,7 +326,7 @@ def build(mode):
   <figure class="pair-b reveal" data-drift>{pic("pink-haveli", "(max-width: 760px) 100vw, 55vw", prefix=P)}<figcaption>A haveli in the Pink City, through neem leaves.</figcaption></figure>
 </section>"""
     ch2 = chapter("offer", "What cafés offer.", "What is common, what is rare, and what actually goes with being chosen.",
-                  ["amenities", "price", "menus", "visibility"])
+                  ["amenities", "listing_detail", "price", "cs_price_premium", "swiggy_cost_for_two", "menus", "visibility"])
 
     # ---------- the sundial ----------
     curve = (I["hours"]["curve"].get("Both areas") or {}).get("points", [])
