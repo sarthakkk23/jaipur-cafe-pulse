@@ -190,23 +190,26 @@ def findings(core, k, parse_hours=None):
             "n": int(len(d)),
         })
 
-    # 5. delivery speaks louder than the table
+    # 5. delivery speaks louder than the table, among cafés that deliver
     dv = c[c.on_zomato == "Y"].dropna(subset=["zomato_delivery_reviews", "zomato_dining_reviews"])
-    if len(dv) >= k:
-        more = (dv.zomato_delivery_reviews > dv.zomato_dining_reviews).mean()
-        anyd = (dv.zomato_delivery_reviews > 0).mean()
-        lo, hi = _wilson(more, len(dv))
+    dd = dv[dv.zomato_delivery_reviews > 0]
+    if len(dd) >= k:
+        more = (dd.zomato_delivery_reviews > dd.zomato_dining_reviews).mean()
+        lo, hi = _wilson(more, len(dd))
         out.append({
             "id": "delivery", "value": _pct(more), "unit": "%",
-            "headline": "of cafés on Zomato get more delivery reviews than dine-in reviews.",
-            "body": "For most cafés, the delivery order shapes the reputation more than the table does. Packaging and delivery time deserve the same care as the room.",
+            "headline": "of cafés that deliver through Zomato get more delivery reviews than dine-in reviews.",
+            "body": ("For most cafés that deliver, the delivery order shapes the reputation more than the table does. "
+                     "Packaging and delivery time deserve the same care as the room." if lo > 0.5 else
+                     "Delivery and the table shape the reputation about equally. Packaging and delivery time deserve the same care as the room."),
             "limit": "It doesn't say delivery earns more than the dining room, only that it is reviewed more.",
-            "grade": _grade(len(dv), lo > 0.5 or hi < 0.5, k),
-            "how": [f"For the {len(dv):,} cafés listed on Zomato I compared each café's count of delivery reviews with its dine-in reviews. "
-                    f"{_pct(anyd)}% have at least one delivery review.",
-                    f"The share is between {_pct(lo)}% and {_pct(hi)}% (95% Wilson interval)."],
+            "grade": _grade(len(dd), lo > 0.5 or hi < 0.5, k),
+            "how": [f"The {len(dd):,} cafés on Zomato with at least one delivery review: I compared each café's delivery reviews with its dine-in reviews.",
+                    f"The share is between {_pct(lo)}% and {_pct(hi)}% (95% Wilson interval).",
+                    f"Across all {len(dv):,} cafés on Zomato, counting those that don't deliver as more dine-in, it's "
+                    f"{_pct((dv.zomato_delivery_reviews > dv.zomato_dining_reviews).mean())}%."],
             "chart": {"kind": "split", "parts": [["More delivery reviews", _pct(more)], ["More dine-in reviews", 100 - _pct(more)]]},
-            "n": int(len(dv)),
+            "n": int(len(dd)),
         })
 
     # 6. amenities travel together: raw gap against like-for-like
@@ -235,12 +238,30 @@ def findings(core, k, parse_hours=None):
         nfeat = np.column_stack(list(flags.values())).sum(1)
         others = lambda m: float(np.mean(nfeat[m] - 1))
         wf = flags["wifi_work"] == 1
+        # family- or kid-friendly, held against similar cafés AND the number of other features listed
+        fam_line, fam = "", None
+        if "family_or_kid" in z and "n_highlights" in z:
+            zf = z.dropna(subset=["family_or_kid", "n_highlights"])
+            fk = (zf.family_or_kid == "Y").astype(float).values
+            if len(zf) >= 5 * k and k <= fk.sum() <= len(zf) - k:
+                other = np.log1p(np.clip(zf.n_highlights.values - fk, 0, None))
+                cf = [(zf.area == "Malviya Nagar").astype(float).values] + [(zf.type_base == t).astype(float).values for t in TYPES[:3]]
+                cf.append(np.log(zf.zomato_cost_for_two_inr.values) - np.log(600))
+                Xf = np.c_[np.ones(len(zf)), fk, other, np.column_stack(cf)]
+                yf = np.log1p(zf.google_reviews.values)
+                bf = np.linalg.lstsq(Xf, yf, rcond=None)[0][1]
+                bsf = np.array([np.linalg.lstsq(Xf[i], yf[i], rcond=None)[0][1] for i in (rng.integers(0, len(zf), len(zf)) for _ in range(3000))])
+                flo, fhi = np.percentile(bsf, [2.5, 97.5])
+                zall = c[c.on_zomato == "Y"].dropna(subset=["family_or_kid"])
+                fam = {"share": _pct((zall.family_or_kid == "Y").mean()), "n_all": int(len(zall)), "x": float(np.exp(bf)), "lo": float(np.expm1(flo)), "hi": float(np.expm1(fhi)), "n": int(len(zf))}
+                if flo > 0:
+                    fam_line = (f" The one feature that holds up against similar cafés: the {fam['share']}% that say they're family- or "
+                                f"kid-friendly carry about {fam['x']:.0f}× the reviews.")
         out.append({
-            "id": "amenities", "value": max(0, min(100, 100 - round(100 * lead["adj"] / lead["raw"]))) if lead["raw"] > 0 else 0, "unit": "%",
-            "headline": "of the Wi-Fi review boost disappears when you compare similar cafés.",
-            "body": (f"Cafés with Wi-Fi get {1 + lead['raw'] / 100:.1f}× the reviews, mostly because they tend to offer more of everything. "
-                     + ("Wi-Fi alone won't bring reviews." if not lead["holds"] else "Some of the boost is Wi-Fi itself.")
-                     + (f" The one feature that still stands out is {', '.join(held)}." if held else "")),
+            "id": "amenities", "value": round(1 + lead["raw"] / 100, 1), "unit": "×",
+            "headline": "the Google reviews for cafés that list Wi-Fi.",
+            "body": (("Against similar cafés, that gap can't be told from none: Wi-Fi tends to come with everything else." if not lead["holds"]
+                      else "Against similar cafés, part of that gap holds: some of it is Wi-Fi itself.") + fam_line),
             "limit": "It doesn't say Wi-Fi is worthless; customers may still choose a café for it.",
             "grade": "Moderate",
             "how": [f"All cafés: the median Google reviews of cafés that list a feature against those that don't, for the {len(z):,} "
@@ -251,6 +272,8 @@ def findings(core, k, parse_hours=None):
                     f"(95% interval {lead['lo']:+d}% to {lead['hi']:+d}% from 3,000 resamples). The range includes zero, which is the point: "
                     "once similar cafés are compared, Wi-Fi's own effect can't be told apart from none.",
                     "; ".join(f"{x['label']}: {x['raw']:+d}% across all cafés, {x['adj']:+d}% among similar ones" for x in items) + ".",
+                    *([f"Family- or kid-friendly, also holding the number of other listed features fixed: {fam['x'] - 1:+.0%} reviews "
+                       f"(95% interval {fam['lo']:+.0%} to {fam['hi']:+.0%}), {fam['n']:,} cafés. {fam['share']}% of all {fam['n_all']:,} cafés on Zomato list it."] if fam else []),
                     "This is association, not cause: a listing can mark the kind of café that draws reviews without drawing them itself."],
             "chart": {"kind": "bars", "sign": True, "bars": [["All cafés", lead["raw"]], ["Similar cafés", lead["adj"]]],
                       "note": "Extra Google reviews for cafés with Wi-Fi, compared with"},
@@ -263,6 +286,11 @@ def findings(core, k, parse_hours=None):
         pr2 = p.dropna(subset=["google_rating"])
         rho = _rank_corr(pr2.zomato_cost_for_two_inr.values, pr2.google_rating.values)
         pv = _perm_p(_rank_corr, pr2.zomato_cost_for_two_inr.values, pr2.google_rating.values, rng, 2000)
+        pz2 = p.dropna(subset=["zomato_dining_rating"])
+        rho_z = _rank_corr(pz2.zomato_cost_for_two_inr.values, pz2.zomato_dining_rating.values) if len(pz2) >= k else 0.0
+        pv_z = _perm_p(_rank_corr, pz2.zomato_cost_for_two_inr.values, pz2.zomato_dining_rating.values, rng, 2000) if len(pz2) >= k else 1.0
+        z_line = (" On Zomato, dearer cafés do rate a little higher." if rho_z > 0 and pv_z < 0.05 else
+                  " On Zomato, dearer cafés rate a little lower." if rho_z < 0 and pv_z < 0.05 else "")
         cuts = [0, 300, 500, 800, 1200, np.inf]
         labs = ["Up to ₹300", "₹301 to ₹500", "₹501 to ₹800", "₹801 to ₹1,200", "Over ₹1,200"]
         dist = [[lab, _pct(((p.zomato_cost_for_two_inr > lo_) & (p.zomato_cost_for_two_inr <= hi_)).mean())]
@@ -271,17 +299,105 @@ def findings(core, k, parse_hours=None):
         out.append({
             "id": "price", "value": _pct((p.zomato_cost_for_two_inr <= 500).mean()), "unit": "%",
             "headline": "of cafés charge ₹500 or less for two.",
-            "body": "Price shows no link to rating: dearer cafés rate no higher, cheaper ones no lower. Price for your customer, not for your score.",
-            "limit": "It doesn't say price doesn't matter to customers, only that it doesn't predict the rating.",
+            "body": "Price shows no link to Google rating: dearer cafés rate no higher there, cheaper ones no lower." + z_line + " Price for your customer, not for your score.",
+            "limit": "It doesn't say price doesn't matter to customers, only how it lines up with ratings.",
             "grade": _grade(len(pr2), True, k),
             "how": [f"Cost for two as listed on Zomato, for {len(p):,} cafés. The typical café charges ₹{int(p.zomato_cost_for_two_inr.median()):,}: "
                     + " and ".join(f"₹{v:,} in {a}" for a, v in by_area.items()) + ".",
                     f"Price against Google rating, for {len(pr2):,} cafés: rank correlation {rho:+.2f}, where zero means no link "
                     f"and ±1 a perfect one. A shuffle test finds nothing (chance of a link this size by luck: {pv:.2f}).",
-                    "Price does go with more reviews, weakly; dearer cafés tend to be bigger."],
+                    *([f"Price against Zomato dine-in rating, for {len(pz2):,} cafés: rank correlation {rho_z:+.2f} (chance by luck: {pv_z:.3f})."] if len(pz2) >= k else []),
+                    "Price does go with more reviews, weakly; dearer cafés tend to be bigger.",
+                    "Zomato recomputed its cost for two in October 2026, so price levels are provisional; how cafés rank against each other held steady."],
             "chart": {"kind": "bars", "bars": dist},
             "n": int(len(p)),
         })
+
+    # 7b. the same kind of café costs more in C-Scheme
+    pz = c.dropna(subset=["zomato_cost_for_two_inr"])
+    pz = pz[pz.zomato_cost_for_two_inr > 0]
+    if len(pz) >= k and min((pz.area == a).sum() for a in ("C-Scheme", "Malviya Nagar")) >= k:
+        csd = (pz.area == "C-Scheme").astype(float).values
+        Xp = np.c_[np.ones(len(pz)), csd, np.column_stack([(pz.type_base == t).astype(float).values for t in TYPES[1:]])]
+        yp = np.log(pz.zomato_cost_for_two_inr.values.astype(float))
+        bp = np.linalg.lstsq(Xp, yp, rcond=None)[0][1]
+        bsp = np.array([np.linalg.lstsq(Xp[i], yp[i], rcond=None)[0][1] for i in (rng.integers(0, len(pz), len(pz)) for _ in range(3000))])
+        plo, phi = np.percentile(bsp, [2.5, 97.5])
+        perm = np.array([np.linalg.lstsq(np.c_[Xp[:, :1], rng.permutation(csd), Xp[:, 2:]], yp, rcond=None)[0][1] for _ in range(2000)])
+        pperm = float((np.abs(perm) >= abs(bp)).mean())
+        over = {a: _pct((pz[pz.area == a].zomato_cost_for_two_inr > 600).mean()) for a in ("C-Scheme", "Malviya Nagar")}
+        if bp > 0:
+            out.append({
+                "id": "cs_price_premium", "value": _pct(np.expm1(bp)), "unit": "%",
+                "headline": "more for two at a C-Scheme café than at the same kind of café in Malviya Nagar.",
+                "body": (f"Compare your price with cafés like yours in your own area: {over['C-Scheme']}% of C-Scheme cafés charge over ₹600 for two, "
+                         f"against {over['Malviya Nagar']}% in Malviya Nagar."),
+                "limit": "It doesn't say C-Scheme cafés earn more: rent and costs are higher there too, and Zomato's cost for two is the app's estimate, not a menu price.",
+                "grade": _grade(len(pz), plo > 0 and pperm < 0.05, k),
+                "how": [f"Zomato cost for two for {len(pz):,} cafés ({int(csd.sum())} in C-Scheme, {int(len(pz) - csd.sum())} in Malviya Nagar), "
+                        "compared on a log scale with café type held fixed.",
+                        f"C-Scheme {_pct(np.expm1(bp)):+d}% (95% interval {_pct(np.expm1(plo)):+d}% to {_pct(np.expm1(phi)):+d}% from 3,000 resamples). "
+                        f"Shuffling the area labels 2,000 times gives a gap this large {pperm:.3f} of the time.",
+                        "It held on the September update too. Zomato recomputed its cost for two in October 2026, so the level is provisional; the gap held on both versions."],
+                "chart": {"kind": "bars", "bars": [["C-Scheme", over["C-Scheme"]], ["Malviya Nagar", over["Malviya Nagar"]]],
+                          "note": "Share of cafés charging over ₹600 for two"},
+                "n": int(len(pz)),
+            })
+
+    # 7c. most Zomato listings say very little
+    if "n_features" in c:
+        za = c[(c.on_zomato == "Y")].dropna(subset=["n_features"])
+        zl = za.dropna(subset=["google_reviews", "zomato_cost_for_two_inr"])
+        zl = zl[zl.zomato_cost_for_two_inr > 0]
+        if len(zl) >= 5 * k:
+            nf = za.n_features.values.astype(float)            # the share: every café on Zomato
+            top = (zl.n_features.values > np.median(nf)).astype(float)
+            cl = [(zl.area == "Malviya Nagar").astype(float).values] + [(zl.type_base == t).astype(float).values for t in TYPES[:3]]
+            cl.append(np.log(zl.zomato_cost_for_two_inr.values) - np.log(600))
+            Xl = np.c_[np.ones(len(zl)), top, np.column_stack(cl)]
+            yl = np.log1p(zl.google_reviews.values)
+            bl = np.linalg.lstsq(Xl, yl, rcond=None)[0][1]
+            bsl = np.array([np.linalg.lstsq(Xl[i], yl[i], rcond=None)[0][1] for i in (rng.integers(0, len(zl), len(zl)) for _ in range(3000))])
+            llo, lhi = np.percentile(bsl, [2.5, 97.5])
+            le3 = (nf <= 3).mean()
+            out.append({
+                "id": "listing_detail", "value": _pct(le3), "unit": "%",
+                "headline": "of cafés on Zomato list three or fewer features beyond the basics.",
+                "body": (f"Cafés in the top half for listed features have about {np.exp(bl):.1f}× the Google reviews of similar cafés. "
+                         "Filling in your listing (seating, parking, Wi-Fi, who it suits) takes ten minutes." if llo > 0 else
+                         "A fuller listing shows no clear link to reviews among similar cafés, but it costs ten minutes and tells customers what to expect."),
+                "limit": "It doesn't say a fuller listing brings reviews: established cafés may simply have more to list.",
+                "grade": _grade(len(zl), llo > 0, k),
+                "how": [f"Zomato's listed highlights for {len(zl):,} cafés, leaving out the basics nearly every café lists (lunch, dinner, breakfast, "
+                        f"indoor seating, takeaway, delivery, vegetarian). The typical café lists {int(np.median(nf))} beyond those. "
+                        f"The comparison below uses the {len(zl):,} with a Google review count and a price.",
+                        f"Top half against bottom half, with area, café type and price level held fixed: {np.expm1(bl):+.0%} Google reviews "
+                        f"(95% interval {np.expm1(llo):+.0%} to {np.expm1(lhi):+.0%} from 3,000 resamples).",
+                        "It held on the September update too. Fuller listings didn't gain reviews faster over three weeks, so this isn't shown to be cause."],
+                "chart": {"kind": "bars", "bars": [["0 to 3 features", _pct(le3)], ["4 to 7", _pct(((nf >= 4) & (nf <= 7)).mean())], ["8 or more", _pct((nf >= 8).mean())]]},
+                "n": int(len(za)),
+            })
+
+    # 7d. Swiggy and Zomato quote different prices for the same café
+    if "sw_cost_for_two" in c:
+        sz = c.dropna(subset=["sw_cost_for_two", "zomato_cost_for_two_inr"])
+        sz = sz[(sz.sw_cost_for_two > 0) & (sz.zomato_cost_for_two_inr > 0)]
+        if len(sz) >= k:
+            lower = (sz.sw_cost_for_two < sz.zomato_cost_for_two_inr).mean()
+            slo, shi = _wilson(lower, len(sz))
+            gap = float(np.median(sz.sw_cost_for_two / sz.zomato_cost_for_two_inr - 1))
+            out.append({
+                "id": "swiggy_cost_for_two", "value": _pct(lower), "unit": "%",
+                "headline": "of cafés on both apps show a lower cost for two on Swiggy than on Zomato.",
+                "body": f"By about {abs(_pct(gap))}% for the very same café. When you compare your price with a rival's, compare on the same app.",
+                "limit": "It doesn't say the café charges less on Swiggy; the two apps work out cost for two differently.",
+                "grade": _grade(len(sz), slo > 0.5 or shi < 0.5, k),
+                "how": [f"The {len(sz):,} cafés with a cost for two on both apps, compared café by café.",
+                        f"The share is between {_pct(slo)}% and {_pct(shi)}% (95% Wilson interval). The typical gap is {_pct(gap):+d}%.",
+                        "Swiggy finds fewer of the area's cafés than Zomato, and fewer of them again from one update to the next, so this rests on a smaller base."],
+                "chart": {"kind": "split", "parts": [["Lower on Swiggy", _pct(lower)], ["Same or higher", 100 - _pct(lower)]]},
+                "n": int(len(sz)),
+            })
 
     # 8. menus are wide
     cu = c[c.on_zomato == "Y"].z_cuisines.dropna().str.lower().str.split(r",\s*")

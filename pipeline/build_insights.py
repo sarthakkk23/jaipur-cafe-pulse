@@ -12,6 +12,7 @@ sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))
 from datetime import datetime, timezone
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -71,29 +72,63 @@ def _yn(v):
     return None if v is None else ("Y" if v else "N")
 
 
+BASIC_HL = {"lunch", "dinner", "breakfast", "indoor seating", "takeaway available", "home delivery", "vegetarian friendly",
+            "vegetarian only", "delivery only"}       # listed by nearly every café, so not counted as "features"
+
+
+def google_overrides(label):
+    """{fig_id: rejected cid} for this run, from private/process/google_overrides.yaml."""
+    p = PRIV / "process" / "google_overrides.yaml"
+    rows = (yaml.safe_load(open(p)) or []) if p.exists() else []
+    return {r["fig_id"]: str(r["rejected_cid"]) for r in rows if r.get("label") == label}
+
+
+def swiggy_costs(label):
+    """sw_id -> Swiggy cost for two in ₹, from the raw pull (the raw figure is in paise)."""
+    p = PRIV / "raw" / label / "swiggy_search.json"
+    if not p.exists():
+        return {}
+    out = {}
+    for r in json.load(open(p)):
+        v = str(r.get("cft") or "").strip()
+        if v.isdigit() and int(v) > 0:
+            out[str(r.get("id"))] = int(v) / 100
+    return out
+
+
 def frame(label):
     """One run as a venue-level DataFrame (private master + that run's snapshot rows)."""
     master = json.load(open(PRIV / "master" / f"master_{label}.json"))
     rows = snapshot_rows(label)
+    bad_g, sw_cost = google_overrides(label), swiggy_costs(label)
     out = []
     for r in master:
         s = rows.get(r["fig_id"])
         if r.get("merged_into") or s is None:
             continue
         hl = [h.strip().lower() for h in (r.get("z_highlights") or "").split(";")]
+        listed = [h for h in hl if h and not h.startswith("no:")]
+        g_ok = not (r.get("g_cid") and bad_g.get(r["fig_id"]) == str(r.get("g_cid")))
         d = {"fig_id": r["fig_id"], "name": r.get("name"), "area": r.get("area"), "fig_scope": r.get("fig_scope"),
              "fig_type": r.get("fig_type"), "status": s["status"], "seen": s["seen_this_run"] == "Y",
              "first_seen": r.get("first_seen"), "national_chain": "Y" if r.get("national_chain") else "N",
              "zomato_hours": r.get("z_hours"), "lat": pd.to_numeric(r.get("lat"), errors="coerce"),
              "lon": pd.to_numeric(r.get("lon"), errors="coerce"), "z_cuisines": r.get("z_cuisines"),
-             "on_zomato": "Y" if r.get("src_zomato") else "N", "on_google": "Y" if r.get("g_cid") else "N",
-             "on_swiggy": "Y" if r.get("sw_id") else "N", "on_magicpin": "Y" if r.get("mp_url") else "N"}
+             "on_zomato": "Y" if r.get("src_zomato") else "N", "on_google": "Y" if r.get("g_cid") else "N",   # still on Google; only this run's match is wrong
+             "on_swiggy": "Y" if r.get("sw_id") else "N", "on_magicpin": "Y" if r.get("mp_url") else "N",
+             "g_cid": r.get("g_cid") if g_ok else None,
+             "sw_cost_for_two": pd.to_numeric(r.get("sw_cost_for_two") or sw_cost.get(str(r.get("sw_id"))), errors="coerce"),
+             "n_highlights": len(listed) if r.get("src_zomato") else None,
+             "n_features": sum(1 for h in listed if h not in BASIC_HL) if r.get("src_zomato") else None,
+             "family_or_kid": _yn(any(h in ("family friendly", "kid friendly") for h in listed)) if r.get("src_zomato") else None}
         for k, keys in AM_MAP.items():
             d[k] = _yn(any(h in [x.lower() for x in keys] for h in hl)) if r.get("src_zomato") else None
         if not r.get("src_zomato"):
             d["rooftop"] = "Y" if "rooftop" in ((r.get("name") or "") + (r.get("g_address") or "")).lower() else None
         for m in METRICS:
             d[m] = pd.to_numeric(s.get(m) or None, errors="coerce")
+        if not g_ok:                                   # a rejected Google match: as if Google hadn't been read
+            d["google_rating"] = d["google_reviews"] = np.nan
         out.append(d)
     return pd.DataFrame(out)
 
@@ -458,10 +493,6 @@ def build(cfg, label=None):
                 if v:
                     T[f"changes.median_gain.{AREA_SHORT[a]}"] = f"{int(round(v['median_gain'])):,}"
                     T[f"changes.share_gaining.{AREA_SHORT[a]}"] = fmt_pct(v["share_gaining"])
-            best = max(((t, v) for t, v in (mom.get("by_type") or {}).items() if v), key=lambda tv: tv[1]["share_gaining"], default=None)
-            if best:
-                T["changes.busiest_type"] = best[0].lower()
-                T["changes.busiest_type_share"] = fmt_pct(best[1]["share_gaining"])
 
     tc = yaml.safe_load(open(ROOT / "content" / "top_cafes.yaml")).get("entries") or []
     ids = yaml.safe_load(open(PRIV / "top_cafes_ids.yaml")) or {}
