@@ -119,7 +119,8 @@ def rent_out(rent, share, bill, days):
 
 
 # ---------- building blocks ----------
-TAGS = {"m": ("Measured", "tag-m"), "e": ("Estimate", "tag-e"), "j": ("Judgement", "tag-j"), "a": ("Arithmetic", "tag-a"), "x": ("Example", "tag-x")}
+TAGS = {"m": ("Measured", "tag-m"), "e": ("Estimate", "tag-e"), "j": ("Judgement", "tag-j"), "a": ("Arithmetic", "tag-a"), "x": ("Example", "tag-x"),
+        "s": ("Survey", "tag-s")}
 
 
 def tag(kind):
@@ -235,6 +236,8 @@ def pages(I, F, L, k, core, pre):
     ing = math.ceil(CAPPA_TABLE)                 # costs are always rounded up
     cold = math.ceil(COLD)
     P = []
+    SVF = {f["id"]: f for f in (I.get("survey") or {}).get("findings") or []}
+    sv_n = ((I.get("survey") or {}).get("meta") or {}).get("n")
 
     def finding_note(fid):
         f = F.get(fid)
@@ -278,6 +281,10 @@ def pages(I, F, L, k, core, pre):
               f"<li><b>Does it keep more than average?</b> Yes if it keeps more than ₹{avg_m:.0f}, the average across everything sold.</li></ul>"
               "<p><b>Star:</b> popular, and keeps more. <b>Plowhorse:</b> popular, keeps less. <b>Puzzle:</b> keeps more, but rarely ordered. "
               "<b>Dog:</b> neither.</p>"),
+        *([("s", "What people say they choose on", f"<p>In my survey of {sv_n} people, {SVF['survey_the_place']['value']}% picked their last café "
+                f"for the place itself, the space and the vibe, and {SVF['survey_the_place']['data']['menu']}% for something specific on the menu. "
+                "So the signature can be the room as much as a dish: a corner, a view, a seat people ask for. Whichever it is, it should be the one thing "
+                "people can name.</p>")] if "survey_the_place" in SVF else []),
         ("j", "Choose the signature", f"<p>The signature should be a Star that already sells. Here that's <b>{E(star[0].lower())}</b>: "
               f"{round(100 * star[1] / sold)}% of everything sold, keeping ₹{star[2] - star[3]} each, above the ₹{avg_m:.0f} average. "
               "Nothing new has to be invented. The customers have already voted.</p>"),
@@ -342,6 +349,10 @@ def pages(I, F, L, k, core, pre):
         ("j", "Is that many realistic?", "<p>"
               + (f"With {d['office']} offices and banks and {d.get('gym', 0)} gyms within five minutes, {need} coffees is fewer than one for every office. " if d.get("office", 0) > need else "")
               + "The people are there. What's missing is a reason to stop: a coffee that's ready before they reach the counter.</p>"),
+        *([("s", "Is the morning demand there?", f"<p>In my survey of {sv_n} people, only {SVF['survey_mornings']['value']}% have their first coffee "
+                f"or tea out before 10am on a weekday, and {SVF['survey_mornings']['data']['none']}% don't buy one at all on weekdays. Most of them are "
+                "students or under 25, so it doesn't speak for an office street. It does say early trade won't come from passers-by alone: it has to "
+                "come from a crowd that's already out, like the offices and gyms counted above.</p>")] if "survey_mornings" in SVF else []),
         ("a", "The worst case", f"<p>If not one extra coffee sells, a month's trial (26 working days) costs ₹{inr(26 * cost)}. "
               "Add any unsold bakes and a few printed cards, and that is about the most the experiment can lose. Four weeks is enough to know.</p>"),
     ]
@@ -409,6 +420,15 @@ def pages(I, F, L, k, core, pre):
                       f"<p>Between my last two updates, {days_} days apart, the typical café gained {med_pw:.1f} new Google reviews a week, and only "
                       f"<b>{share1}%</b> gained one a week or more. So one review a week is a strong pace here: it beats about {100 - share1}% of cafés. "
                       "It's one stretch of a few weeks, so treat it as a guide.</p>"))
+    wm = SVF.get("survey_word_of_mouth")
+    if wm:
+        sign = (f" One early sign: people who heard about a café from a friend were more than twice as likely to say they'd definitely go back "
+                f"({wm['data']['friend_back']}%) as people who found it on Instagram ({wm['data']['insta_back']}%)."
+                if wm["data"].get("friend_back") and wm["data"]["friend_back"] >= 2 * wm["data"]["insta_back"] else "")
+        steps.append(("s", "How people actually hear about a café",
+                      f"<p>In my survey of {sv_n} people, {wm['value']}% heard about their last café from a friend, family or Instagram, and only "
+                      f"{wm['data']['apps']}% from Google Maps or a delivery app. So reviews mostly do their work after the first mention: they reassure "
+                      f"someone who has already heard your name.{sign} Steady reviews and a reason for regulars to bring someone work together.</p>"))
     steps += [
         ("a", "How long it takes", f"<p>At a steady pace, closing a gap of {gap} takes:</p>" + table(["Pace", "Time", "Roughly"], time_rows)
               + f"<p>At one a week, that's one review from every few hundred bills, even for a quiet café:</p>"
@@ -558,6 +578,10 @@ def pages(I, F, L, k, core, pre):
             [["Laptop guest, one coffee", "₹180", "3 hours", f"<b>₹{camp:.0f}</b>"]]
             + ([["Lunch guest", f"₹{inr(per)}", "1 hour", f"<b>₹{inr(per)}</b>"], ["Lunch guest, slow", f"₹{inr(per)}", "1½ hours", f"<b>₹{inr(per / 1.5)}</b>"]] if per else [])
             + [["Nobody", "–", "–", "<b>₹0</b>"]])),
+        *([("s", "Who stays long", f"<p>In my survey of {sv_n} people, {SVF['survey_long_stays']['value']}% stayed more than an hour on their last visit, "
+                f"and {SVF['survey_long_stays']['data']['catching_up']}% of those were catching up with someone; only "
+                f"{SVF['survey_long_stays']['data']['working']} of {SVF['survey_long_stays']['data']['n_long']} were working. The long table is mostly friends, "
+                "not laptops, so the hour-by-hour logic below applies to groups too.</p>")] if "survey_long_stays" in SVF else []),
         ("j", "When it matters, and when it doesn't", "<p>These are sales, not profit, but the gap is wide enough that the point holds either way. A laptop guest only costs you money when someone else is turned away for want of a seat. "
               + (f"At a full lunch, each camped seat gives up ₹{inr(per / 1.5 - camp)} to ₹{inr(per - camp)} of sales an hour. " if per else "")
               + "At 4pm, with half the room empty, the alternative is ₹0, and the same guest is pure gain.</p>"),
@@ -653,6 +677,7 @@ def pages(I, F, L, k, core, pre):
       <li>{tag("e")} sourced, or set high on purpose so the answer stays cautious</li>
       <li>{tag("j")} what I'd do, reasoned from the above</li>
       <li>{tag("x")} invented figures, only to show a method</li>
+      <li>{tag("s")} from my survey of café-goers, early signs</li>
     </ul>
   </div>
 </section>
