@@ -92,7 +92,7 @@ def findings(path):
                         f"against {_pct(b.mean())}% of {len(ig)} who found it on Instagram. Shuffling those labels 20,000 times gives a gap this "
                         f"large {p:.4f} of the time. The groups are small, so the next survey wave is the real test."]
     add("survey_word_of_mouth", int(wom.sum()),
-        "of people I asked heard about their last café from a friend, family or Instagram.",
+        "of café-goers I asked heard about their last café from a friend, family or Instagram.",
         f"Only {_pct(apps.mean())}% found it on Google Maps or a delivery app. Ratings may confirm a choice, but the choice starts with "
         f"someone people know or a post they saw.{sign}",
         "It doesn't say ratings don't matter: people may still check them before they go.",
@@ -108,7 +108,7 @@ def findings(path):
     place = d.reason.str.startswith("The place itself")
     menu, close, other = (d.reason == "For something specific on the menu"), (d.reason == "It was close by"), (d.reason == "Someone else chose it")
     add("survey_the_place", int(place.sum()),
-        "of people I asked picked their last café for the place itself: the space and the vibe.",
+        "of café-goers I asked picked their last café for the place itself: the space and the vibe.",
         f"{_pct(menu.mean())}% came for something specific on the menu and {_pct(close.mean())}% because it was close by. "
         f"{_pct(other.mean())}% didn't choose at all: someone else did. A signature can be the room as much as a dish.",
         "It doesn't say the menu doesn't matter, only what tipped this visit.",
@@ -121,7 +121,7 @@ def findings(path):
     # 3. on the fence about returning
     maybe = d.back == "Maybe"
     add("survey_on_the_fence", int(maybe.sum()),
-        "of people I asked are only \"maybe\" about going back to the café they last visited.",
+        "of café-goers I asked are only \"maybe\" about going back to the café they last visited.",
         f"{_pct((d.back == 'Yes, definitely').mean())}% said yes, definitely, and {_pct((d.back == 'Probably not').mean())}% probably not. "
         "The undecided are the regulars still up for grabs: give them a reason to come back.",
         "It doesn't say why they're unsure, or that they won't return.",
@@ -133,25 +133,25 @@ def findings(path):
     long_ = d.stay.isin(["1 to 2 hours", "Over 2 hours"])
     lg = d[long_]
     add("survey_long_stays", int(long_.sum()),
-        "of people I asked stayed more than an hour on their last café visit.",
+        "of café-goers I asked stayed more than an hour on their last café visit.",
         f"{_pct((lg.doing == 'Catching up with someone').mean())}% of those long visits were people catching up with someone; "
-        f"{int((lg.doing == 'Working or studying').sum())} of {len(lg)} were working or studying. The long table is friends, not laptops, "
+        f"only {_pct((lg.doing == 'Working or studying').mean())}% were working or studying. The long table is friends, not laptops, "
         "so plan the room for small groups first.",
         "It doesn't say how much long visits spend, or how full the café was.",
         [f"Under 30 minutes {_pct((d.stay == 'Under 30 minutes').mean())}%, 30 minutes to an hour {_pct((d.stay == '30 minutes to 1 hour').mean())}%, "
          f"1 to 2 hours {_pct((d.stay == '1 to 2 hours').mean())}%, over 2 hours {_pct((d.stay == 'Over 2 hours').mean())}%."],
         {"kind": "bars", "bars": _share_bars(d.stay, [("Under 30 minutes", "Under 30 minutes"), ("30 minutes to 1 hour", "30 minutes to 1 hour"),
                                                       ("1 to 2 hours", "1 to 2 hours"), ("Over 2 hours", "Over 2 hours")])},
-        {"catching_up": _pct((lg.doing == "Catching up with someone").mean()), "working": int((lg.doing == "Working or studying").sum()), "n_long": int(len(lg))})
+        {"catching_up": _pct((lg.doing == "Catching up with someone").mean()), "working_pct": _pct((lg.doing == "Working or studying").mean())})
 
     # 5. mornings are thin
     early = d.first_cup.isin(["Before 8am", "8am to 10am"])
     none_ = _pct((d.first_cup == "I don't, on weekdays").mean())    # Python 3.9: no backslash inside an f-string expression
     add("survey_mornings", int(early.sum()),
-        "of people I asked have their first coffee or tea out before 10am on a weekday.",
+        "of café-goers I asked have their first coffee or tea out before 10am on a weekday.",
         f"{none_}% don't buy one at all on weekdays, and {_pct((d.first_cup == 'After 12pm').mean())}% "
         "not until after noon. Morning trade depends on a crowd that's already out early, so check who's around you before opening early.",
-        f"It doesn't speak for office workers near you: {young}% of the people I asked are aged 18 to 24.",
+        "It doesn't speak for every street: an office district may have an earlier crowd.",
         [],
         {"kind": "bars", "bars": _share_bars(d.first_cup, [("Before 8am", "Before 8am"), ("8am to 10am", "8am to 10am"),
                                                            ("10am to 12pm", "10am to 12pm"), ("After 12pm", "After 12pm"),

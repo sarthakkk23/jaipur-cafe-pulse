@@ -5,7 +5,7 @@
   "failed_sources": [
    "magicpin"
   ],
-  "generated_at": "2026-10-23T13:27:46+00:00",
+  "generated_at": "2026-10-23T13:37:48+00:00",
   "areas": [
    "C-Scheme",
    "Malviya Nagar"
@@ -24810,7 +24810,7 @@
      "id": "survey_word_of_mouth",
      "value": 85,
      "unit": "%",
-     "headline": "of people I asked heard about their last café from a friend, family or Instagram.",
+     "headline": "of café-goers I asked heard about their last café from a friend, family or Instagram.",
      "body": "Only 3% found it on Google Maps or a delivery app. Ratings may confirm a choice, but the choice starts with someone people know or a post they saw. An early sign worth watching: people who heard from a friend were more than twice as likely to say they'd definitely go back (70%) as people who found the café on Instagram (31%).",
      "limit": "It doesn't say ratings don't matter: people may still check them before they go.",
      "grade": "Moderate",
@@ -24860,7 +24860,7 @@
      "id": "survey_the_place",
      "value": 41,
      "unit": "%",
-     "headline": "of people I asked picked their last café for the place itself: the space and the vibe.",
+     "headline": "of café-goers I asked picked their last café for the place itself: the space and the vibe.",
      "body": "16% came for something specific on the menu and 21% because it was close by. 13% didn't choose at all: someone else did. A signature can be the room as much as a dish.",
      "limit": "It doesn't say the menu doesn't matter, only what tipped this visit.",
      "grade": "Moderate",
@@ -24901,7 +24901,7 @@
      "id": "survey_on_the_fence",
      "value": 40,
      "unit": "%",
-     "headline": "of people I asked are only \"maybe\" about going back to the café they last visited.",
+     "headline": "of café-goers I asked are only \"maybe\" about going back to the café they last visited.",
      "body": "57% said yes, definitely, and 3% probably not. The undecided are the regulars still up for grabs: give them a reason to come back.",
      "limit": "It doesn't say why they're unsure, or that they won't return.",
      "grade": "Moderate",
@@ -24935,8 +24935,8 @@
      "id": "survey_long_stays",
      "value": 55,
      "unit": "%",
-     "headline": "of people I asked stayed more than an hour on their last café visit.",
-     "body": "94% of those long visits were people catching up with someone; 2 of 53 were working or studying. The long table is friends, not laptops, so plan the room for small groups first.",
+     "headline": "of café-goers I asked stayed more than an hour on their last café visit.",
+     "body": "94% of those long visits were people catching up with someone; only 4% were working or studying. The long table is friends, not laptops, so plan the room for small groups first.",
      "limit": "It doesn't say how much long visits spend, or how full the café was.",
      "grade": "Moderate",
      "source": "survey",
@@ -24970,17 +24970,16 @@
      "n": 97,
      "data": {
       "catching_up": 94,
-      "working": 2,
-      "n_long": 53
+      "working_pct": 4
      }
     },
     {
      "id": "survey_mornings",
      "value": 20,
      "unit": "%",
-     "headline": "of people I asked have their first coffee or tea out before 10am on a weekday.",
+     "headline": "of café-goers I asked have their first coffee or tea out before 10am on a weekday.",
      "body": "25% don't buy one at all on weekdays, and 31% not until after noon. Morning trade depends on a crowd that's already out early, so check who's around you before opening early.",
-     "limit": "It doesn't speak for office workers near you: 74% of the people I asked are aged 18 to 24.",
+     "limit": "It doesn't speak for every street: an office district may have an earlier crowd.",
      "grade": "Moderate",
      "source": "survey",
      "base": "people",

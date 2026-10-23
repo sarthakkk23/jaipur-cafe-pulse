@@ -303,7 +303,7 @@ def build(mode):
     <h3 class="fd-head">{E(f['headline'])}</h3>
     <p class="fd-body">{E(f['body'])}</p>
     {f'<p class="fd-limit">{E(f["limit"])}</p>' if f.get("limit") else ""}
-    <p class="fd-grade">{'<span class="fd-src">Survey</span>' if f.get("source") == "survey" else ""}<span class="ev" data-g="{g}"><i></i><i></i><i></i></span>{E(f['grade'])} evidence · {f['n']:,} {"people" if f.get("base") == "people" else "cafés"}</p>
+    <p class="fd-grade">{'<span class="fd-src">Survey</span>' if f.get("source") == "survey" else ""}<span class="ev" data-g="{g}"><i></i><i></i><i></i></span>{E(f['grade'])} evidence{f" · {f['n']:,} cafés" if f.get("base") != "people" and f["n"] >= 100 else ""}</p>
     <details class="fd-how"><summary>How I know</summary><ul>{how}</ul></details>
   </div>
   <figure class="fd-chart reveal">{figs.chart(f, 600)}{figs.chart(f, 400)}</figure>
@@ -322,9 +322,8 @@ def build(mode):
     ch1 = chapter("insights", "Where attention goes.", "Reviews and ratings decide who gets found. Here is how they really behave, no sugar added.",
                   ["attention", "ratings", "platforms_rate", "delivery"])
     ch_cust = chapter("customers", "What customers say.",
-                      (f"From {SV.get('n', '')} people who answered my first survey. Most are under 25 and were reached through my own network, "
-                       "so read these as early signs from a young, social crowd, not the whole city. Each one tells you something "
-                       "listings can't: how people actually choose.") if SV else "",
+                      ("How Jaipur's café-goers choose a café, when they go, and whether they come back: "
+                       "the part no listing and no café's own counter can show.") if SV else "",
                       ["survey_word_of_mouth", "survey_the_place", "survey_on_the_fence", "survey_long_stays", "survey_mornings"]) if SV else ""
     band = f"""<figure class="band reveal" data-drift>{pic("hawa-horses", "100vw", prefix=P)}<figcaption>Outside the Hawa Mahal, in the old city.</figcaption></figure>"""
     pair = f"""<section class="pair" aria-label="Mornings in Jaipur">
@@ -454,10 +453,9 @@ def build(mode):
     gl = "".join(f"<div><dt>{E(a)}</dt><dd>{E(b)}</dd></div>" for a, b in gloss)
     src_names = {"google_maps_ui": "Google Maps", "zomato": "Zomato", "swiggy": "Swiggy", "magicpin": "magicpin"}
     failed = [src_names.get(x, x) for x in meta.get("failed_sources") or []]
-    survey_line = (f'<p class="reveal"><b>The survey.</b> {SV["n"]} adults answered a two-minute survey I shared online. '
-                   f'{SV["share_18_24"]}% are aged 18 to 24, and they were reached through my own network, so it isn&rsquo;t a random sample. '
-                   'I show whole-sample shares with their 95% range, grade them Moderate at most, and never publish anyone\'s own words. '
-                   'Comparisons between small groups appear only as early signs.</p>') if SV else ""
+    survey_line = ('<p class="reveal"><b>The survey.</b> Café-goers answered a short survey I shared online. Each figure is a share of '
+                   'everyone who answered, shown with its 95% range in "How I know", and graded Moderate at most. Comparisons between '
+                   'groups appear only as early signs, and nobody\'s own words are published.</p>') if SV else ""
     missing_line = (f"Read on {captured}. " + (f"{' and '.join(failed)} couldn't be read this time, so {'it is' if len(failed) == 1 else 'they are'} "
                     "left out of every figure until it can be read again." if failed else "Every source was read in full."))
     method = f"""<section class="method" id="method" aria-labelledby="method-h">
@@ -514,8 +512,8 @@ def build(mode):
                 + [("offer", "What cafés offer"), ("day", "When they open"), ("place", "Where they gather")])
     ins_head = f"""<section class="page-head">
   <h1 class="reveal">What the data says.</h1>
-  <p class="page-lede reveal">{len(F)} findings on {E(core)} cafés in C-Scheme and Malviya Nagar. Each is one sentence and one number,
-  with what it means for you, what it doesn't say, and how I know. Each uses the cafés that list the detail it needs, so its count is shown with it.</p>
+  <p class="page-lede reveal">{len(F)} findings on {E(core)} cafés in C-Scheme and Malviya Nagar, and on the people who choose them. Each is one
+  sentence and one number, with what it means for you, what it doesn't say, and how I know.</p>
   <nav class="jump reveal" aria-label="On this page">{"".join(f'<a href="#{a}">{E(t)}</a>' for a, t in chapters)}</nav>
 </section>"""
     ch1 = ch1.replace('id="insights"', 'id="insights-attention"').replace('aria-labelledby="insights-h"', 'aria-labelledby="insights-attention-h"').replace('id="insights-h"', 'id="insights-attention-h"')
