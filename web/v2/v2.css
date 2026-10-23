@@ -539,6 +539,7 @@ figure { margin: 0; }
 .tag-e { background: var(--pink); color: var(--ink); }
 .tag-j { background: var(--stone-2); color: var(--ink); }
 .tag-x { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--soft); }
+.tag-s { background: var(--clay); color: var(--paper); }
 .ph-copy .tag-j, .ph-fig .tag-j { background: var(--paper); }
 .cs { padding: clamp(96px, 12vw, 176px) var(--m) 0; }
 .cs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
@@ -596,3 +597,6 @@ figure { margin: 0; }
 .method-more { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 48px; }
 .method-more .ev { margin-right: 6px; }
 @media (max-width: 900px) { .method-more { grid-template-columns: 1fr; } }
+
+/* survey findings say so before their grade */
+.fd-src { display: inline-block; font-size: 0.6875rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; margin-right: 10px; background: var(--clay); color: var(--paper); vertical-align: 1px; }

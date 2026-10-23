@@ -5,7 +5,7 @@
   "failed_sources": [
    "magicpin"
   ],
-  "generated_at": "2026-10-20T11:38:22+00:00",
+  "generated_at": "2026-10-23T13:37:48+00:00",
   "areas": [
    "C-Scheme",
    "Malviya Nagar"
@@ -24792,6 +24792,233 @@
     "n": 511
    }
   ],
+  "survey": {
+   "meta": {
+    "n": 97,
+    "from": "2026-10-18",
+    "to": "2026-10-23",
+    "share_18_24": 74,
+    "file": "wave1_2026-10-23.csv",
+    "last_visit_area": {
+     "C-Scheme": 64,
+     "Malviya Nagar": 19,
+     "Somewhere else in Jaipur": 14
+    }
+   },
+   "findings": [
+    {
+     "id": "survey_word_of_mouth",
+     "value": 85,
+     "unit": "%",
+     "headline": "of café-goers I asked heard about their last café from a friend, family or Instagram.",
+     "body": "Only 3% found it on Google Maps or a delivery app. Ratings may confirm a choice, but the choice starts with someone people know or a post they saw. An early sign worth watching: people who heard from a friend were more than twice as likely to say they'd definitely go back (70%) as people who found the café on Instagram (31%).",
+     "limit": "It doesn't say ratings don't matter: people may still check them before they go.",
+     "grade": "Moderate",
+     "source": "survey",
+     "base": "people",
+     "how": [
+      "97 adults answered a two-minute survey I shared between 18 to 23 October 2026. 74% are aged 18 to 24, and they were reached through my own network, so these are signs from a young, social crowd rather than a measure of the whole city.",
+      "The share is between 76% and 90% (95% Wilson interval).",
+      "Friend or family 58%, Instagram 27%, walked or drove past 7%, Google Maps 2%, Zomato or Swiggy 1%.",
+      "Going back, by how they heard: 70% of 56 who heard from a friend or family said \"Yes, definitely\", against 31% of 26 who found it on Instagram. Shuffling those labels 20,000 times gives a gap this large 0.0019 of the time. The groups are small, so the next survey wave is the real test."
+     ],
+     "chart": {
+      "kind": "bars",
+      "bars": [
+       [
+        "Friend or family",
+        58
+       ],
+       [
+        "Instagram",
+        27
+       ],
+       [
+        "Walked or drove past",
+        7
+       ],
+       [
+        "Google Maps",
+        2
+       ],
+       [
+        "Zomato or Swiggy",
+        1
+       ]
+      ]
+     },
+     "n": 97,
+     "data": {
+      "apps": 3,
+      "friend_back": 70,
+      "insta_back": 31,
+      "n_friend": 56,
+      "n_insta": 26
+     }
+    },
+    {
+     "id": "survey_the_place",
+     "value": 41,
+     "unit": "%",
+     "headline": "of café-goers I asked picked their last café for the place itself: the space and the vibe.",
+     "body": "16% came for something specific on the menu and 21% because it was close by. 13% didn't choose at all: someone else did. A signature can be the room as much as a dish.",
+     "limit": "It doesn't say the menu doesn't matter, only what tipped this visit.",
+     "grade": "Moderate",
+     "source": "survey",
+     "base": "people",
+     "how": [
+      "97 adults answered a two-minute survey I shared between 18 to 23 October 2026. 74% are aged 18 to 24, and they were reached through my own network, so these are signs from a young, social crowd rather than a measure of the whole city.",
+      "The share is between 32% and 51% (95% Wilson interval).",
+      "For the place itself 41%, close by 21%, something on the menu 16%, someone else chose 13%, to work or study 3%; the rest wrote their own reason."
+     ],
+     "chart": {
+      "kind": "bars",
+      "bars": [
+       [
+        "The place itself",
+        41
+       ],
+       [
+        "Close by",
+        21
+       ],
+       [
+        "Something on the menu",
+        16
+       ],
+       [
+        "Someone else chose",
+        13
+       ]
+      ]
+     },
+     "n": 97,
+     "data": {
+      "menu": 16
+     }
+    },
+    {
+     "id": "survey_on_the_fence",
+     "value": 40,
+     "unit": "%",
+     "headline": "of café-goers I asked are only \"maybe\" about going back to the café they last visited.",
+     "body": "57% said yes, definitely, and 3% probably not. The undecided are the regulars still up for grabs: give them a reason to come back.",
+     "limit": "It doesn't say why they're unsure, or that they won't return.",
+     "grade": "Moderate",
+     "source": "survey",
+     "base": "people",
+     "how": [
+      "97 adults answered a two-minute survey I shared between 18 to 23 October 2026. 74% are aged 18 to 24, and they were reached through my own network, so these are signs from a young, social crowd rather than a measure of the whole city.",
+      "The share is between 31% and 50% (95% Wilson interval)."
+     ],
+     "chart": {
+      "kind": "split",
+      "parts": [
+       [
+        "Yes, definitely",
+        57
+       ],
+       [
+        "Maybe",
+        40
+       ],
+       [
+        "Probably not",
+        3
+       ]
+      ]
+     },
+     "n": 97,
+     "data": {}
+    },
+    {
+     "id": "survey_long_stays",
+     "value": 55,
+     "unit": "%",
+     "headline": "of café-goers I asked stayed more than an hour on their last café visit.",
+     "body": "94% of those long visits were people catching up with someone; only 4% were working or studying. The long table is friends, not laptops, so plan the room for small groups first.",
+     "limit": "It doesn't say how much long visits spend, or how full the café was.",
+     "grade": "Moderate",
+     "source": "survey",
+     "base": "people",
+     "how": [
+      "97 adults answered a two-minute survey I shared between 18 to 23 October 2026. 74% are aged 18 to 24, and they were reached through my own network, so these are signs from a young, social crowd rather than a measure of the whole city.",
+      "The share is between 45% and 64% (95% Wilson interval).",
+      "Under 30 minutes 7%, 30 minutes to an hour 38%, 1 to 2 hours 46%, over 2 hours 8%."
+     ],
+     "chart": {
+      "kind": "bars",
+      "bars": [
+       [
+        "Under 30 minutes",
+        7
+       ],
+       [
+        "30 minutes to 1 hour",
+        38
+       ],
+       [
+        "1 to 2 hours",
+        46
+       ],
+       [
+        "Over 2 hours",
+        8
+       ]
+      ]
+     },
+     "n": 97,
+     "data": {
+      "catching_up": 94,
+      "working_pct": 4
+     }
+    },
+    {
+     "id": "survey_mornings",
+     "value": 20,
+     "unit": "%",
+     "headline": "of café-goers I asked have their first coffee or tea out before 10am on a weekday.",
+     "body": "25% don't buy one at all on weekdays, and 31% not until after noon. Morning trade depends on a crowd that's already out early, so check who's around you before opening early.",
+     "limit": "It doesn't speak for every street: an office district may have an earlier crowd.",
+     "grade": "Moderate",
+     "source": "survey",
+     "base": "people",
+     "how": [
+      "97 adults answered a two-minute survey I shared between 18 to 23 October 2026. 74% are aged 18 to 24, and they were reached through my own network, so these are signs from a young, social crowd rather than a measure of the whole city.",
+      "The share is between 13% and 29% (95% Wilson interval)."
+     ],
+     "chart": {
+      "kind": "bars",
+      "bars": [
+       [
+        "Before 8am",
+        4
+       ],
+       [
+        "8am to 10am",
+        15
+       ],
+       [
+        "10am to 12pm",
+        25
+       ],
+       [
+        "After 12pm",
+        31
+       ],
+       [
+        "Not on weekdays",
+        25
+       ]
+      ]
+     },
+     "n": 97,
+     "data": {
+      "none": 25
+     }
+    }
+   ]
+  },
   "method": {
    "listings": 2803,
    "venues": 1087

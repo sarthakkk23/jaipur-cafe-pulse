@@ -504,6 +504,10 @@ def build(cfg, label=None):
 
     # statistical findings on the full latest run (aggregates only)
     out["insights"]["findings"] = S.findings(core, k)
+    import survey_v2 as SV
+    sv_path = SV.latest(PRIV)
+    if sv_path:
+        out["insights"]["survey"] = SV.findings(sv_path)
     # location check: the five-minute walk around every spot on a grid (aggregates only), written beside the insights
     import location_v2 as L
     dem = sorted(PRIV.glob("raw/*/google_demand.json"), key=lambda p: p.stat().st_mtime)

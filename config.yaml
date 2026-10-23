@@ -44,8 +44,9 @@ publish:
 #   action:   the form's .../formResponse URL (Google) or the Formspree endpoint
 #   fields:   the form's field names: name (optional on the page if the form has no name question) and contact
 # The café-goer survey (wave 1). Empty url hides the link everywhere.
+# Wave 1 closed on 23 Oct 2026; put a link here to invite people to the next wave.
 survey:
-  url: "https://docs.google.com/forms/d/e/1FAIpQLScYalQwH1r3bgQJh_kqohEJgtyT1--vIvnrP__7ArlDU-ySxw/viewform"
+  url: ""
 
 subscribe:
   provider: google_form

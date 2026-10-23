@@ -233,7 +233,8 @@ def build(mode):
     mailto = ent(f"mailto:{au['email']}?subject={quote(au.get('email_subject', site['title']))}") if au.get("email") else ""
     captured = nice(meta["captured_on"])
     core = T.get("scene.core_cafes", "")
-    F = {f["id"]: f for f in I.get("findings") or []}
+    F = {f["id"]: f for f in (I.get("findings") or []) + ((I.get("survey") or {}).get("findings") or [])}
+    SV = (I.get("survey") or {}).get("meta") or {}
     lead_f = F.get("cluster") or next(iter(F.values()))
     sub = cfg.get("subscribe") or {}
     live = sub.get("provider") in ("google_form", "formspree") and sub.get("action")
@@ -302,7 +303,7 @@ def build(mode):
     <h3 class="fd-head">{E(f['headline'])}</h3>
     <p class="fd-body">{E(f['body'])}</p>
     {f'<p class="fd-limit">{E(f["limit"])}</p>' if f.get("limit") else ""}
-    <p class="fd-grade"><span class="ev" data-g="{g}"><i></i><i></i><i></i></span>{E(f['grade'])} evidence · {f['n']:,} cafés</p>
+    <p class="fd-grade">{'<span class="fd-src">Survey</span>' if f.get("source") == "survey" else ""}<span class="ev" data-g="{g}"><i></i><i></i><i></i></span>{E(f['grade'])} evidence{f" · {f['n']:,} cafés" if f.get("base") != "people" and f["n"] >= 100 else ""}</p>
     <details class="fd-how"><summary>How I know</summary><ul>{how}</ul></details>
   </div>
   <figure class="fd-chart reveal">{figs.chart(f, 600)}{figs.chart(f, 400)}</figure>
@@ -320,6 +321,10 @@ def build(mode):
 
     ch1 = chapter("insights", "Where attention goes.", "Reviews and ratings decide who gets found. Here is how they really behave, no sugar added.",
                   ["attention", "ratings", "platforms_rate", "delivery"])
+    ch_cust = chapter("customers", "What customers say.",
+                      ("How Jaipur's café-goers choose a café, when they go, and whether they come back: "
+                       "the part no listing and no café's own counter can show.") if SV else "",
+                      ["survey_word_of_mouth", "survey_the_place", "survey_on_the_fence", "survey_long_stays", "survey_mornings"]) if SV else ""
     band = f"""<figure class="band reveal" data-drift>{pic("hawa-horses", "100vw", prefix=P)}<figcaption>Outside the Hawa Mahal, in the old city.</figcaption></figure>"""
     pair = f"""<section class="pair" aria-label="Mornings in Jaipur">
   <figure class="pair-a reveal" data-drift>{pic("kulhad-chai", "(max-width: 760px) 100vw, 40vw", prefix=P)}<figcaption>Chai in clay kulhads: the city's first order of the day.</figcaption></figure>
@@ -448,6 +453,9 @@ def build(mode):
     gl = "".join(f"<div><dt>{E(a)}</dt><dd>{E(b)}</dd></div>" for a, b in gloss)
     src_names = {"google_maps_ui": "Google Maps", "zomato": "Zomato", "swiggy": "Swiggy", "magicpin": "magicpin"}
     failed = [src_names.get(x, x) for x in meta.get("failed_sources") or []]
+    survey_line = ('<p class="reveal"><b>The survey.</b> Café-goers answered a short survey I shared online. Each figure is a share of '
+                   'everyone who answered, shown with its 95% range in "How I know", and graded Moderate at most. Comparisons between '
+                   'groups appear only as early signs, and nobody\'s own words are published.</p>') if SV else ""
     missing_line = (f"Read on {captured}. " + (f"{' and '.join(failed)} couldn't be read this time, so {'it is' if len(failed) == 1 else 'they are'} "
                     "left out of every figure until it can be read again." if failed else "Every source was read in full."))
     method = f"""<section class="method" id="method" aria-labelledby="method-h">
@@ -475,6 +483,7 @@ def build(mode):
     {10 * k} or more cafés. <span class="ev" data-g="2"><i></i><i></i><i></i></span>Moderate: clear, but on fewer cafés, or it needs a judgement call that the finding
     explains. <span class="ev" data-g="1"><i></i><i></i><i></i></span>Weak: the range doesn't settle it.</p>
     <p class="reveal"><b>In this update.</b> {E(missing_line)}</p>
+    {survey_line}
   </div>
 </section>"""
 
@@ -492,18 +501,19 @@ def build(mode):
   <header class="ch-head reveal"><h2 id="explore-h">Find what you came for.</h2><p>Everything here, one click away. Start with the findings, or go straight to your street.</p></header>
   <ul class="best-list ex-list">{"".join(f'<li class="reveal"><a href="{u}"><span class="best-name">{E(t)}</span><span class="ex-p">{E(d)}</span><span class="best-go">Open</span></a></li>' for u, t, d in cards)}</ul>
 </section>"""
-    picks = [F[x] for x in ("attention", "platforms_rate", "delivery") if x in F]
+    picks = [F[x] for x in ("attention", "survey_word_of_mouth" if "survey_word_of_mouth" in F else "platforms_rate", "delivery") if x in F]
     teasers = f"""<section class="teasers" aria-labelledby="teasers-h">
   <h2 id="teasers-h" class="reveal">Three findings to start with.</h2>
   <div class="tz-grid">{"".join(f'<a class="tz reveal" href="insights/#f-{E(f["id"])}"><span class="tz-num">{f["value"]}<small>{E(f["unit"])}</small></span><span class="tz-head">{E(f["headline"])}</span></a>' for f in picks)}</div>
 </section>"""
 
     # ---------- insights: the findings, with a jump bar ----------
-    chapters = [("insights-attention", "Where attention goes"), ("offer", "What cafés offer"), ("day", "When they open"), ("place", "Where they gather")]
+    chapters = ([("insights-attention", "Where attention goes")] + ([("customers", "What customers say")] if SV else [])
+                + [("offer", "What cafés offer"), ("day", "When they open"), ("place", "Where they gather")])
     ins_head = f"""<section class="page-head">
   <h1 class="reveal">What the data says.</h1>
-  <p class="page-lede reveal">{len(F)} findings on {E(core)} cafés in C-Scheme and Malviya Nagar. Each is one sentence and one number,
-  with what it means for you, what it doesn't say, and how I know. Each uses the cafés that list the detail it needs, so its count is shown with it.</p>
+  <p class="page-lede reveal">{len(F)} findings on {E(core)} cafés in C-Scheme and Malviya Nagar, and on the people who choose them. Each is one
+  sentence and one number, with what it means for you, what it doesn't say, and how I know.</p>
   <nav class="jump reveal" aria-label="On this page">{"".join(f'<a href="#{a}">{E(t)}</a>' for a, t in chapters)}</nav>
 </section>"""
     ch1 = ch1.replace('id="insights"', 'id="insights-attention"').replace('aria-labelledby="insights-h"', 'aria-labelledby="insights-attention-h"').replace('id="insights-h"', 'id="insights-attention-h"')
@@ -587,7 +597,7 @@ def build(mode):
         dataset]}
     write("insights/", shell("insights/", f"What the data says about Jaipur's cafés · {site['title']}",
                              f"{len(F)} findings on {core} cafés in C-Scheme and Malviya Nagar, Jaipur: reviews, ratings, delivery, prices, menus, hours and clustering, in plain words.",
-                             "\n".join([ins_head, ch1, band, ch2, pair, sundial, ch3]), ld=ins_ld, here="Insights"))
+                             "\n".join([ins_head, ch1, ch_cust, band, ch2, pair, sundial, ch3]), ld=ins_ld, here="Insights"))
     write("your-cafe/", shell("your-cafe/", f"Compare your café with Jaipur's · {site['title']}",
                               "Set your area, type and numbers and see where your café stands among cafés in C-Scheme and Malviya Nagar, Jaipur. Computed in your browser.",
                               bench,
