@@ -648,3 +648,20 @@ figure { margin: 0; }
 .chart-narrow .c-cat { font-size: 15px; } .chart-narrow .c-tick { font-size: 13px; } .chart-narrow .c-ax { font-size: 13px; }
 .fd-chart, .pb-chart { background: var(--paper); padding: clamp(16px, 2.4vw, 28px); }
 .fd:nth-of-type(even) .fd-chart { background: var(--paper); }
+
+/* Sarthak, 28 Oct 2026: charts sit straight on the page (no card behind them, no gridlines; the zero line stays),
+   and the method panel spans the full width: the explanation on the left, the example on the right. */
+.fd-chart, .pb-chart, .fd:nth-of-type(even) .fd-chart { background: none; padding: 0; }
+.chart .c-grid { stroke: none; }
+.chart .c-grid.c-zero { stroke: var(--ink); }
+.ex-t { background: none; }
+.ex-strip, .ex-svg, .ex-grid i { background: none; }
+.ex-grid i { outline: 1px solid var(--stone-2); outline-offset: -1px; }
+.ex-strip { border-bottom: 1.5px solid var(--ink); }
+.ex-panel { max-width: none; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px clamp(32px, 5vw, 88px); align-items: start; }
+.ex-panel h3, .ex-panel .ex-say { grid-column: 1; }
+.ex-panel .ex-demo { grid-column: 2; grid-row: 1 / span 3; max-width: none; }
+.ex-demo input[type="range"], .ex-strip, .ex-axis, .ex-svg, .ex-grid { max-width: none; }
+.ex-svg { max-height: 300px; }
+@media (max-width: 900px) { .ex-panel { grid-template-columns: 1fr; } .ex-panel .ex-demo { grid-column: 1; grid-row: auto; } }
+.ex-panel[hidden] { display: none; }
