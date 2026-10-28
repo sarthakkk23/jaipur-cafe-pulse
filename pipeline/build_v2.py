@@ -450,7 +450,12 @@ def build(mode):
         ("Clustering", "The Clark-Evans test compares the distance to the nearest café with what random scatter over the same ground would give."),
         ("Gini", "From 0 to 1: how unevenly something is shared. Zero, every café has the same; one, a single café has everything."),
     ]
-    gl = "".join(f"<div><dt>{E(a)}</dt><dd>{E(b)}</dd></div>" for a, b in gloss)
+    keys = {"Median": "median", "Share": "share", "Interval": "interval", "Shuffle test": "shuffle", "Rank correlation": "rank",
+            "Like for like": "likeforlike", "Clustering": "cluster", "Gini": "gini"}
+    gl = ('<div class="explain reveal" data-explain><div class="ex-tiles">'
+          + "".join(f'<button type="button" class="ex-tile" data-demo="{keys[a]}" aria-expanded="false"><span class="ex-name">{E(a)}</span><span class="ex-go">How it works</span></button>' for a, b in gloss)
+          + "</div>" + "".join(f'<div class="ex-panel" data-for="{keys[a]}" hidden><h3>{E(a)}</h3><p class="ex-say">{E(b)}</p><div class="ex-demo"></div></div>' for a, b in gloss)
+          + "</div>")
     src_names = {"google_maps_ui": "Google Maps", "zomato": "Zomato", "swiggy": "Swiggy", "magicpin": "magicpin"}
     failed = [src_names.get(x, x) for x in meta.get("failed_sources") or []]
     survey_line = ('<p class="reveal"><b>The survey.</b> Café-goers answered a short survey I shared online. Each figure is a share of '
@@ -461,9 +466,9 @@ def build(mode):
     method = f"""<section class="method" id="method" aria-labelledby="method-h">
   <figure class="method-pic reveal">{pic("jantar-field", "(max-width: 760px) 100vw, 60vw", eager=True, prefix=P)}</figure>
   <div class="method-copy"><h1 id="method-h">The methods, in plain words.</h1>
-    <p>How the beans get counted. Three platforms describe the same café three ways. I read them on the same searches at every update, match them into one record,
+    <p>Tap a method to see how it works. How the beans get counted: three platforms describe the same café three ways. I read them on the same searches at every update, match them into one record,
     and publish only what holds for a group. These are the tools behind every figure on this site.</p></div>
-  <dl class="gloss">{gl}</dl>
+  {gl}
   <svg class="many" viewBox="0 0 1200 270" role="img" aria-label="Scattered platform listings compressed into one ordered record"
        data-listings="{listings or 0}" data-venues="{(I.get('method') or {}).get('venues', 0)}"></svg>
   <div class="method-cols method-cols-4">
@@ -608,7 +613,7 @@ def build(mode):
                              best, here="The best"))
     write("method/", shell("method/", f"How the numbers are made · {site['title']}",
                            "The statistics behind Jaipur Café Index in plain words: medians, intervals, shuffle tests, like-for-like models and clustering. Data to download.",
-                           method, here="Method"))
+                           method, here="Method", scripts=f'\n<script src="../{asset("explain.js")}" defer></script>'))
     if updates:
         write("updates/", shell("updates/", f"Free café insights on WhatsApp · {site['title']}",
                                 "Fresh findings on Jaipur's cafés, twice a month, free on WhatsApp. Short, and only when there is something new.",

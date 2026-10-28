@@ -600,3 +600,68 @@ figure { margin: 0; }
 
 /* survey findings say so before their grade */
 .fd-src { display: inline-block; font-size: 0.6875rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; margin-right: 10px; background: var(--clay); color: var(--paper); vertical-align: 1px; }
+
+/* ---------- how the methods work: tap a method, read one line, play with a small example (explain.js) ---------- */
+.explain { margin-top: clamp(40px, 5vw, 72px); }
+.ex-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 900px) { .ex-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ex-tile { font: inherit; text-align: left; border: 0; cursor: pointer; background: var(--stone); color: var(--ink); padding: 18px; min-height: 104px;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 10px; transition: background-color .2s ease; }
+.ex-name { font-size: var(--s-lead); line-height: 1.15; letter-spacing: -0.01em; }
+.ex-go { font-size: var(--s-small); color: var(--soft); }
+.ex-go::after { content: " +"; }
+.ex-tile[aria-expanded="true"] { background: var(--ink); color: var(--paper); }
+.ex-tile[aria-expanded="true"] .ex-go { color: var(--blush); } .ex-tile[aria-expanded="true"] .ex-go::after { content: " −"; }
+@media (hover: hover) and (pointer: fine) { .ex-tile:hover:not([aria-expanded="true"]) { background: var(--pink); } }
+.ex-panel { background: var(--blush); padding: clamp(20px, 3vw, 36px); margin-top: 8px; max-width: 900px; }
+.ex-panel h3 { font-size: var(--s-head); margin-bottom: 10px; }
+.ex-say { font-size: var(--s-lead); line-height: 1.3; max-width: 46ch; margin: 0 0 18px; }
+.ex-demo { display: grid; gap: 12px; max-width: 640px; }
+.ex-demo p { margin: 0; }
+.ex-bars { display: grid; gap: 6px; }
+.ex-row { display: grid; grid-template-columns: 6.5rem 1fr 3.5rem; gap: 10px; align-items: center; font-size: var(--s-small); }
+.ex-t { height: 18px; background: var(--paper); position: relative; } .ex-t i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--pink); transition: width .5s var(--ease); }
+.ex-row.hot .ex-t i { background: var(--red); } .ex-v { font-variant-numeric: tabular-nums; text-align: right; }
+.ex-out { font-size: var(--s-body); } .ex-tag { font-size: var(--s-small); color: var(--soft); }
+.ex-acts { display: flex; flex-wrap: wrap; gap: 8px; } .ex-btn { min-height: 44px; }
+.ex-grid { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; max-width: 420px; }
+.ex-grid i { aspect-ratio: 1; background: var(--paper); } .ex-grid i.on { background: var(--red); }
+.ex-demo input[type="range"] { width: 100%; max-width: 420px; accent-color: var(--red); min-height: 40px; }
+.ex-lab { display: grid; grid-template-columns: 6.5rem 1fr; align-items: center; font-size: var(--s-small); }
+.ex-strip { position: relative; height: 34px; background: var(--paper); max-width: 420px; }
+.ex-strip i { position: absolute; top: 9px; width: 8px; height: 16px; margin-left: -4px; background: var(--red); opacity: .55; }
+.ex-axis { display: flex; justify-content: space-between; max-width: 420px; font-size: var(--s-small); color: var(--soft); }
+.ex-svg { width: 100%; max-width: 420px; height: auto; background: var(--paper); } .ex-svg circle { fill: var(--red); }
+.ex-table { border-collapse: collapse; font-size: var(--s-small); } .ex-table td, .ex-table th { padding: 6px 14px 6px 0; text-align: left; }
+.ex-steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+
+/* playbook charts: the same plain bars as the findings */
+.pb-chart { margin: 14px 0 10px; max-width: 620px; }
+
+/* ---------- one chart system (figs_v2): the same frame, grid, ticks and axis titles on every chart ---------- */
+.chart .c-grid { stroke: var(--stone-2); stroke-width: 1; }
+.chart .c-zero { stroke: var(--ink); stroke-width: 1.5; }
+.chart .c-tick { font-size: 13.5px; fill: var(--soft); font-variant-numeric: lining-nums tabular-nums; }
+.chart .c-cat { font-size: 15px; fill: var(--ink); }
+.chart .c-ax { font-size: 13px; fill: var(--soft); letter-spacing: .04em; text-transform: uppercase; }
+.chart .c-title { font-size: 15px; font-weight: 600; fill: var(--ink); }
+.chart-narrow .c-cat { font-size: 15px; } .chart-narrow .c-tick { font-size: 13px; } .chart-narrow .c-ax { font-size: 13px; }
+.fd-chart, .pb-chart { background: var(--paper); padding: clamp(16px, 2.4vw, 28px); }
+.fd:nth-of-type(even) .fd-chart { background: var(--paper); }
+
+/* Sarthak, 28 Oct 2026: charts sit straight on the page (no card behind them, no gridlines; the zero line stays),
+   and the method panel spans the full width: the explanation on the left, the example on the right. */
+.fd-chart, .pb-chart, .fd:nth-of-type(even) .fd-chart { background: none; padding: 0; }
+.chart .c-grid { stroke: none; }
+.chart .c-grid.c-zero { stroke: var(--ink); }
+.ex-t { background: none; }
+.ex-strip, .ex-svg, .ex-grid i { background: none; }
+.ex-grid i { outline: 1px solid var(--stone-2); outline-offset: -1px; }
+.ex-strip { border-bottom: 1.5px solid var(--ink); }
+.ex-panel { max-width: none; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px clamp(32px, 5vw, 88px); align-items: start; }
+.ex-panel h3, .ex-panel .ex-say { grid-column: 1; }
+.ex-panel .ex-demo { grid-column: 2; grid-row: 1 / span 3; max-width: none; }
+.ex-demo input[type="range"], .ex-strip, .ex-axis, .ex-svg, .ex-grid { max-width: none; }
+.ex-svg { max-height: 300px; }
+@media (max-width: 900px) { .ex-panel { grid-template-columns: 1fr; } .ex-panel .ex-demo { grid-column: 1; grid-row: auto; } }
+.ex-panel[hidden] { display: none; }
