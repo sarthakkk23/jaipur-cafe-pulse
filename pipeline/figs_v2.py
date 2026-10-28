@@ -182,3 +182,31 @@ def chart(f, width=600):
     if c["kind"] == "mix":
         return mix(c["rows"], lab)
     return ""
+
+
+def tbars(rows, label, hot=(0,), note=""):
+    """Horizontal bars whose value labels are given as text (₹52, 84 tables): rows are (label, value, text)."""
+    row = 40
+    top = 34 if note else 0
+    h = row * len(rows) + 10 + top
+    mx = max(abs(v) for _, v, _ in rows) or 1
+    L = 220 if W >= 600 else 150
+    out = [f'<text x="0" y="18" class="c-soft">{E(note)}</text>'] if note else []
+    for i, (lab, v, t) in enumerate(rows):
+        y = 6 + top + i * row
+        w = (W - L - 90) * abs(v) / mx
+        out.append(f'<text x="0" y="{y + 21}">{E(lab)}</text>'
+                   f'<rect class="grow" x="{L}" y="{y + 6}" width="{max(w, 2):.1f}" height="22" fill="var({"--red" if i in hot else "--pink"})"/>'
+                   f'<text x="{L + w + 8:.1f}" y="{y + 23}" class="c-strong">{E(t)}</text>')
+    return _svg(h, label, "".join(out))
+
+
+def both(fn, *a, **k):
+    """The same chart at desktop and phone width; the stylesheet shows one."""
+    global W
+    W = 600
+    wide = fn(*a, **k)
+    W = 400
+    narrow = fn(*a, **k)
+    W = 600
+    return f'<figure class="pb-chart reveal">{wide}{narrow}</figure>'
