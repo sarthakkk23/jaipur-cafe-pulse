@@ -280,7 +280,7 @@ def pages(I, F, L, k, core, pre):
         ("x", "List last month's sales by item", "<p>From the billing system: how many of each item sold, its price, and what its ingredients cost. "
               "The figures below are invented to show the method. Run it on your own sales.</p>"
               + figs.both(figs.tbars, [(nm, n, f"{n} sold") for nm, n, _, _ in sorted(items, key=lambda i: -i[1])], "Items by sales last month",
-                          hot=(0,), note="Sold last month (invented sales)")
+                          hot=(0,), note="Example: what each item sold last month", x_title="Items sold last month", y_title="Menu item")
               + table(["Item", "Box", "Sold", "Share", "Price", "Ingredients", "Kept per item"], rows)
               + "<p class=\"calc-note\">The Box column is explained in the next step.</p>"),
         ("a", "Sort every item into one of four boxes", f"<p>This is menu engineering, a method restaurants have used since the 1980s. Ask two questions of each item:</p>"
@@ -354,7 +354,7 @@ def pages(I, F, L, k, core, pre):
         ("a", "How many coffees pay for the hours", f"<p>₹{inr(cost)} ÷ ₹{keep:.2f} = {cost / keep:.1f}. So <b>{need} coffees in two hours</b> covers everything. "
               "Here's how the answer moves with your costs and price:</p>"
               + figs.both(figs.tbars, [(f"₹{pr} coffee", math.ceil(cost / early_keep(pr, away)), f"{math.ceil(cost / early_keep(pr, away))} coffees") for pr in (130, 150, 180)],
-                          "Coffees that pay for two extra hours", hot=(1,), note=f"Coffees needed in two hours to cover ₹{inr(cost)}")
+                          "Coffees that pay for two extra hours", hot=(1,), note=f"Coffees that pay for two extra hours (₹{inr(cost)})", x_title="Coffees in two hours", y_title="Coffee price")
               + table(["Coffee price", f"Costs ₹{inr(cost)}", f"₹{inr(cost * 1.5)}", f"₹{inr(cost * 2)}"], grid_rows)),
         ("j", "Is that many realistic?", "<p>"
               + (f"With {d['office']} offices and banks and {d.get('gym', 0)} gyms within five minutes, {need} coffees is fewer than one for every office. " if d.get("office", 0) > need else "")
@@ -422,7 +422,7 @@ def pages(I, F, L, k, core, pre):
         ("x", "Where the café stands", f"<p>Say the café has {start} reviews, rated {avg}. The typical café in Malviya Nagar has {target}: that part is measured. The gap is <b>{gap} reviews</b>.</p>"),
         ("a", "Why a few reviews are fragile", "<p>Here is what one unhappy one-star review does to a 4.9, depending on how many reviews stand behind it:</p>"
               + figs.both(figs.tbars, [(f"{n} reviews", avg - x, f"−{avg - x:.2f} stars") for n, x in hits], "Stars lost to one 1-star review",
-                          hot=(0,), note=f"What one 1-star review takes off a {avg}")
+                          hot=(0,), note=f"What one 1-star review takes off a {avg}", x_title="Stars lost", y_title="Reviews before")
               + table(["Reviews before", "Average after one 1-star", "As Google shows it"], [[f"{n}", f"{x:.2f}", f"<b>{r1(x)}</b>"] for n, x in hits])
               + (lambda a, b: f"<p>At {start} reviews, one bad day costs you {a / 10:.1f} stars. At {target}, only {b / 10:.1f}. "
                  "Volume is what makes a rating hard to knock over.</p>")(round(10 * (avg - float(r1(hits[0][1])))), round(10 * (avg - float(r1((avg * target + 1) / (target + 1))))))),
@@ -481,7 +481,7 @@ def pages(I, F, L, k, core, pre):
         ("e", "What the cold coffee costs to make", f"<p>{DOSE_G} g of coffee at ₹{inr(BEANS_KG)} a kilo (₹{coffee:.2f}), {COLD_MILK_ML} ml of milk at ₹{MILK_L} a litre (₹{COLD_MILK_ML * MILK_L / 1000:.2f}), and ₹3 of sugar and ice: "
               f"<b>₹{cold}</b>, rounded up. That's at the retail coffee price, so it's on the high side. A cold coffee travels well, which makes it a fair test of delivery.</p>"),
         ("a", "Side by side", figs.both(figs.tbars, [("At a table", keep_tab, f"₹{inr(keep_tab)}"), ("On the app", keep_app, f"₹{inr(keep_app)}")],
-                                        f"What a ₹{price} cold coffee keeps", hot=(1,), note=f"What a ₹{price} cold coffee keeps")
+                                        f"What a ₹{price} cold coffee keeps", hot=(1,), note=f"What a ₹{price} cold coffee keeps", x_title="Kept per cold coffee (₹)", y_title="Sold")
               + table(["", "At a table", "On the app"], [
             ["Menu price", f"₹{price}", f"₹{price}"],
             [f"Commission, {com}%", "–", f"−₹{fee:.2f}"],
@@ -548,7 +548,7 @@ def pages(I, F, L, k, core, pre):
               + f"<p>After the rise you can sell <b>{100 - need_cups} fewer cups in every 100</b> and keep the same money. That's your safety margin.</p>"),
         ("a", "The same sum at other prices", "<p>The cheaper the item, the more sales a ₹20 rise can afford to lose:</p>"
               + figs.both(figs.tbars, [(f"₹{o} → ₹{o + 20}", 100 - math.ceil(100 * (o - ing) / (o + 20 - ing)), f"{100 - math.ceil(100 * (o - ing) / (o + 20 - ing))} of 100") for o in (140, 160, 200, 240)],
-                          "Sales a ₹20 rise can lose", hot=(1,), note="Sales you can lose in every 100 and keep the same money")
+                          "Sales a ₹20 rise can lose", hot=(1,), note="Sales a ₹20 rise can lose and still earn the same", x_title="Sales you can lose, of every 100", y_title="Price rise")
               + table(["Price", "Kept per cup", "Sales you can lose, of 100"], rise_rows)),
         ("m", "Will it cost you stars?", "<p>"
               + (f"Probably not. Across {rated or f['n']} cafés, price shows no link to Google rating" + (f" (rank correlation {rho}; zero means no link)" if rho else "") + ": "
@@ -592,7 +592,7 @@ def pages(I, F, L, k, core, pre):
     steps += [
         ("a", "What a seat brings in an hour", figs.both(figs.tbars, ([("Lunch guest", per, f"₹{inr(per)}"), ("Lunch guest, slow", per / 1.5, f"₹{inr(per / 1.5)}")] if per else [])
                           + [("Work pass guest", pass_price / 3, f"₹{pass_price // 3}"), ("Laptop guest, one coffee", camp, f"₹{camp:.0f}"), ("Nobody", 0, "₹0")],
-                          "What a seat brings in an hour", hot=(3,) if per else (1,), note="Sales a seat brings in an hour")
+                          "What a seat brings in an hour", hot=(3,) if per else (1,), note="What a seat brings in an hour", x_title="Sales an hour (₹)", y_title="Who is in the seat")
               + table(["Who is in the seat", "Spends", "Stays", "Brings in per hour"],
             [["Laptop guest, one coffee", "₹180", "3 hours", f"<b>₹{camp:.0f}</b>"]]
             + ([["Lunch guest", f"₹{inr(per)}", "1 hour", f"<b>₹{inr(per)}</b>"], ["Lunch guest, slow", f"₹{inr(per)}", "1½ hours", f"<b>₹{inr(per / 1.5)}</b>"]] if per else [])
@@ -649,7 +649,7 @@ def pages(I, F, L, k, core, pre):
         (n1, _, _, b1, o1, c1, k1), (n2, _, _, b2, o2, c2, k2) = comp
         steps += [
             ("a", "Turn it into tables", figs.both(figs.tbars, [(n1, k1, f"{k1} tables"), (n2, k2, f"{k2} tables")], "Tables a day to pay the same rent",
-                          hot=(1,), note=f"Tables a day to pay ₹{inr(rent)} a month")
+                          hot=(1,), note=f"Tables a day to pay ₹{inr(rent)} a month", x_title="Tables a day", y_title="Street")
                   + table(["Spot", "A table of two spends", "Tables a day to pay the rent"],
                   [[E(n1), f"₹{inr(b1)}", f"<b>{k1}</b>"], [E(n2), f"₹{inr(b2)}", f"<b>{k2}</b>"]])
                   + f"<p>The same rent needs <b>{k2 / k1:.1f} times as many tables</b> at {E(n2)} as at {E(n1)}, because a table there typically spends less. "

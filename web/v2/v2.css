@@ -637,3 +637,14 @@ figure { margin: 0; }
 
 /* playbook charts: the same plain bars as the findings */
 .pb-chart { margin: 14px 0 10px; max-width: 620px; }
+
+/* ---------- one chart system (figs_v2): the same frame, grid, ticks and axis titles on every chart ---------- */
+.chart .c-grid { stroke: var(--stone-2); stroke-width: 1; }
+.chart .c-zero { stroke: var(--ink); stroke-width: 1.5; }
+.chart .c-tick { font-size: 13.5px; fill: var(--soft); font-variant-numeric: lining-nums tabular-nums; }
+.chart .c-cat { font-size: 15px; fill: var(--ink); }
+.chart .c-ax { font-size: 13px; fill: var(--soft); letter-spacing: .04em; text-transform: uppercase; }
+.chart .c-title { font-size: 15px; font-weight: 600; fill: var(--ink); }
+.chart-narrow .c-cat { font-size: 15px; } .chart-narrow .c-tick { font-size: 13px; } .chart-narrow .c-ax { font-size: 13px; }
+.fd-chart, .pb-chart { background: var(--paper); padding: clamp(16px, 2.4vw, 28px); }
+.fd:nth-of-type(even) .fd-chart { background: var(--paper); }
